@@ -1,0 +1,48 @@
+{
+	"bot": {
+		"token":"TELEGRAM:TOKEN",
+		"username" : "extc_bot"
+	},
+	"redis": {
+		"path" :  "/path/to/socket/or/remove/key",
+		"address" : "127.0.0.1",
+		"port" : 6379,
+		"db" : 5,
+		"keepalive" : true,
+		"auth" : false,
+        "prefix":"xtc"
+	},
+	"admin" : {
+		"users" : [],
+		"actions" : []
+	},
+	"rpc" : {
+		"interval" : 100,
+		"timeout" : 1000,
+		"dir" : "/path/to/save/wallet/file",
+		"servers" : [
+			{
+				"address":"127.0.0.1",
+				"port":"8081"
+			}
+		]
+	},
+	"daemon" : {
+		"timeout" : 500,
+		"host":"127.0.0.1",
+		"port":"8081"
+	},
+	"log": {
+        "files": {
+            "enabled" : false,
+            "level" : "error",
+            "directory" : "logs",
+            "flushInterval" : 5
+        },
+        "console"  : {
+            "enabled" : true,
+            "level" : "info",
+            "colors" : true
+        }
+    }
+}
