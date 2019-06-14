@@ -3,6 +3,7 @@
 		"token":"TELEGRAM:TOKEN",
 		"username" : "extc_bot"
 	},
+	admins:[],
 	"redis": {
 		"path" :  "/path/to/socket/or/remove/key",
 		"address" : "127.0.0.1",
@@ -11,10 +12,6 @@
 		"keepalive" : true,
 		"auth" : false,
         "prefix":"xtc"
-	},
-	"admin" : {
-		"users" : [],
-		"actions" : []
 	},
 	"rpc" : {
 		"interval" : 100,

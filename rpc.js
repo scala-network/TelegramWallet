@@ -1,148 +1,184 @@
-const path = require('path');
-const fs = require('fs');
+/**
+ * RPC Script
+ * Running rpc events directy to daemon. 
+ * Telegram SDK does not directly communicate with
+ * daemon.
+ * @module RPC
+ */
 
-const configFile =  path.join(__dirname,'config.json');
-const logSystem = 'event';
-const cluster = require('cluster');
 
-require('./src/log');
+ const path = require('path');
+ const fs = require('fs');
+ const async = require('async');
 
-const redis = require('redis');
+ const configFile =  path.join(__dirname,'config.json');
+ const logSystem = 'rpc';
 
-try {
+ try {
     const rfs = fs.readFileSync(configFile);
     global.config = JSON.parse(rfs);
+
 } catch(e){
     console.error('Failed to read config file ' + configFile + '\n\n' + e);
     process.exit();
 }
 
-const redisConfig = {
-    db: global.config.redis.hasOwnProperty('db') ? global.config.redis.db : 0,
-    socket_keepalive:global.config.redis.hasOwnProperty('keepalive')?global.config.redis.keepalive:true,
-    retry_strategy: function (options) {
-        if (options.error && options.error.code === 'ECONNREFUSED') {
-            // End reconnecting on a specific error and flush all commands with
-            // a individual error
-            log('error', logSystem,'The server refused the connection');
+require('./src/log');
+require('./src/interfaces/redis');
+
+
+const rpcRequest = require("./src/interfaces/request");
+let currentHeight = 0;
+
+async.forever(function(next) {
+    rpcRequest.post(global.config.daemon,'get_info', {}, (err,res) => {
+        if(err) {
+            log('error',logSystem,"Error on daemon get_info : %j", [err]);
+            setTimeout(next, global.config.daemon.timeout);
             return;
         }
-        if (options.total_retry_time > 1000 * 60 * 60) {
-            // End reconnecting after a specific timeout and flush all commands
-            // with a individual error
-            return new Error('Retry time exhausted');
-        }
-        if (options.attempt > 10) {
-            // End reconnecting with built in error
-            return undefined;
-        }
-        // reconnect after
-        return Math.min(options.attempt * 100, 3000);
-    },
-    auth_pass:global.config.redis.hasOwnProperty('auth')?global.config.redis.auth:null
-};
 
-if(global.config.redis.hasOwnProperty('path')) {
-    redisConfig.path = global.config.redis.path;     
-} else {
-    redisConfig.address = global.config.redis.address;
-    redisConfig.port = global.config.redis.port;
-}
+        if(currentHeight === res.result.height) {
+            setTimeout(next, global.config.daemon.timeout);
+            return;
+        }
 
-global.redisClient = redis.createClient(config);
-    
-redisClient.on('error', function (err) {
-    log('error',logSystem, "Error on redis with code : %j",[err]);
+        currentHeight = res.result.height;
+
+        log('info',logSystem, "New height detected %s", [currentHeight]);
+
+        redisClient.set([global.config.redis.prefix,'daemon','height'].join(':'), currentHeight, () => {
+            // it will result in this function being called again.
+            setTimeout(next, global.config.daemon.timeout);
+        });
+    });
 });
 
-if (cluster.isMaster) {
-
-    const workers = [];
-
-    const key = [global.config.redis.prefix,"RPC","*"].join(':');
-    redisClient.keys(key,(err,data) => {
-        for(let i = 0; i < data.length; i++) {
-            redisClient.del(data[i]);
-        }
-    })
-            
-    const env = {workerType:'daemon'},
-    const worker = cluster.fork(env);
-    worker.process.env = env;
-
-    for (var i = 0; i < global.config.rpc.servers.length; i++) {
-        setTimeout(function() {
-            
-            const env = {workerId: workers.length + 1, detail: global.config.rpc.servers[workers.length],workerType:'rpc'},
-            const worker = cluster.fork(env);
-            worker.process.env = env;
-            workers.push(worker);
-
-        }, global.config.rpc.interval * i);
-    }
-
-
-    cluster.on('exit', function(worker, code, signal) {
-        log('warning',logSystem,'Worker ' + worker.process.pid + ' died with code: ' + code + ', and signal: ' + signal);
-        const env = worker.process.env,
-        const newWorker = cluster.fork(env);
-        newWorker.process.env = env;
-    });
-
-
+const noOfRpcServers = global.config.rpc.servers.length;
+if(noOfRpcServers === 0 || global.config.rpc.enable === false) {
     return;
 }
-const workerType = process.env.workerType;
-switch(workerType) {
-    case 'daemon':
-        const httpRequest = require("./src/interfaces/request");
-        httpRequest.setup();
-    break;
-    case 'rpc':
-        let RPC = require("./src/handler");
 
-        const qKey = [global.config.redis.prefix,"Queue"].join(':');
+let RPC = require("./src/handlers/rpc");
+let Queue = require("./src/handlers/queue");
+const eventCache = {};
 
-        const rpcHandler = new RPC(process.env.detail);
+async.each(global.config.rpc.servers,function(server,eachCallback) {
 
-        const main = () => {
+    const rpc = new RPC(server);
 
-            if(rpcHandler.status === 1) {
-                setTimeout(main, global.config.rpc.timeout);
+    async.forever(function(next) {
+
+        const onPop = function(onper, context) {
+
+            if(onper) {
+                setTimeout(next, global.config.rpc.timeout);
                 return;
             }
 
-            redisClient.lpop(qKey, (er,data) => {
+            log('info',logSystem, "Queue popped from : " + context.from.username);
+                    
+            const key = [global.config.redis.prefix,"Users", context.from.id].join(':');
+            global.redisClient.hget(key,'status',(err, status) => {
 
-                if(er || !data) {
-                    if(data) {
-                        redisClient.rpush(qKey,data);
-                    }
-                    setTimeout(main, global.config.rpc.timeout);
-                    return;
+                if(err) {
+                    Queue.push(context, (err) => {
+                        log('error',logSystem, "Checking wallet status error %j", [err]);
+                        setTimeout(next, global.config.rpc.timeout);
+                   });   
+                    return;   
+                }  
+                if(status == 1) {
+                    Queue.push(context, (err) => {
+                        log('error',logSystem, "User wallet is in process");
+                        setTimeout(next, global.config.rpc.timeout);
+                   });   
+                    return;   
                 }
 
-                const o = JSON.parse(data);
-                const key = [global.config.redis.prefix,"Users",o.ctx.from.id].join(':');
-                global.redisClient.hget(key,'status',(e,r) => {
-                    if(e || r == 1) {
-                        redisClient.rpush(qKey,data,(ee,rr) => {
-                            setTimeout(main, global.config.rpc.timeout);
-                        });   
-                        return;   
-                    }
-                    global.redisClient.hset(key,'status',1);
-                    rpcHandler.execute(o,(error,response,request) => {
-                         setTimeout(main, global.config.rpc.timeout);
-                    });
-                });
+                rpc.context = context;
+
+                async.waterfall([
+                    function(callback) {
+                       global.redisClient.hset(key,'status', 1, function(error) {
+                            if(error) {
+                                Queue.push(context,(err) => {
+                                   callback(err || error || "Flaggin wallet error");
+                               });   
+                                return;   
+                            }
+
+                            callback(null);
+                        });
+                    },
+                    function(callback) {
+                       const action = context.request.action;
+
+                        if(!eventCache.hasOwnProperty(action)) {
+                            const fileLoc = path.join(__dirname,'src','events', action + '.js');
+                            if(!fs.existsSync(fileLoc)){
+                                callback("Invalid event for rpc action " + action + 'at path :' + fileLoc);
+                            }
+
+                            eventCache[action] = require('./src/events/' +action);
+                            return;
+                        }
+
+                        if(!eventCache[action].hasOwnProperty('subscribe')){
+                            callback("Invalid event subscribe request for rpc action " + action);
+                            return;
+                        }
+
+                        eventCache[context.request.action].subscribe(rpc, callback);
+                    }],
+                    function(error) {
+                        if(error) {
+                            if(typeof error == 'string') {
+                                log('error',logSystem, "Error RPC : %s", [error]);
+                            } else {
+                               log('error',logSystem, "Error RPC : %j", [error]);
+                            } 
+                       }
+
+                       async.series([
+                            function(callback) {
+                                rpc.wallet.close((error) => {
+                                    callback(null,error);
+                                });
+                            },
+                            function(callback) {
+                                redisClient.hset(key, 'status',0, (error) => {
+                                     callback(null,error);
+                                });
+                            }
+                        ],
+                        function(serror, results) {
+                            if(serror) {
+                                log('error',logSystem, "After RPC Error : %j", [serror]);
+                            }
+                            for(var i in results) {
+                                var e = results[i];
+                                if(!e) {
+                                    continue;
+                                }
+
+                                log('error',logSystem, "After RPC Error : %j", [e]);
+                            }
+                            setTimeout(next, global.config.rpc.timeout);
+                        });
+
+                     }
+                );
             });
+            
         }
 
-        main();
-    break;
-    default:
-    require(global.app.src + '/modules/' + process.env.workerType);
-    break;  
-}
 
+        try{
+           Queue.pop(onPop);
+        } catch(e) {
+            setTimeout(next, global.config.rpc.timeout);
+        }
+
+    });
+});	

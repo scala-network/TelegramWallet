@@ -1,60 +1,103 @@
+const Request = require('../interfaces/request');
+const async = require("async");
+const path = require('path');
+const fs = require('fs');
 
+const logSystem = "handlers/rpc";
 
-
-module.exports = (rpc) => {
+module.exports = function (rpc) {
 	const self = this;
 	self.idx=-1;
 	self.file=null;
-	self.height=null;
+	self.height=0;
 	self.balance=null;
 	self.last_updated=null;
 	self.address=null;
-	let _rpc = null;
+	let _rpc = rpc;
 
 	let daemonHeight = 0;
+	self.store = function(callback, clear) {
 
-   self.close = (cb) => {
-		const cw = httpRequest.setup(_rpc.details,'close_wallet');
-	    httpRequest.post(cw)
-	    .finally(() => {
-			self.idx = -1;
-			self.file = null;
-			self.address = null;
-			self.height = null;
-			self.balance = null;
-			_rpc.status = 0;
+		const key = [global.config.redis.prefix, 'Wallets',_rpc.context.from.id].join(':');
+		const data = {
+			file:self.file,
+			height:self.height,
+			balance:self.balance,
+			address:self.address,
+			last_updated: self.last_updated
+		};
 
-			const key = [global.config.redis.prefix,"Users",_rpc.context.from.id].join(':');
-			global.redisClient.hset(key,'status',0);
-	};
+		const jsonData = JSON.stringify(data);
 
-	self.setRpc = (rpc) => {
-		if(_rpc) {
-			self.close(() => {
-				_rpc = rpc;
-				_rpc.status = 1;
+		if(self.idx >= 0) {
+
+			redisClient.lset(key, self.idx, jsonData,(error) => {
+				
+				if(clear === true) {
+					self.idx = -1;
+					self.file = null;
+					self.address = null;
+					self.height = 0;
+					self.balance = null;
+				}
+
+				callback(error);
 			});
-		} else {
-			_rpc = rpc;
-			_rpc.status = 1;
+
+			return;
 		}
+
+		redisClient.lpush(key, jsonData,(error) => {
+			
+			if(clear === true) {
+				self.idx = -1;
+				self.file = null;
+				self.address = null;
+				self.height = 0;
+				self.balance = null;
+			}
+			
+			callback(error);
+
+		});
+	},
+	self.close = function(callback){
+
+		if(self.file == null){
+			callback(null);
+			return;
+		}
+
+		log("info",logSystem,"Wallet is closing for %s", [self.file]);
+
+		Request.post(_rpc.details,'close_wallet', {}, (error,data) => {
+			log("info",logSystem,"Wallet is closed for %s", [self.file]);
+
+			if(error) {
+				callback(error);
+				return;
+			}
+
+			self.store(callback,true);
+
+		});
 	};
 
-
-	self.getWalletAtIdx = (idx, cb) => {
+	self.setWalletAtIdx = (idx, cb) => {
 
 		if (idx == -1) {
-			cb(true);
+			cb("Unable to get index for wallet");
 			return false;
 		}
 
 		self.idx = idx;
-		const keygen = [global.config.redis.prefix, 'Wallets',_rpc.context.from.id].join(':');
-		redisClient.lindex(keygen, self.idx,(er, re) => {
+		const key = [global.config.redis.prefix, 'Wallets',_rpc.context.from.id].join(':');
+		redisClient.lindex(key, idx,(er, re) => {
 			if(er) {
 				cb(er);
 				return;
 			}
+
 			const jsonData = JSON.parse(re);
 			self.file = jsonData.file;
 			self.height = jsonData.height;
@@ -62,119 +105,172 @@ module.exports = (rpc) => {
 			self.balance = jsonData.balance;
 			self.last_updated = jsonData.last_updated;
 
-			self.reSync(cb);
+			cb(null);
 		});
-    };
+	};
+	self.open = (callback) => {
 
-	self.setWalletFile = (filename,cb) => {
-    	if((self.file !== null && self.file !== filename ) ||  _rpc.status === 1){
-    		cb(true);
-    		return;
-    	}
+		if(self.file === null){
+			callback("No wallet file set");
+			return;
+		}
+		const ff = path.join(global.config.rpc.dir,self.file);
+		if(!fs.exists(ff)) {
+			callback("No wallet file exists");
+			return;
+		}
 
-		const req = httpRequest.setup(_rpc.details,'open_wallet', {
-			filename:filename,
-			language:"English"
+		Request.post(_rpc.details,'open_wallet', {
+			filename:self.file,
+		}, (e,d)=> {
+			if(e) {
+				callback(e);
+				return;
+			}
+
+			callback(null);
 		});
+	};
 
-		httpRequest.post(req).then(res => {
-        	cb(null, res, req);
-        }).catch(err => {
-			cb(err, null, req);
-        }).finally(()=>{
-        	self.file = filename;
-        });
-    };
-
-    self.getWalletAddress = (cb) => {
-    	if(self.address !== null) {
-    		cb(self.address);
-    		return;
-    	}
-
-    	const wa = httpRequest.setup(_rpc.details,'get_address', {account_index:0,address_index:[0]},);
-        httpRequest.post(wa).then(response => {
-        	self.address = response.results.address;
-        	cb(self.address);
-        });
-    }
+	self.getAddress = (callback) => {
 
 
-    self.getWalletBalance = (cb) => {
-    	if(self.balance !== null) {
-    		cb(self.balance);
-    		return;
-    	}
+		Request.post(_rpc.details,'get_address', {account_index:0,address_index:[0]},(error,response) => {
+			if(error) {
+				callback(error);
+				return;
+			}
 
-		const wb = httpRequest.setup(_rpc.details,'get_balance', {account_index:0,address_index:[0]});
+			self.address = response.result.address;
+			const now = new Date();
+			self.last_updated = now.getTime();
+			callback(null,self.address);
+		});
+	}
 
-		httpRequest.post(wb).then(response => {
-        	self.balance = response.result.balance;
-        	cb(self.balance);
-        });
-    };
 
-    self.reSync = (cb) => {
+	self.getBalance = (callback) => {
+		Request.post(_rpc.details,'get_balance', {account_index:0,address_index:[0]},(error,response) => {
+			if(error) {
+				callback(error);
+				return;
+			}
+
+			const now = new Date();
+			self.last_updated = now.getTime();
+			self.balance = response.result.balance;
+			callback(null,self.balance);
+		});
+	};
+
+	self.getHeight = (callback) => {
+		Request.post(_rpc.details,'get_height',{},(error,response) => {
+			if(error) {
+				cb(error);
+				return;
+			}
+			const now = new Date();
+			self.last_updated = now.getTime();
+			self.height = response.result.height;
+			callback(null,self.height);
+		});
+	};
+
+	self.reSync = (cb) => {
+
+
 		const now = new Date();
-        const m1b = new Date(now.getTime() - minutes*60000);
+		const m1b = new Date(now.getTime() - 1*60000);
 
-        if(	
-        	self.last_updated >= m1b || 
-        	(self.height !== null && daemonHeight !== 0 && self.height >= daemonHeight)
-        ) { 
-        	cb(false);
-        	return;
-        }
+		if(	self.height > 0 && daemonHeight > 0 && self.height >= daemonHeight ) { 
+			log("info",logSystem,"Wallet already at sync at %s / %s for %s", [self.height, daemonHeight, self.file]);
+			cb(null);
+			return;
+		}
+
+		log("info",logSystem,"Wallet starts syncing at %s / %s for %s", [self.height, daemonHeight, self.file]);
 		//expired
-    	const p = httpRequest.setup(_rpc.details,'get_height');
-     	httpRequest.post(p).then(res => {
-     		redisClient.get([global.config.redis.prefix, 'daemon','height'].join(':'),(e,r) => {
+		async.waterfall([
+			function(callback) {
+				redisClient.get([global.config.redis.prefix, 'daemon','height'].join(':'),(e,daemon_height) => {
+					if(e) {
+						callback(e);
+						return;
+					}
 
-    			const lu = self.last_updated = now.getTime();
-				daemonHeight = parseInt(r);
-				const wh = self.height = parseInt(res.results.height);
-        		if(self.height < daemonHeight) {
-            		setTimeout(() => { self.reSync(cb);},global.config.rpc.interval);
-            		return;
-                } 
-            
-				self.balance = null;
-
-				self.getWalletAddress((wa) => {
-					self.getWalletBalance((wb) => {
-						const keygen = [global.config.redis.prefix, 'Wallets',_rpc.context.from.id].join(':');
-						if(self.idx >= 0) {
-							redisClient.lset(keygen, self.idx, JSON.stringify({
-								file:self.file,
-								height:wh,
-								balance:wb,
-								address:wa,
-								last_updated: lu
-							}),(er, re) => {
-								cb(er);
-							});
-						} else {
-							redisClient.lpush(keygen, JSON.stringify({
-								file:self.file,
-								height:wh,
-								balance:wb,
-								address:wa,
-								last_updated: lu
-							}),(er, re) => {
-								cb(er);
-								if(re) {
-									self.idx = parseInt(re);
-								}
-							});
-						}
-
-					});
+					callback(null,daemon_height);
 				});
-        	});
-     	});
-    }
+			},
+			function(daemon_height,callback) {
+				daemonHeight = daemon_height;
 
-	self.setRpc(rpc);
+				async.whilst(
+					function test(next) {
+						next(null, daemon_height > self.height);
+					},
+					function iter(next) {
 
-    return self;
+						setTimeout(() => { 
+							self.getHeight((error, wallet_height) => {
+			
+								if(error) {
+									log("error",logSystem,"Wallet height at %s / %s for %s with error : ", [self.height, daemonHeight, self.file, err]);
+									next(error);
+									return;
+								}
+
+								log("info",logSystem,"Wallet height %s / %s for %s", [wallet_height, daemon_height, self.file]);
+
+								next(null);
+							});
+						},global.config.rpc.interval);
+
+				}, function done (error) {
+					if(error) {
+						log("error",logSystem,"Wallet stop syncing at %s / %s for %s with error : ", [self.height, daemonHeight, self.file, err]);
+						callback(err);
+						return;
+					}
+
+					log("info",logSystem,"Wallet stop syncing at %s / %s for %s", [self.height, daemonHeight, self.file]);
+
+					callback(null);
+				});
+			},
+			function(callback) {
+
+				self.getAddress(function(error,address) {
+					if(error){
+						callback(error);
+						return;
+					}
+					callback(null);
+				});
+			},
+			function(callback) {
+
+				self.getBalance(function(error,balance) {
+					if(error){
+						callback(error);
+						return;
+					}
+					callback(null);
+				});
+			},
+			function (callback) {
+				self.store(function(error) {
+					if(error){
+						callback(error);
+						return;
+					}
+					callback(null);
+				});
+			}
+			],(error) => {
+				cb(error);
+			});
+	};
+
+
+	return self;
 }
