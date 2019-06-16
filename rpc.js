@@ -59,19 +59,20 @@ if(noOfRpcServers === 0 || global.config.rpc.enable === false) {
     return;
 }
 
-let RPC = require("./src/handlers/rpc");
-let Queue = require("./src/handlers/queue");
+const Events = require("./src/registries/events");
+const Wallet = require('./src/interfaces/wallet');
+const Queue = require("./src/handlers/queue");
 const eventCache = {};
 
 async.each(global.config.rpc.servers,function(server,eachCallback) {
 
-    const rpc = new RPC(server);
+    const wallet = new Wallet(server);
 
     async.forever(function(next) {
 
-        const onPop = function(onper, context) {
+        const onPop = function(on_pop_error, context) {
 
-            if(onper) {
+            if(on_pop_error) {
                 setTimeout(next, global.config.rpc.timeout);
                 return;
             }
@@ -88,6 +89,7 @@ async.each(global.config.rpc.servers,function(server,eachCallback) {
                    });   
                     return;   
                 }  
+
                 if(status == 1) {
                     Queue.push(context, (err) => {
                         log('error',logSystem, "User wallet is in process");
@@ -95,8 +97,6 @@ async.each(global.config.rpc.servers,function(server,eachCallback) {
                    });   
                     return;   
                 }
-
-                rpc.context = context;
 
                 async.waterfall([
                     function(callback) {
@@ -112,37 +112,20 @@ async.each(global.config.rpc.servers,function(server,eachCallback) {
                         });
                     },
                     function(callback) {
-                       const action = context.request.action;
-
-                        if(!eventCache.hasOwnProperty(action)) {
-                            const fileLoc = path.join(__dirname,'src','events', action + '.js');
-                            if(!fs.existsSync(fileLoc)){
-                                callback("Invalid event for rpc action " + action + 'at path :' + fileLoc);
-                            }
-
-                            eventCache[action] = require('./src/events/' +action);
-                            return;
-                        }
-
-                        if(!eventCache[action].hasOwnProperty('subscribe')){
-                            callback("Invalid event subscribe request for rpc action " + action);
-                            return;
-                        }
-
-                        eventCache[context.request.action].subscribe(rpc, callback);
+                        Events(context,callback);
                     }],
                     function(error) {
                         if(error) {
                             if(typeof error == 'string') {
-                                log('error',logSystem, "Error RPC : %s", [error]);
+                                log('error',logSystem, "Error RPC Events : %s", [error]);
                             } else {
-                               log('error',logSystem, "Error RPC : %j", [error]);
+                               log('error',logSystem, "Error RPC Events : %j", [error]);
                             } 
                        }
 
                        async.series([
                             function(callback) {
-                                rpc.wallet.close((error) => {
+                                wallet.close((error) => {
                                     callback(null,error);
                                 });
                             },
@@ -154,7 +137,7 @@ async.each(global.config.rpc.servers,function(server,eachCallback) {
                         ],
                         function(serror, results) {
                             if(serror) {
-                                log('error',logSystem, "After RPC Error : %j", [serror]);
+                                log('error',logSystem, "After RPC Events Error : %j", [serror]);
                             }
                             for(var i in results) {
                                 var e = results[i];
@@ -162,7 +145,7 @@ async.each(global.config.rpc.servers,function(server,eachCallback) {
                                     continue;
                                 }
 
-                                log('error',logSystem, "After RPC Error : %j", [e]);
+                                log('error',logSystem, "After RPC Events Error : %j", [e]);
                             }
                             setTimeout(next, global.config.rpc.timeout);
                         });

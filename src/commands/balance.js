@@ -1,5 +1,5 @@
 /**
- * A Telegram Command. Height basically returns daemon height.
+ * A Telegram Command. Balance basically returns daemon height.
  * To return current daemon height do /height
  * @module Commands/height
  */
@@ -7,6 +7,16 @@
 const logSystem = "cmd/balance";
 
 module.exports = {
+    getSummary:function() {
+        return  "Returns wallet(s) balance ";
+    },
+    getDescription:function() {
+        return "\
+ 	Balance basically return all wallet(s) balance.\n\
+	/balance for spesific wallet /balance <index>\n\
+	@module Commands/height\n\
+";
+    },
 	enabled: true,
 	run: (ctx,callback) => {
 
@@ -28,24 +38,30 @@ module.exports = {
 
 			let output = "Wallets balance:\n";
 			const jsonDetails = results[1];
+
 			let totalBalance = 0;
-			for(var i in jsonDetails) {
+			if(jsonDetails) {
+				for(var i in jsonDetails) {
 
-				const ObjectDetail = JSON.parse(jsonDetails[i]);
-				output += '['+i+']';
-				
-				output +=' : ' + ObjectDetail.balance;
+					const ObjectDetail = JSON.parse(jsonDetails[i]);
+					output += '['+i+']';
+					
+					output +=' : ' + ObjectDetail.balance;
 
-				if((results[0] === null && i == 0) || results[0] === i) {
-					output += ' [s]';
+					if((results[0] === null && i == 0) || results[0] === i) {
+						output += ' [s]';
+					}
+
+					totalBalance+=ObjectDetail.balance;
+					output +='\n';
 				}
-
-				totalBalance+=ObjectDetail.balance;
-				output +='\n';
+				
+				ctx.reply(output);
+			} else {
+				output +='No wallet avaliable';
 			}
-			
 			output+="Total Balance : " + totalBalance;
-			ctx.reply(output);
+			
 			callback(null);
 			return;	
 		});

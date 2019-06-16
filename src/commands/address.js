@@ -1,12 +1,17 @@
 /**
- * A Telegram Command. Height basically returns daemon height.
- * To return current daemon height do /height
- * @module Commands/height
+ * A Telegram Command. Address basically returns wallet*s) address.
+ * To return current wallets address do /address or /address <index> for a singular wallet's address
+ * @module Commands/address
  */
 
 const logSystem = "cmd/address";
 
 module.exports = {
+	getDescription: function() {
+		return "Address basically returns wallet*s) address.\
+To return current wallets address do /address or /address <index> for a singular wallet's address\
+@module Commands/address";
+	}
 	enabled: true,
 	run: (ctx,callback) => {
 
@@ -27,19 +32,24 @@ module.exports = {
 
 			let output = "Wallets address:\n";
 			const jsonDetails = results[1];
+			if(jsonDetails) {
 
-			for(var i in jsonDetails) {
+				for(var i in jsonDetails) {
 
-				const ObjectDetail = JSON.parse(jsonDetails[i]);
-				output += '['+i+']';
-				
-				output +=' : ' + ObjectDetail.address;
+					const ObjectDetail = JSON.parse(jsonDetails[i]);
+					output += '['+i+']';
+					
+					output +=' : ' + ObjectDetail.address;
 
-				if((results[0] === null && i == 0) || results[0] === i) {
-					output += ' [s]';
+					if((results[0] === null && i == 0) || results[0] === i) {
+						output += ' [s]';
+					}
+					output +='\n';
 				}
-				output +='\n';
+			} else {
+				output +='No wallet avaliable';
 			}
+
 			ctx.reply(output);
 			callback(null);
 			return;	

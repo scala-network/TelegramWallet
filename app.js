@@ -22,10 +22,11 @@
 require('./src/log');
 require('./src/interfaces/redis');
 const Queue = require('./src/handlers/queue');
-const command = require('./src/registry/command');
+const command = require('./src/registries/command');
 
 const Telegraf = require('telegraf');
 const {Extra, Markup} = Telegraf;   // Extract Extra, Markups from Telegraf module.
+
 const bot = new Telegraf(global.config.bot.token);
 
 // We can get bot nickname from bot informations. This is particularly useful for groups.
@@ -37,102 +38,80 @@ bot.telegram.getMe().then((bot_informations) => {
 
 bot.use(async (ctx, next) => {
 
-  const start = new Date()
-  await next()
-  const ms = new Date() - start
-  const aRequest = ctx.aRequest;
-  global.log('info',logSystem, "From: %s Request : %s Args : %s [%sms]",[
-     ctx.from.username, 
-     aRequest.action, 
-     aRequest.query.passes.join(','),
-     ms
-     ]);
+    const start = new Date()
+    await next()
+    const ms = new Date() - start
+
+    global.log('info',logSystem, "From: %s Request : %s [%sms]",[
+        ctx.from.username, 
+        ctx.message.text,
+        ms
+    ]);
 
 });
 
-command.map(function(error, cmd, mappedRunCommand){
+
+bot.command('help', command.getDescriptions);
+bot.command('start', command.getSummaries);
+
+command.map(function(error, cmd, commandos){
     if(error) {
         global.log('warning',logSystem, "Request from bot: %s error: %j",[cmd,error]);
         return;
     };
+
     bot.command(cmd, ctx => {
 
         if(ctx.from.is_bot) {
-            global.log('warning',logSystem, "Request from bot: %s",[ctx.from.username]);
+            global.log('warning',logSystem, "Request bot: %s action: %s",[ctx.from.username]);
             return;
         }
 
-        
-        const text = ctx.message.text;
-        const args = text.split(' ');
+        ctx = command.bindRequest(cmd, ctx);
 
-        let pass;
-        let passes;
-        if(args.length > 1) {
-            pass = ctx.message.text.replace('/' + c + " ",'');
-            passes = ctx.argument.split(' ');
-        } else {
-            pass = '';
-            passes = [];
+        const passLength = ctx.aRequest.query.passes.length;
+
+        if(!commandos.hasOwnProperty('passLength')){
+            commandos.passLength = passLength;
         }
 
-        const is_group = ctx.message.chat.type == "group" ||  ctx.message.chat.type == "supergroup";
-        ctx.aRequest = {
-            is: {
-                admin : global.config.admins.indexOf(ctx.from.id) >= 0,
-                group : is_group,
-                user : !is_group && ctx.message.chat.type != "channel"
-            },
-            action: cmd,
-            query : {
-                pass:pass,
-                passes:passes
-            }
-        };
-        mappedRunCommand(ctx,function(error) {
+        if(passLength  !== commandos.passLength) {
+            ctx.reply("Invalid argument for " + cmd + ". Requires " + commandos.passLength + " argument(s).\n\
+             For more information go to /help " + cmd);
+            return;
+        }
+
+        commandos.run(ctx,function(error) {
             if(error) {
-                log('error', logSystem,'No wallet for user %s id: %s', [ctx.from.username,ctx.from.id]);
-            }   
+                log('error', logSystem,'Error cmd: %s id: %s', [cmd,ctx.from.username]);
+            }
         });
     });
-})
+});
 
-const notification = function(callback){
-    async.forever(function(next) {
-        const moveon = function() {
-           setTimeout(next,global.config.rpc.interval);
-       };
-
-       Queue.sub(function(error,context){
-            if(error || !response) {
-                moveon();
-                return;
-            }
-
-            command.notify(context.request.action, data,function(error,id,message){
-                if(error) {
-                    if(typeof error == 'string') {
+const Tasks = [
+    function(callback){
+    
+        async.forever(function(next) {
+           Queue.sub(function(error,context){
+                switch(true){
+                    case error:
                         log('error',logSystem, "Error : %s", [error]);
-                    } else {
-                       log('error',logSystem, "Error : %j", [error]);
-                    } 
-                    moveon();
-                    return;
+                        break;
+                    case !context:
+                        break;
+                    case !context.response.id || !context.response.message:
+                        log('error',logSystem, "Error : %s \n %j", ['Empty response recieved',context]);
+                        break;
+                    default:
+                        bot.telegram.sendMessage(context.response.id,context.response.message);
+                        break;
                 }
-                if(error === false) {
-                    moveon();
-                    return;
-                }
-                bot.telegram.sendMessage(id,message);
-                moveon();
+                setTimeout(next,global.config.rpc.interval);
             });
         });
-    },function(e){
-        console.log(e);
-    });
 
-}
-const Tasks = [notification, function(callback){
+}, function(callback){
     async.forever(function(next) {
         try{
             bot.startPolling();
@@ -142,5 +121,3 @@ const Tasks = [notification, function(callback){
     });
 }];
 async.parallel(async.reflectAll(Tasks));
-
-

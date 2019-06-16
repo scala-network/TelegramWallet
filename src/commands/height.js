@@ -1,12 +1,19 @@
 /**
- * A Telegram Command. Height basically returns daemon height.
- * To return current daemon height do /height
+ * A Telegram Command. Height basically returns daemon and wallet(s) height.
+ * To return all heights do /height
+ * To a height for a selected wallet at index do /height <index> eg. /height 3
  * @module Commands/height
  */
 
 const logSystem = "cmd/height";
 
 module.exports = {
+
+	description:"Height basically returns daemon and wallet(s) height.\n\
+ To return all heights do /height\n\
+ To a height for a selected wallet at index do /height <index> eg. /height 3",
+
+
 	enabled: true,
 	run: (ctx,callback) => {
 
@@ -30,19 +37,27 @@ module.exports = {
 			let output = "Daemon height: " + results[0] +" \n";
 			output += "Wallets height:\n";
 			const jsonDetails = results[2];
-			for(var i in jsonDetails) {
 
-				const ObjectDetail = JSON.parse(jsonDetails[i]);
-				output += '['+i+']';
-				
-				output +=' : ' + ObjectDetail.height;
+			if(jsonDetails) {
 
-				if((results[1] === null && i == 0) || results[1] === i) {
-					output += ' [s]';
+				for(var i in jsonDetails) {
+
+					const ObjectDetail = JSON.parse(jsonDetails[i]);
+					output += '['+i+']';
+
+					output +=' : ' + ObjectDetail.height;
+
+					if((results[1] === null && i == 0) || results[1] === i) {
+						output += ' [s]';
+					}
+					output +='\n';
+
 				}
-				output +='\n';
-
+			} else {
+				output +='No wallet avaliable';
 			}
+
+
 			ctx.reply(output);
 			callback(null);
 			return;	

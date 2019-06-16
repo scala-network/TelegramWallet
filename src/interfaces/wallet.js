@@ -3,28 +3,32 @@ const async = require("async");
 const path = require('path');
 const fs = require('fs');
 
-const logSystem = "handlers/rpc";
+const logSystem = "interfaces/wallet";
 
-module.exports = function (rpc) {
+module.exports = function (server_details) {
 	const self = this;
 	self.idx=-1;
 	self.file=null;
 	self.height=0;
-	self.balance=null;
+	self.balance=0;
 	self.last_updated=null;
 	self.address=null;
-	let _rpc = rpc;
+	self.password=null;
+	self.user_id = -1;
+	self.server = server_details;
+
 
 	let daemonHeight = 0;
 	self.store = function(callback, clear) {
 
-		const key = [global.config.redis.prefix, 'Wallets',_rpc.context.from.id].join(':');
+		const key = [global.config.redis.prefix, 'Wallets',self.user_id].join(':');
 		const data = {
 			file:self.file,
 			height:self.height,
 			balance:self.balance,
 			address:self.address,
-			last_updated: self.last_updated
+			last_updated: self.last_updated,
+			last_updated: self.password
 		};
 
 		const jsonData = JSON.stringify(data);
@@ -38,7 +42,9 @@ module.exports = function (rpc) {
 					self.file = null;
 					self.address = null;
 					self.height = 0;
-					self.balance = null;
+					self.balance = 0;
+					self.password=null;
+					self.user_id = -1;
 				}
 
 				callback(error);
@@ -54,7 +60,9 @@ module.exports = function (rpc) {
 				self.file = null;
 				self.address = null;
 				self.height = 0;
-				self.balance = null;
+				self.balance = 0;
+				self.password=null;
+				self.user_id = -1;
 			}
 			
 			callback(error);
@@ -91,7 +99,7 @@ module.exports = function (rpc) {
 		}
 
 		self.idx = idx;
-		const key = [global.config.redis.prefix, 'Wallets',_rpc.context.from.id].join(':');
+		const key = [global.config.redis.prefix, 'Wallets',self.user_id].join(':');
 		redisClient.lindex(key, idx,(er, re) => {
 			if(er) {
 				cb(er);
@@ -99,6 +107,7 @@ module.exports = function (rpc) {
 			}
 
 			const jsonData = JSON.parse(re);
+			
 			self.file = jsonData.file;
 			self.height = jsonData.height;
 			self.address = jsonData.address;
@@ -176,7 +185,21 @@ module.exports = function (rpc) {
 		});
 	};
 
-	self.reSync = (cb) => {
+	self.create = (options, callback) => {
+		Request.post(self.details,'create_wallet',options,(err,response) => {
+            if(err) {
+                callback(err);
+                return;
+            }
+
+            self.wallet.file = params.filename;
+            self.wallet.idx = options.split('_')[1];
+
+            callback(null,response);
+        });
+	}
+
+	self.sync =(cb) => {
 
 
 		const now = new Date();
@@ -271,6 +294,33 @@ module.exports = function (rpc) {
 			});
 	};
 
+	self.transfer = function(address, amount, mixin, ring_size, payment_id, callback) {
+		Request.post(self.details,'transfer',{
+			destinations:[
+				amount:amount,
+				address:address
+			],
+			priority:0,
+			mixin:mixin,
+			ring_size:ring_size,
+			payment_id: payment_id,
+			get_tx_key:true
+		},(err,response) => {
+            if(err) {
+                callback(err);
+                return;
+            }
+            const key = [global.config.redis.prefix, 'Transactions', self.user_id, self.idx].join(':');
+            const data = [(new Date()).now(),JSON.stringify(response)];
+            redisClient.lset(key,data,function(e,r) {
+            	if(e) {
+	                callback(e);
+	                return;
+	            }
+            	callback(null,response);
+            })
+        });
+	};
 
 	return self;
 }
