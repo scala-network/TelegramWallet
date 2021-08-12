@@ -3,9 +3,16 @@
  * @module interfaces/redis
  */
 
+if(!global.config.redis) {
+    console.error('Failed to read redis config');
+    process.exit(); 
+}
+
+const { createNodeRedisClient } = require('handy-redis');
+
 const redisConfig = {
-    db: global.config.redis.hasOwnProperty('db') ? global.config.redis.db : 0,
-    socket_keepalive:global.config.redis.hasOwnProperty('keepalive')?global.config.redis.keepalive:true,
+    db: global.config.redis.db ? global.config.redis.db : 0,
+    socket_keepalive:global.config.redis.keepalive?global.config.redis.keepalive:true,
     retry_strategy: function (options) {
         if (options.error && options.error.code === 'ECONNREFUSED') {
             // End reconnecting on a specific error and flush all commands with
@@ -25,18 +32,23 @@ const redisConfig = {
         // reconnect after
         return Math.min(options.attempt * 100, 3000);
     },
-    auth_pass:global.config.redis.hasOwnProperty('auth')?global.config.redis.auth:null
+    auth_pass:global.config.redis.auth?global.config.redis.auth:null
 };
 
-if(global.config.redis.hasOwnProperty('path')) {
+if(global.config.redis.path) {
     redisConfig.path = global.config.redis.path;     
 } else {
     redisConfig.address = global.config.redis.address;
     redisConfig.port = global.config.redis.port;
 }
+const redisClient = createNodeRedisClient(config);
 
-global.redisClient = require('redis').createClient(config);
-    
-redisClient.on('error', function (err) {
+
+redisClient.nodeRedis.on('error', function (err) {
     log('error',logSystem, "Error on redis with code : %j",[err]);
 });
+
+
+global.redisClient = redisClient;
+
+delete global.config.redis;

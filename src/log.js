@@ -58,8 +58,7 @@ if(!logFileDisbled){
 /**
  * Add new log entry
  **/
-// var debug ="unlocker";
-	// console.log(logConsole);
+
 global.log = function(severity, system, text, data){
 
 	

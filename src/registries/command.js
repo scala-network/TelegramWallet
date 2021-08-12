@@ -1,162 +1,99 @@
 const logSystem = 'registry/command';
 
-const cache = {};
+class CommandManager {
+	#_commands = {};
+	constructor(bot) {
+		const allowCommands = global.config.commands.allowed;
+		for(let i =0; i < allowCommands.length;i++) {
+					
+			let c = allowCommands[i];
+			let o;
+			if(c in this.#_commands) {
+				o = this.#_commands[c];
+			} else {
+				const cc = require('../commands/' + c + 'Command.js');
+				o = new cc();
 
-const allowCommands = [
-    'height',
-    'create',
-    'balance',
-    'address'
-];
+				
+			}
+			if(!o.enabled) {
+				continue;
+			}
+			this.#_commands[c] = o;
+	
+		}
+	}
 
-const bindContextWithRequest = function(cmd, ctx) {
+	getCommands() {
+		return this.#_commands;
+	}
+	getCommand(cmd) {
+		if(cmd in this.#_commands) {
+			return this.#_commands[cmd]; 
+		}
 
-    const text = ctx.message.text;
-    const args = text.split(' ');
+		return false;
+	}
 
-    let pass;
-    let passes;
-    if(args.length > 1) {
-        pass = ctx.message.text.replace('/' + cmd + " ",'');
-        passes = pass.split(' ');
-    } else {
-        pass = '';
-        passes = [];
-    }
+	setCommandContext(cmd, ctx) {
+		
+		const c = this.getCommand(cmd);
 
-    const is_group = ctx.message.chat.type == "group" ||  ctx.message.chat.type == "supergroup";
-    
-    ctx.aRequest = {
-        is: {
-            admin : global.config.admins.indexOf(ctx.from.id) >= 0,
-            group : is_group,
-            user : !is_group && ctx.message.chat.type != "channel" || ctx.message.chat.type === 'private'
-        },
-        action: cmd,
-        query : {
-            pass:pass,
-            passes:passes
-        }
-    };
+		if(!c || !c.enabled || ctx.from.is_bot) return;
+		//if query /donate address
+		//we remove /donate and just get address
+		let query = ctx.message.text.replace(`/${cmd}`,'').trim();
+		let args = [];
+		if(query !== "") {
+			args = query.split(' ');
+		} else {
+			query = null;
+		}
+		const is_group = ctx.message.chat.type == "group" ||  ctx.message.chat.type == "supergroup";
 
+	    const appRequest = {
+	        is: {
+	            admin : global.config.admins.indexOf(ctx.from.id) >= 0,
+	            group : is_group,
+	            user : !is_group && ctx.message.chat.type != "channel" || ctx.message.chat.type === 'private'
+	        },
+	        action: cmd,
+	        query : query,
+	        args : args
+	    };
+	    ctx.appRequest = appRequest;
+	    ctx.sendToAdmin = msg => {
+	    	console.log("We have an error");
+	    	console.log(appRequest);
+	    	console.error(msg);
+	    };
 
-    return ctx;
+		c.exec(ctx);
+
+	}
+
+	setBot(bot) {
+		const allowCommands = Object.keys(this.#_commands);
+		const self = this;
+		for(let i =0; i < allowCommands.length;i++) {
+					
+			let c = allowCommands[i];
+			const cmd = self.getCommand(c);
+
+			if(!cmd || !cmd.enabled) return;
+			global.log('info',logSystem, "Initializing command/%s", [c]);
+			
+			bot.command(c,ctx => {
+				self.setCommandContext(c,ctx)
+			});
+		}
+	}
 }
 
-module.exports = {
-	bindRequest:bindContextWithRequest,
-	getSummaries: function(ctx) {
-		const context = bindContextWithRequest('help',ctx);
-		let output = "Avaliable commands : \n";
 
-		output+="/help - Display more information regarding command";
-
-		for(let i =0; i< allowCommands.length;i++) {
-					
-			let c = allowCommands[i];
-
-			let o;
-			
-			if(cache.hasOwnProperty(c)) {
-				o = cache[c];
-			} else {
-				o = require('../commands/' + c + '.js');
-				cache[c] = o;
-			}
-
-			if(!o.enabled) {
-				callback("Command disabled for "+c);
-				continue;
-			}
-			output += '/' + c + ' - ';
-			if(!o.hasOwnProperty('getSummary') || !o.getSummary()) {
-				output+="No summary set yet";
-			} else {
-				output +=o.getSummary();
-			} 
-			output +='\n';
-		}
-		ctx.reply(output);
-	},
-	getDescriptions: function(ctx) {
-		const context = bindContextWithRequest('help',ctx);
-
-		const passLength = ctx.aRequest.query.passes.length;
-
-        if(passLength  !== 1) {
-            ctx.reply("Invalid argument for help. Requires 1 argument(s).\n\
-            Command parameter is as /help <command> . eg. /help height");
-            return;
-        }
-
-		const c = ctx.aRequest.query.passes[0];
-
-		if(cache.hasOwnProperty(c)) {
-			o = cache[c];
-		} else {
-			o = require('../commands/' + c + '.js');
-			cache[c] = o;
-		}
-		if(!o.enabled) {
-			log('info',logSystem, "Command disabled for " + c);
-            return;
-		}
-		if(!o.hasOwnProperty('getDescription') || !o.getDescription()) {
-			ctx.reply("No description set yet for "+c);
-            return;
-		}
-
-		const description = o.getDescription();
-
-		 ctx.reply(description);
-
-	},
-	map: function(callback) {
-
-		for(let i =0; i< allowCommands.length;i++) {
-					
-			let c = allowCommands[i];
-
-			if(c === 'help' || c === 'start') {
-				continue;
-			}
-
-			let o;
-			
-			if(cache.hasOwnProperty(c)) {
-				o = cache[c];
-			} else {
-				o = require('../commands/' + c + '.js');
-				cache[c] = o;
-			}
-
-			if(!o.enabled) {
-				callback("Command disabled for "+c);
-				continue;
-			}
-
-			if(!o.hasOwnProperty('run')) {
-				callback("Invalid run for "+c);
-				continue;
-			}
-
-
-
-			callback(null,c,o);
-		}
-	},
-	notify: function(action,data,callback) {
-		
-		if(!cache.hasOwnProperty(action)) {
-			callback("Invalid action called from event "+action);
-			return;
-		}
-
-		if(!cache[action].hasOwnProperty('notify')) {
-			callback(false);
-			return;
-		}
-
-		cache[action].notify(data, callback);
+module.exports = bot => {
+	if(!global.CommandManager) {
+		global.CommandManager = new CommandManager();
 	}
+	global.CommandManager.setBot(bot);
 }
