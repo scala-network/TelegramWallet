@@ -1,3 +1,7 @@
+# Scala Telegram Wallet
+
+![image](https://user-images.githubusercontent.com/630603/129296852-b4aefc21-8aa9-47fd-b135-7111db42bee0.png)
+
 ## Commands
 
 To create a new command, you must follow these rules.
