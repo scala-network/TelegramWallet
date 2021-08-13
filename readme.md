@@ -41,14 +41,14 @@ class HelloCommand extends BaseCommand {
 
 ### Optional class methods
 
-1. auth - Limits by return either true or false. Accepts a [request](request.md) object.
+1. auth - Limits by return either true or false. Accepts a [telegraf context](https://github.com/telegraf/telegraf/blob/develop/README.md#context-class) object.
 2. beforeRun - Executed before the run method is called. Accepts [telegraf context](https://github.com/telegraf/telegraf/blob/develop/README.md#context-class) and next callback to continue.
 
 
 ```nodejs
 	/* Allowing only groups to execute */
-	auth(request) {
-		return request.is.group;
+	auth(ctx) {
+		return ctx.appRequest.is.group;
 	}
 
 	/* Modify context before running it */
