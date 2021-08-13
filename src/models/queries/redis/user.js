@@ -123,13 +123,15 @@ class User {
             ])
             .exec();
 
+        } else {
+        	status = results[0][1];
         }
                     
         if(walletCount >= this.MaxWalletUser) {
             return STATUS.ERROR_WALLET_CREATE_EXCEED;
         }
 
-        if(results[0][1] != STATUS.NONE) {
+        if(status != STATUS.REQUEST_NEW_USER) {
             return STATUS.ERROR_REQUEST_PENDING;
         }
 
