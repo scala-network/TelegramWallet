@@ -1,99 +1,81 @@
-const http = require('http')
-const https = require('https')
-const async = require('async');
+// Load required modules
+var http = require('http');
+var https = require('https');
 
-const jsonRpcRequest = function(obj, set, callback) {
-	const req = obj.request(set.options, function (res) {
-// reject on bad status
-        if (res.statusCode < 200 || res.statusCode >= 300) {
-        	callback(new Error('statusCode=' + res.statusCode),false);
-        	return;
-        }
-	    // cumulate data
-        var body = [];
-        res.setEncoding('utf8')
-
-        res.on('data', function(chunk) {
-            body.push(chunk);
-        });
-       
-	    res.on('end', function () {
-            try {
-                body = JSON.parse(body);
-            } catch(e) {
-        		callback(e,false);
-        		return;
-            }
-            if(body.error) {
-            	callback(body.error,false);
-        		return;
-
-            }
-
-			let fn = function() {};
-			if(typeof callback !== typeof fn) {
-				   console.trace(callback);	
-				   console.log(set);
-				   console.trace(typeof callback);	
-		            callback(false,body);
-			}
-
-            callback(false,body);
-
-        
-
-	    });
-        // resolve on end
-    });
-    // reject on request error
-    req.on('error', function(err) {
-        callback(err,false);
-    });
-    
-    req.end(set.data);
-};
-
-const setup = (server,method,params,path) => {
-	
+function jsonHttpRequest (host, port, data, path, callback) {
 	path = path || '/json_rpc';
+	callback = callback || function () {};
+	var options = {
+		hostname: host,
+		port: port,
+		path: path,
+		method: data ? 'POST' : 'GET',
+		headers: {
+			'connection': 'keep-alive',
+			'Content-Length': data.length,
+			'Content-Type': 'application/json',
+			'Accept': 'application/json'
+		}
+	};
+	var req = (port === 443 ? https : http)
+		.request(options, function (res) {
+			var replyData = '';
+			res.setEncoding('utf8');
+			res.on('data', function (chunk) {
+				replyData += chunk;
+			});
+			res.on('end', function () {
+				var replyJson;
+				try {
+					replyJson = replyData ? JSON.parse(replyData) : {};
+				} catch (e) {
+					callback(e, {});
+					return;
+				}
+				callback(null, replyJson);
+			});
+		});
 
-	const data = {
-		id: '0',
-		jsonrpc: '2.0',
+	req.on('error', function (e) {
+		callback(e, {});
+	});
+
+	req.end(data);
+}
+
+
+
+/**
+ * Send RPC request
+ **/
+function rpc (host, port,id, method, params, path, callback) {
+	var data = JSON.stringify({
+		id: `${id}`,
+		jsonrpc: "2.0",
 		method: method,
 		params: params
-	};
-
-	const jsonData = JSON.stringify(data);
-
-	const headers = {
-		'Content-Length': jsonData.length,
-		'Content-Type': 'application/json',
-		'Accept': 'application/json',
-		'Access-Control-Allow-Origin': '*',
-	};
-
-	return {
-		options : {
-		    hostname: server.host,
-		    port: server.port,
-		    path: path,
-		    method: 'POST',
-		    headers: headers
-		},
-		data : jsonData
-	};
-
-};
+	});
+	jsonHttpRequest(host, port, data, path, function (error, replyJson) {
+		if (error) {
+			callback(error, {});
+			return;
+		}
+		callback(null, replyJson)
+	});
+}
 
 module.exports = {
-	post: (server,method,params,callback,path) => {
-		if (typeof params !== typeof {} && !callback) {
-			callback = params;
-			params = {};
-		}
-		const set = setup(server,method,params,path);
-		const obj = (server.port === 443 || server.tls === true )? https : http;
-		return jsonRpcRequest(obj,set,callback);
+	rpc,
+	fetch: (host,port,id,method,params) => {
+		return new Promise((resolve, reject) => {
+			rpc(host,port,method,params,null, (err,data) => {
+				if(err) {
+					reject(err);
+					return;
+				}
+				resolve(data);
+			});
+		}).catch(e => console.error(e));
 	}
+
 }

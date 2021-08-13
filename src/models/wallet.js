@@ -3,7 +3,6 @@ const Model = require('./base');
 class Wallet extends Model
 {
 	properties = [
-		"id",
 		"user_id",
 		"address",
 		"last_sync",
@@ -18,6 +17,9 @@ class Wallet extends Model
 		return 'wallet';
 	}
 
+	async addWalletByUserId(id, address, options) {
+		return this.Query(options).addWalletByUserId(id, username, password);
+	}
 }
 
 

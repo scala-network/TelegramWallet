@@ -11,6 +11,9 @@ class Status {
 		return 100;
 	}
 
+	static get WALLET_READY() {
+		return 200;
+	}
 
 	static get ERROR_WALLET_CREATE_EXCEED() {
 		return 400;
@@ -19,6 +22,7 @@ class Status {
 	static get ERROR_REQUEST_PENDING() {
 		return 401;
 	}
+
 
 }
 

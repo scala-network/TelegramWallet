@@ -9,7 +9,7 @@ To create a new command, you must follow these rules.
 	a. description - returns what your command does in string
 	b. name - returns the name of your command in string
 5. Must extend BaseCommand
-6. Must have run method which excepts telegraf context
+6. Must have run method which accepts (telegraf context)[https://github.com/telegraf/telegraf/blob/develop/README.md#context-class]
 7. Set `enable` class variable @ property to true allowing the command to be executed
 
 eg.
@@ -31,15 +31,14 @@ class HelloCommand extends BaseCommand {
 	async run(ctx) {
 		ctx.reply("hello");
 	}
-
 }
 
 ```
 
 ### Optional class methods
 
-1. auth - Limits by return either true or false. Excepts a (request)[request.md] object.
-2. beforeRun - Executed before the run method is called. Excepts telgraf context and next callback to continue.
+1. auth - Limits by return either true or false. Accepts a (request)[request.md] object.
+2. beforeRun - Executed before the run method is called. Accepts (telegraf context)[https://github.com/telegraf/telegraf/blob/develop/README.md#context-class] and next callback to continue.
 
 
 ```nodejs

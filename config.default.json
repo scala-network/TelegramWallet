@@ -17,12 +17,10 @@
 		"interval" : 100,
 		"timeout" : 1000,
 		"dir" : "/path/to/save/wallet/file",
-		"servers" : [
-			{
-				"address":"127.0.0.1",
-				"port":"8081"
-			}
-		]
+		"server" : {
+			"address":"127.0.0.1",
+			"port":"11812"
+		}
 	},
 	"daemon" : {
 		"timeout" : 500,

@@ -36,4 +36,4 @@ class RemoveCommand extends Command {
 	
 }
 
-module.exports = AddressCommand;
+module.exports = RemoveCommand;
