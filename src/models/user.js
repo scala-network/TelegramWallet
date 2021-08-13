@@ -28,6 +28,10 @@ class User extends Model
 	findAllWithWalletsById(id, options) {
 		return this.Query(options).findAllWithWalletsById(id);
 	}
+
+	remove(id, options) {
+		return this.Query(options).remove(id);
+	}
 }
 
 

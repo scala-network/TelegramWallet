@@ -82,13 +82,13 @@ class User {
 		return { selected : results[0], wallets };
 
 	}
-	async remove(id, username, password) {
+	async remove(id, username) {
 		const wkey = [global.config.coin, "Wallets" ,id].join(':');
         const uKey = [global.config.coin, "Users" ,id].join(':');
         const aKey = [global.config.coin, "Alias" ,username].join(':');
 
         await global.redisClient.multi()
-        .hdel(uKey)
+        .del(uKey)
         .del(aKey)
         .del(wkey)
         .exec();
