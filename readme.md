@@ -2,9 +2,9 @@
 
 To create a new command, you must follow these rules.
 
-1. You command name must be unique
-2. Let say you command name is hello, then your command file name should be helloCommand.js
-3. You command should be in /src/commands folder
+1. Your command name must be unique
+2. Let say your command name is hello, then your command file name should be helloCommand.js
+3. Your command should be in /src/commands folder
 4. The command class should have these getter
 	a. description - returns what your command does in string
 	b. name - returns the name of your command in string
