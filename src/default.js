@@ -24,6 +24,7 @@ module.exports = {
 		"auth" : false,
         "prefix":null
 	},
+	"admins" : [],
 	"commands" : {
 		'allowed' : [
 			'help',
