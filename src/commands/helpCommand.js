@@ -29,7 +29,9 @@ class HelpCommand extends Command {
 			for(let i = 0; i < commandLists.length;i++) {
 				const cmdName = commandLists[i];
 				cmd = commands[cmdName];
-				output += `/${cmdName} - ${cmd.description}\n`;	
+				if(cmd.auth(ctx.appRequest)) {
+					output += `/${cmdName} - ${cmd.description}\n`;		
+				}
 			}	
 		}
 		

@@ -14,6 +14,10 @@ class InfoCommand extends Command {
         return "Returns information about your profile and wallets";
     }
 
+    auth(request) {
+    	return !request.is.group;
+    }
+
     enabled = true;
 
 	async run(ctx,callback){

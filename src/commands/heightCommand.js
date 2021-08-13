@@ -19,6 +19,7 @@ class HeightCommand extends Command {
 
 	async run(ctx) {
         if(ctx.test)  return;
+        
         const result = await this.loadModel("User").findWithWalletsAndDaemonHeightById(ctx.from.id);
 
 		let output = "Daemon height: " +  result.height +" \n";
