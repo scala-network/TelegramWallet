@@ -19,8 +19,9 @@ class AddressCommand extends Command {
         return "address";
     } 
     
-    auth(request) {
+    async auth(ctx) {
         return !request.is.group;
+        return !ctx.appRequest.is.group;
     }
 
     async run(ctx) {

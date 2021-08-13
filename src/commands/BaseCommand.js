@@ -44,7 +44,7 @@ class BaseCommand {
 	exec(ctx) {
 		const self = this;
 		this.beforeRun(ctx, c => {
-			if(!this.auth(ctx.appRequest)) {
+			if(!this.auth(ctx)) {
 				return ctx.reply("Authorization failed for command");
 			}
 			self.run(c)

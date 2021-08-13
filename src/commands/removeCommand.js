@@ -15,8 +15,8 @@ class RemoveCommand extends Command {
         return "remove";
     } 
     
-    auth(request) {
-        return !request.is.group;
+    auth(ctx) {
+        return !ctx.appRequest.is.group;
     }
 
     async run(ctx) {

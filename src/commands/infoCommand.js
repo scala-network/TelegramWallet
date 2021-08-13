@@ -14,8 +14,8 @@ class InfoCommand extends Command {
         return "Returns information about your profile and wallets";
     }
 
-    auth(request) {
-    	return !request.is.group;
+    auth(ctx) {
+        return !ctx.appRequest.is.group;
     }
 
     enabled = true;
