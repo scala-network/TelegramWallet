@@ -68,7 +68,7 @@ You can load a model by calling `this.loadModel(<model name>);`. This will retur
 
 ## Models
 
-There are 2 layers of the model
+There are 2 layers for the model
 1. The main model - Main interface class
 2. The query layer - The abstraction class base on which engine is use
 
