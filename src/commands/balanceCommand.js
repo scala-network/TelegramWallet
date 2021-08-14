@@ -40,8 +40,8 @@ class BalanceCommand extends Command {
 				wallet = await Wallet.update(wallet);
 			}
 			if(wallet) {
-				output +=`Balance: ${wallet.balance}\n`;
-				output +=`Unlocked Balance: ${wallet.unlock}\n`;
+				output +=`Balance: ${this.Coin.format(wallet.balance)}\n`;
+				output +=`Unlocked Balance: ${this.Coin.format(wallet.unlock)}\n`;
 				output +=`Last Sync: ${timeAgo.format(parseInt(wallet.last_sync),'round')}\n`;
 			} else {
 				output +='Error retrieving record';

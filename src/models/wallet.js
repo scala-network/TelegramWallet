@@ -23,11 +23,19 @@ class Wallet extends Model
 	}
 	
 	addByUser(user, address, options) {
-		return this.Query(options).addByUser(user, address, options);
+		return this.Query(options).addByUser(user, address);
 	}
 
 	update(wallet, options) {
-		return this.Query(options).update(wallet, options);
+		return this.Query(options).update(wallet);
+	}
+
+	metaToUid(id, tx_meta, options) {
+		return this.Query(options).metaToUid(id, tx_meta);
+	}
+
+	uidToMeta(id, uid, options) {
+		return this.Query(options).uidToMeta(id, uid);
 	}
 }
 

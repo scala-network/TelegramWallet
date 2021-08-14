@@ -39,7 +39,10 @@ module.exports = {
     		'balance',
     		'address',
     		'info',
-    		'remove'
+    		'remove',
+    		'transfer',
+    		'withdraw',
+    		'submit'
 		]
 	}    
 }

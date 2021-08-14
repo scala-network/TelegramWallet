@@ -19,6 +19,7 @@
     "javascript-time-ago": "^2.3.8",
     "monero-nodejs": "^3.2.2",
     "redis": "^3.1.2",
-    "telegraf": "^4.4.1"
+    "telegraf": "^4.4.1",
+    "uuid": "^8.3.2"
   }
 }

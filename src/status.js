@@ -39,6 +39,10 @@ class Status {
 	static get ERROR_CREATE_ACCOUNT() {
 		return 403;
 	}
+
+	static get ERROR_ACCOUNT_NOT_EXISTS() {
+		return 404;
+	}
 }
 
 module.exports = Status;

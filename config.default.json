@@ -15,7 +15,7 @@
 	},
 	"rpc" : {
 		"interval" : 1,
-		"timeout" : 1000,
+		"metaTTL" : 60,
 		"server" : {
 			"address":"127.0.0.1",
 			"port":"11812"

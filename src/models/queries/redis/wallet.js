@@ -1,4 +1,5 @@
 const STATUS = require('../../../status');
+const { v4: UUID } = require('uuid');
 
 
 class Wallet {
@@ -97,6 +98,23 @@ class Wallet {
 		}
 		
 		return wallets;
+	}
+
+	async metaToUid(id, meta) {
+		const uuid = UUID();
+		const ukey = [global.config.coin, 'Meta', id, uuid].join(':');
+
+		await global.redisClient.setex(ukey, global.config.rpc.metaTTL, meta);
+
+		return uuid;
+
+	}
+
+	async uidToMeta(id, uuid) {
+		const ukey = [global.config.coin, 'Meta', id, uuid].join(':');
+		const meta = await global.redisClient.get(ukey);
+		return meta;
+
 	}
 }
 

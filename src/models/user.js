@@ -30,6 +30,10 @@ class User extends Model
 	add(id,username, options) {
 		return this.Query(options).add(id, username);
 	}
+
+	findByUsername(username, options) {
+		return this.Query(options).findByUsername(username);
+	}
 }
 
 

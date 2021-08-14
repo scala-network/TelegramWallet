@@ -4,6 +4,20 @@ const logSystem = "model/redis/user";
 
 class User {
 	
+	async findByUsername(username) {
+        const aKey = [global.config.coin, "Alias"].join(':');
+		const ukey = [global.config.coin, 'Users' , id].join(':');
+
+        const user_id = await global.redisClient.hget(aKey);
+
+        if(!result) {
+        	return STATUS.ERROR_ACCOUNT_NOT_EXISTS;
+        }
+
+        return await this.findAllById(user_id);
+
+	}
+
 	async findAllById(id) {
 		const ukey = [global.config.coin, 'Users' , id].join(':');
 
@@ -32,11 +46,11 @@ class User {
 
 	async remove(id, username) {
         const uKey = [global.config.coin, "Users" ,id].join(':');
-        const aKey = [global.config.coin, "Alias" ,username].join(':');
+        const aKey = [global.config.coin, "Alias"].join(':');
 
         await global.redisClient.multi()
         .del(uKey)
-        .del(aKey)
+        .hdel(aKey, username)
         .exec();
 
         return STATUS.OK;
@@ -44,7 +58,7 @@ class User {
 
 	async add(id, username) {
         const uKey = [global.config.coin, "Users" ,id].join(':');
-        const aKey = [global.config.coin, "Alias" ,username].join(':');
+        const aKey = [global.config.coin, "Alias"].join(':');
 
         const exists = await this.exists(id);
 		if(exists) {
