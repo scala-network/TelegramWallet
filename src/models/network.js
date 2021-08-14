@@ -4,15 +4,19 @@ class Network extends Model
 {
 	properties = [
 		"height",
-		"last_sync",
+		"timestamp",
 	];
 
 	get className() {
 		return 'network';
 	}
 
-	async lastHeight(options) {
+	lastHeight(options) {
 		return this.Query(options).lastHeight();
+	}
+
+	addHeight(height, options) {
+		return this.Query(options).addHeight(height);
 	}
 }
 

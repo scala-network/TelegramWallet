@@ -26,7 +26,6 @@ class InfoCommand extends Command {
 		const User = this.loadModel("user");
 
 		const result = await User.findAllById(ctx.from.id);
-
 		if (!result) {
 			return ctx.reply("User and wallet not avaliable please /create");
 		}
@@ -34,25 +33,25 @@ class InfoCommand extends Command {
 		let totalBalance = 0;
 		let output = "";
 		output +='**User Information**\n';
-		if(result.user) {
-			for(const i in User.properties) {
-				const property = User.properties[i];
-				output += '['+property+'] : ' + result.user[property] + "\n";
+		for(const i in User.properties) {
+			const property = User.properties[i];
+			if(property === "wallet") {
+				continue;
 			}
-		} else {
-			output +='No info avaliable\n';
+			output += '['+property+'] : ' + result[property] + "\n";
 		}
 
-		output +='**Wallets Information**\n';
+		output +='\n\n**Wallets Information**\n';
 
 		const wallet = result.wallet;
 
-		if(wallets) {
-			const wallet = wallets[i];
+		if(wallet) {
 			output += 'Address : ' + wallet.address + "\n" ;
 			output += 'Balance : ' + wallet.balance + "\n" ;
-			output += 'Unlock : ' + wallet.unlock + "\n" ;
-			output += 'Height : ' + wallet.height + "\n" ;
+			output += 'Unlock : ' + (wallet.unlock?wallet.unlock:0) + "\n" ;
+			if(!global.config.swm) {
+				output += 'Height : ' + wallet.height + "\n" ;	
+			}
 		} else {
 			output +='No wallet avaliable\n';
 		}

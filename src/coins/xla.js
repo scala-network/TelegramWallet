@@ -33,11 +33,10 @@ class xla {
 	}
 
 	async getAddress(id,idx) {
-		let ix = idx || 0;
 		const { host,port} = this.server;
 		return await request.fetch(host,port,id,"get_address",{
-			"account_index":`0`,
-			"address_index":[`${ix}`]
+			"account_index":parseInt(idx || id),
+			"address_index":[0]
 		});	
 	}
 

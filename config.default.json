@@ -14,9 +14,8 @@
         "prefix":"xtc"
 	},
 	"rpc" : {
-		"interval" : 100,
+		"interval" : 1,
 		"timeout" : 1000,
-		"dir" : "/path/to/save/wallet/file",
 		"server" : {
 			"address":"127.0.0.1",
 			"port":"11812"

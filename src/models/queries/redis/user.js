@@ -8,10 +8,10 @@ class User {
 		const ukey = [global.config.coin, 'Users' , id].join(':');
 
 		const results = await global.redisClient.hgetall(ukey);
-
-		if(!results || !results[0]) {
+		if(!results) {
         	return null;
 		} 
+
 		if(results.wallet) {
 			try{
 				results.wallet = JSON.parse(results.wallet);
@@ -19,7 +19,7 @@ class User {
 
 			}
 		}
-		return { results };
+		return results;
 	}
 
 	async exists(id) {
@@ -27,7 +27,7 @@ class User {
 
 		const result = await global.redisClient.hget(ukey, 'id');
 
-		return (result !== null && result.id === id);
+		return (result !== null && `${result}` === `${id}`);
 	}
 
 	async remove(id, username) {

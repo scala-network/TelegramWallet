@@ -17,7 +17,7 @@ class Wallet {
 			address,
 			balance:0,
 			user_id:user.id,
-			last_sync:Math.floor(new Date().getTime() / 1000),
+			last_sync:Date.now(),
 			unlocked:0,
 			status:STATUS.WALLET_READY
 		};
@@ -33,6 +33,7 @@ class Wallet {
 		const result = await global.redisClient
 		.multi()
 		.hmset(ukey, [	
+			["status",  STATUS.WALLET_READY],
 			["wallet",  JSON.stringify(wallet)],
 			["wallet_id", global.config.swm?heightOrIndex:0]
 		])

@@ -70,18 +70,20 @@ class CreateCommand extends Command {
                       
                         result = await this.Coin.getAddress(id, index);
 
-                        global.log("info",logSystem, "Getting old subaddress for %s at %s\n %j",[
-                            `${id}@${username}`,index, result
-                        ]);
-
                         if(result) {
                             if('error' in result) {
                                 await User.remove(id);
+
+                                global.log("error",logSystem, "Getting old subaddress for %s at %s\n %s",[
+                                    `${id}@${username}`,index, result.error.message
+                                ]);
+
                                 return ctx.reply(result.error.message);
                             }
-
+                            global.log("info",logSystem, "Getting old subaddress for %s at %s\n",[
+                                `${id}@${username}`,index
+                            ]);
                             heightOrWalletId = index;
-
                             if(result.result.addresses.length > 0 ) {
                                 address = result.result.addresses[0].address;
                             }

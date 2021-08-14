@@ -5,6 +5,10 @@
  * @module Commands/height
  */
 const Command = require('./BaseCommand');
+const TimeAgo = require('javascript-time-ago');
+TimeAgo.addDefaultLocale(require('javascript-time-ago/locale/en'));
+const timeAgo = new TimeAgo('en-US')
+const logSystem = "command/height";
 
 class HeightCommand extends Command {
 	enabled = true;
@@ -19,9 +23,31 @@ class HeightCommand extends Command {
 
 	async run(ctx) {
         if(ctx.test)  return;
-        const result = await this.loadModel("Network").lastHeight();	
-        let output = "Daemon height: " +  result.height +" \n";
-        output += "Sync Time: " +  result.timestamp +" \n";
+        let now = Date.now();
+        let timestamp;
+        let height = 0;
+        const step = now - (global.config.rpc.interval * 1000);
+        const Network = this.loadModel("Network");
+        const result = await Network.lastHeight();
+        
+        if(result.height == 0 || result.timestamp < step) {
+        	const resultFromCoin = await this.Coin.getHeight(ctx.from.id);
+        	height = resultFromCoin.result.height;
+        	timestamp = now;
+	        Network.addHeight(height);
+	  
+	        global.log('info',logSystem,"Fetched from last height %s : %s", [
+		     	height,now - parseInt(timestamp)
+		     ]);
+   	
+        } else {
+        	timestamp = result.timestamp;
+        	height = result.height;
+        }
+
+
+        let output = "Daemon height: " +  height +" \n";
+        output += "Sync Time: " +  timeAgo.format(parseInt(timestamp),'round') +" \n";
         const {id} = ctx.from;
 
         if(!global.config.swm && !ctx.appRequest.is.group) {
