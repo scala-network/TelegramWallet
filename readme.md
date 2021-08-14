@@ -1,6 +1,6 @@
 # Scala Telegram Wallet
 
-![image](https://user-images.githubusercontent.com/630603/129296852-b4aefc21-8aa9-47fd-b135-7111db42bee0.png)
+![Screenshot 2021-08-14 at 10 04 42 PM](https://user-images.githubusercontent.com/630603/129448879-48c8b551-21e6-4a8a-89ed-77c84eae4de5.png)
 
 ## Commands
 
@@ -89,4 +89,9 @@ There are 2 layers for the model
 1. The main model - Main interface class
 2. The query layer - The abstraction class base on which engine is use
 
+### Calling RPC Calls for Coin
+
+All rpc requests is base on coin class located at /src/coins. Currently we have XLA only.
+
+To call coin spesific methods or properties use this.Coin inside command
 
