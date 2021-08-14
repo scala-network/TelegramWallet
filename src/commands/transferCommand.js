@@ -34,7 +34,7 @@ class TransferCommand extends Command {
 		const user = User.findByUsername(ctx.appRequest.args[1]);
 
 		if(user === STATUS.ERROR_ACCOUNT_NOT_EXISTS) {
-			return ctx.reply("User account is not avaliable. Share bot to user and create account");
+			return ctx.reply("User account is not avaliable. Share bot to user and create an account");
 		}
 
 		let wallet = await Wallet.findByUserId(ctx.from.id);
@@ -57,8 +57,32 @@ class TransferCommand extends Command {
 			return ctx.reply('Insufficient fund');	
 		}
 
-		const trx = await this.Coin.transfer(ctx.from.id, wallet.id,user.wallet.address, amount);
+		const trx = await this.Coin.transfer(ctx.from.id, wallet.id, user.wallet.address, amount);
 
+		if('error' in trx) {
+			return ctx.reply(trx.error);
+		}
+
+		const uuid = await Wallet.metaToUid(ctx.from.id, trx.tx_metadata);
+
+		return ctx.reply(`
+			** Transaction Details **
+
+			From: 
+			${wallet.address}
+			
+			To: 
+			@${user.username}
+			
+			Amount : ${this.Coin.format(trx.amount)}
+			Fee : ${this.Coin.format(trx.fee)}
+			Trx Meta ID: ${uuid}
+			Trx Expiry: ${global.config.rpc.metaTTL} seconds
+			Current Unlock Balance : ${this.Coin.format(wallet.balance)}
+
+			To proceed with transaction run
+			/submit ${uuid} 
+		`);
 
 
 	}

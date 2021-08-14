@@ -83,7 +83,7 @@ class WithdrawCommand extends Command {
 					Current Unlock Balance : ${this.Coin.format(wallet.balance)}
 
 					To proceed with transaction run
-					/submit <trx_meta_id> 
+					/submit ${uuid} 
 				`
 				);
 			default:

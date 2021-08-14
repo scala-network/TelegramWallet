@@ -42,7 +42,8 @@ module.exports = {
     		'remove',
     		'transfer',
     		'withdraw',
-    		'submit'
+    		'submit',
+    		'version'
 		]
 	}    
 }
