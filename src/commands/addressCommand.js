@@ -16,28 +16,20 @@ class AddressCommand extends Command {
 		return "Returns wallet address";
 	}
 
+	auth(ctx) {
+		return !ctx.appRequest.is.group;
+	}
+
 	async run(ctx) {
 		if(ctx.test)  return;
 		
-		const User = this.loadModel("user");
+		const Wallet = this.loadModel("Wallet");
 
-		const user = await User.findWithWalletsById(ctx.from.id);
-		
-		if (!user) {
-			return ctx.reply("User and wallet not avaliable please /create");
-		}
-		
+		const wallet = await Wallet.findByUserId(ctx.from.id);
 		let output = "Wallets address: ";
-		const wallets = user.wallets;
-		if(wallets) {
-			for(var i in wallets) {
-				const wallet = wallets[i];
-				output += '['+i+'] : ' + wallet.address;
-				if((user.selected === null && i == 0) || user.selected === i) {
-					output += ' [s]';
-				}
-				output +='\n';
-			}
+
+		if(wallet) {
+			output +=wallet.address;
 		} else {
 			output +='No wallet avaliable';
 		}

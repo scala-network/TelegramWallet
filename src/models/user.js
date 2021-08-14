@@ -5,32 +5,30 @@ class User extends Model
 	properties = [
 		"id",
 		"username",
-		"selected",
-		"status"
+		"status",
+		"wallet",
+		"wallet_id"
 	];
 
 	get className() {
 		return 'user';
 	}
 
-	findWithWalletsById(id, options) {
-		return this.Query(options).findWithWalletsById(id);
+	findAllById(id, options) {
+		return this.Query(options).findAllById(id);
 	}
 
-	createWithWallet(id, username, password, options) {
-		return this.Query(options).createWithWallet(id, username, password);
+
+	exists(id, options) {
+		return this.Query(options).exists(id);
 	}
 
-	findWithWalletsAndDaemonHeightById(id, options) {
-		return this.Query(options).findWithWalletsAndDaemonHeightById(id);
+	remove(id, username, options) {
+		return this.Query(options).remove(id, username);
 	}
 
-	findAllWithWalletsById(id, options) {
-		return this.Query(options).findAllWithWalletsById(id);
-	}
-
-	remove(id, options) {
-		return this.Query(options).remove(id);
+	add(id,username, options) {
+		return this.Query(options).add(id, username);
 	}
 }
 

@@ -14,37 +14,26 @@ class BalanceCommand extends Command {
         return "Returns all wallet(s) balance";
     }
 
+	auth(ctx) {
+		return !ctx.appRequest.is.group;
+	}
+    
     enabled = true;
 
-	async run(ctx,callback){
+	async run(ctx){
 		if(ctx.test)  return;
 		
-		const User = this.loadModel("user");
+		const Wallet = this.loadModel("Wallet");
 
-		const user = await User.findWithWalletsById(ctx.from.id);
-		
-		if (!user) {
-			return ctx.reply("User and wallet not avaliable please /create");
-		}
-		let totalBalance = 0;
-		let output = "";
-		const wallets = user.wallets;
-		if(wallets) {
-			for(var i in wallets) {
-				const wallet = wallets[i];
-				output += '['+i+'] : ' + wallet.balance;
-				if((user.selected === null && i == 0) || user.selected === i) {
-					output += ' [s]';
-				}
-				output +='\n';
-				totalBalance+=wallet.balance;
-			}
+		const wallet = await Wallet.findByUserId(ctx.from.id);
+		let output = "Wallets balance: ";
+
+		if(wallet) {
+			output +=wallet.balance;
 		} else {
 			output +='No wallet avaliable';
 		}
 
-		output+="\nTotal Balance : " + totalBalance;
-		
 		ctx.reply(output);
 
 	}

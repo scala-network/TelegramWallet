@@ -1,6 +1,7 @@
 // Load required modules
-var http = require('http');
-var https = require('https');
+const http = require('http');
+const https = require('https');
+const logSystem = "interfaces/request";
 
 function jsonHttpRequest (host, port, data, path, callback) {
 	path = path || '/json_rpc';
@@ -56,10 +57,13 @@ function rpc (host, port,id, method, params, path, callback) {
 		params: params
 	});
 	jsonHttpRequest(host, port, data, path, function (error, replyJson) {
+		
 		if (error) {
+			global.log("error",logSystem, "Error %j",[error]);
 			callback(error, {});
 			return;
 		}
+		
 		callback(null, replyJson)
 	});
 }
@@ -68,14 +72,14 @@ module.exports = {
 	rpc,
 	fetch: (host,port,id,method,params) => {
 		return new Promise((resolve, reject) => {
-			rpc(host,port,method,params,null, (err,data) => {
+			rpc(host,port,id,method,params,null, (err,data) => {
 				if(err) {
 					reject(err);
 					return;
 				}
 				resolve(data);
 			});
-		}).catch(e => console.error(e));
+		}).catch(e => global.log("error",logSystem, "RPC Error %j",[error]));
 	}
 
 }

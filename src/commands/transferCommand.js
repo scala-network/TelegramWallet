@@ -1,16 +1,12 @@
 const Command = require('./BaseCommand');
 const STATUS = require('../status');
 
-class RemoveCommand extends Command {
+class TransferCommand extends Command {
 
     enabled = true;
 
     get description() {
-        let o = "Deletes your account";
-        if(!global.config.swm) {
-            o+=' usages: /remove <password>';
-        }
-        return o;
+        return "Deletes your account usages: /remove <password>";
     }
 
     get name() {
@@ -22,22 +18,23 @@ class RemoveCommand extends Command {
     }
 
     async run(ctx) {
-        if(ctx.test) return;
-        if(!global.config.swm && ctx.appRequest.args.length <= 0) {
+        if(ctx.test)  return;
+        if(ctx.appRequest.args.length <= 0) {
             return ctx.reply(`Missing argument for password\n${this.description}`);
         }
         const User = this.loadModel('User');
-
-        if(!(await User.exists(ctx.from.id))) {
+        if(!user) {
             return ctx.reply(`Account not avaliable`);    
         }
         await User.remove(ctx.from.id, ctx.from.username);
         /**
-         * @@TODO : Delete wallet file for swm = false
+         * @@TODO : Delete wallet file
          **/
         ctx.reply("Account deleted");
+  
+
     }
 	
 }
 
-module.exports = RemoveCommand;
+module.exports = TransferCommand;

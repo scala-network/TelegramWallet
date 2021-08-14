@@ -1,6 +1,6 @@
 const Model = require('./base');
 
-class Wallet extends Model
+class Address extends Model
 {
 	properties = [
 		"id",
@@ -15,17 +15,17 @@ class Wallet extends Model
 
 
 	get className() {
-		return 'wallet';
+		return 'address';
 	}
 	
+	add(id, index, options) {
+		return this.Query(options).add(id, index);
+	}
+
 	findByUserId(id, options) {
 		return this.Query(options).findByUserId(id);
-	}
-	
-	addByUser(user, address, options) {
-		return this.Query(options).addByUser(user, address, options);
 	}
 }
 
 
-module.exports = Wallet;
+module.exports = Address;

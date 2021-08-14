@@ -1,9 +1,8 @@
 
-const Coin = require('../coins/xla');;
 const Command = require('./BaseCommand');
 const STATUS = require('../status');
-
-class AddressCommand extends Command {
+const logSystem = "command/address";
+class CreateCommand extends Command {
 
     get MaxWalletUser() {
         return 1;
@@ -12,64 +11,118 @@ class AddressCommand extends Command {
     enabled = true;
 
     get description() {
-        return "Creates a wallet usages: /create <password>";
+        let o = "Creates a wallet";
+        if(!global.config.swm) {
+            o+=' usages: /create <password>';
+        }
+        return o;
     }
 
     get name() {
         return "address";
     } 
     
-    async auth(ctx) {
-        return !request.is.group;
+    auth(ctx) {
         return !ctx.appRequest.is.group;
     }
 
     async run(ctx) {
-        if(ctx.test)  return;
-        const coin = new Coin();
+        if(ctx.test) return;
 
-        if(ctx.appRequest.args.length <= 0) {
+        if(!global.config.swm && ctx.appRequest.args.length <= 0) {
             return ctx.reply(`Missing argument for password\n${this.description}`);
         }
+
         const password = ctx.appRequest.args[0];
         const {id,username} = ctx.from;
         const User = this.loadModel('User');
-        const user = await User.createWithWallet(id, username, password);
-        
 
+        const user = await User.add(id, username);
         switch(user) {
-            case STATUS.ERROR_WALLET_CREATE_EXCEED:
-                return ctx.reply("Maximum wallet creation reached.");
-            case STATUS.ERROR_REQUEST_PENDING:
-                return ctx.reply("A request has already been made. Please wait."); 
+            case STATUS.ERROR_ACCOUNT_EXISTS:
+                return ctx.reply("Account already exists");
+           case STATUS.ERROR_CREATE_ACCOUNT:
+                return ctx.reply("Account creation failed");    
             default:
-                const a = await coin.createWallet(ctx.from.id,password);
-                if(a.error) {
-                    return ctx.reply(a.error.message);    
+                let address;
+                let heightOrWalletId;
+
+                if(!global.config.swm) {
+                    const a = await this.Coin.createWallet(ctx.from.id,password);
+                    if('error' in a) {
+                        return ctx.reply(a.error.message);    
+                    }
+                    
+                    await this.Coin.openWallet(id, password);
+                    let address = await this.Coin.getAddress(id);
+                    address = address.result.address;
+
+                    heightOrWalletId = await this.Coin.getHeight(id);
+                    heightOrWalletId = height.result.height;
+
+                    await this.Coin.closeWallet(id);
+
+                } else {
+                    const Address = this.loadModel('Address'); 
+                    const index = await Address.findByUserId(id);
+                    let result;
+                    if(index) {
+                      
+                        result = await this.Coin.getAddress(id, index);
+
+                        global.log("info",logSystem, "Getting old subaddress for %s at %s\n %j",[
+                            `${id}@${username}`,index, result
+                        ]);
+
+                        if(result) {
+                            if('error' in result) {
+                                await User.remove(id);
+                                return ctx.reply(result.error.message);
+                            }
+
+                            heightOrWalletId = index;
+
+                            if(result.result.addresses.length > 0 ) {
+                                address = result.result.addresses[0].address;
+                            }
+                        }
+                    }
+                    if(!address) {
+                        global.log("warn",logSystem, "Create new subaddress for %s",[
+                            `${id}@${username}`
+                        ]);
+
+                        result = await this.Coin.createSubAddress(id); 
+                        if(!result) {
+                            await User.remove(id);
+                            return ctx.reply("Unable to create address for wallet");
+                        }
+                        if('error' in result) {
+                            return ctx.reply(result.error.message);
+                        }
+
+                        heightOrWalletId = result.result.account_index;
+                        address = result.result.address; 
+
+                        await Address.add(id, heightOrWalletId);
+                    }
                 }
-                
-                await coin.openWallet(id, password);
-                let address = await coin.getAddress(id);
-                address = address.result.address;
-
-                let height = await coin.getHeight(id);
-                height = height.result.height;
-
-                await coin.closeWallet(id);
 
                 const Wallet = this.loadModel('Wallet');
-                
-                const wallet = Wallet.addWalletByUserId(id,address,height);
+                await Wallet.addByUser(user, address, heightOrWalletId);
 
-                ctx.reply("Account created successfully");
-                
+                const wallet = Wallet.findByUserId(id);
+                if(wallet) {
+                    return ctx.reply("Account created successfully");    
+                }
 
+                await User.remove(id);
+                
+                return ctx.reply("Account creation failed");    
+                
         }
-
-  
-
     }
 	
 }
 
-module.exports = AddressCommand;
+module.exports = CreateCommand;

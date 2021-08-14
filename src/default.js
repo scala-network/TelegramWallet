@@ -1,7 +1,13 @@
 
 
 module.exports = {
-	
+	/**
+	 *  SINGLE WALLET MODE 
+	 *  when swm:true 
+	 *  Account create will be
+	 *  a subaddress
+	 **/
+	"swm":true, 
 	"log": {
         "files": {
             "enabled" : false,

@@ -60,6 +60,23 @@ class HelloCommand extends BaseCommand {
 
 ```
 
+### Telegraf context extensions (appRequest)
+
+appRequest allows to gain about request information from user.
+
+1. is - object allows to identify either admin, a group or the message is personally to user
+2. action - can see what the actual command is called
+3. query - can see the actual query being made
+4. args - the queries in array
+
+eg. of a chat transpose to appRequest
+
+```/transfer username 1000```
+
+`action` - `transfer`
+`query` - `username 1000`
+`args` - [`username`,`1000`]
+
 
 ### Calling models into commands
 

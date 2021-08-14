@@ -1,10 +1,15 @@
 
 class BaseCommand {
 	enabled = false;
-	
+	#_coin;
+	get Coin() {
+		return this.#_coin;
+	}
+
 	get description() {
 		return false;
 	}
+
 	static #_models = {};
 
 	loadModel(model) {
@@ -30,10 +35,13 @@ class BaseCommand {
 			console.error("Method missing run");
 			process.exit();
 		}
+		
+		const Coin = require('../coins/xla');
+        this.#_coin = new Coin();
 
 	}
 	
-	auth(request) {
+	auth(ctx) {
 		return true;
 	}
 
@@ -44,10 +52,10 @@ class BaseCommand {
 	exec(ctx) {
 		const self = this;
 		this.beforeRun(ctx, c => {
-			if(!this.auth(ctx)) {
-				return ctx.reply("Authorization failed for command");
+			if(!self.auth(c)) {
+				return c.reply("Authorization failed for command");
 			}
-			self.run(c)
+			self.run(c);
 		});
 	}
 }

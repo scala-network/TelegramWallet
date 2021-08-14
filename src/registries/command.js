@@ -27,6 +27,7 @@ class CommandManager {
 	getCommands() {
 		return this.#_commands;
 	}
+	
 	getCommand(cmd) {
 		if(cmd in this.#_commands) {
 			return this.#_commands[cmd]; 

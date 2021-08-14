@@ -1,141 +1,74 @@
 const STATUS = require('../../../status');
 
+const logSystem = "model/redis/user";
 
 class User {
 	
-	async findWithWalletsAndDaemonHeightById(id) {
-		const key = [global.config.coin, 'daemon' ,'height'].join(':');
-		const ukey = [global.config.coin, 'Users' ,id].join(':');
-		const wkey = [global.config.coin, 'Wallets' ,id].join(':');
-
-		const results = await global.redisClient.multi()
-		.get(key)
-		.hget(ukey,'selected')
-		.lrange(wkey,[0,-1])
-		.exec();
-
-		if(!results) {
-        	return null;
-		} 
-
-		let wallets = [];
-		if(results[1]) {
-			wallets = JSON.parse(results[1]);
-		}
-		return {
-			height: results[0],
-			user : { selected : results[1] },
-			wallets
-		};
-
-	}
-
-	async findAllWithWalletsById(id) {
+	async findAllById(id) {
 		const ukey = [global.config.coin, 'Users' , id].join(':');
-		const wkey = [global.config.coin, 'Wallets', id].join(':');
 
-		const results = await global.redisClient
-		.multi()
-		.hgetall(ukey)
-		.lrange(wkey,[0,-1])
-		.exec();
+		const results = await global.redisClient.hgetall(ukey);
 
 		if(!results || !results[0]) {
         	return null;
 		} 
-		let wallets = [];
-		if(results[1]) {
+		if(results.wallet) {
 			try{
-				wallets = JSON.parse(results[1]);
+				results.wallet = JSON.parse(results.wallet);
 			} catch(e) {
 
 			}
 		}
-
-		
-		return { user : results[0], wallets };
-
+		return { results };
 	}
 
-	async findWithWalletsById(id) {
+	async exists(id) {
 		const ukey = [global.config.coin, 'Users' , id].join(':');
-		const wkey = [global.config.coin, 'Wallets', id].join(':');
 
-		const results = await global.redisClient
-		.multi()
-		.hget(ukey, 'selected')
-		.lrange(wkey,[0,-1])
-		.exec();
+		const result = await global.redisClient.hget(ukey, 'id');
 
-		if(!results) {
-        	return null;
-		} 
-
-		let wallets = [];
-		if(results[1]) {
-			try{
-				wallets = JSON.parse(results[1]);
-			} catch(e) {
-
-			}
-		}
-		return { selected : results[0], wallets };
-
+		return (result !== null && result.id === id);
 	}
+
 	async remove(id, username) {
-		const wkey = [global.config.coin, "Wallets" ,id].join(':');
         const uKey = [global.config.coin, "Users" ,id].join(':');
         const aKey = [global.config.coin, "Alias" ,username].join(':');
 
         await global.redisClient.multi()
         .del(uKey)
         .del(aKey)
-        .del(wkey)
         .exec();
 
         return STATUS.OK;
-
 	}
 
-	async createWithWallet(id, username, password) {
-		const wkey = [global.config.coin, "Wallets" ,id].join(':');
+	async add(id, username) {
         const uKey = [global.config.coin, "Users" ,id].join(':');
         const aKey = [global.config.coin, "Alias" ,username].join(':');
 
-        const results = await global.redisClient.multi()
-        .hmget(uKey,['username','status'])
-        .llen(wkey)
+        const exists = await this.exists(id);
+		if(exists) {
+			return STATUS.ERROR_ACCOUNT_EXISTS;
+        }
+        const insert = [
+        	'id',id,
+        	'username', username,
+        	'status' , STATUS.WALLET_REQUIRED
+        ];
+    	let result = await global.redisClient.multi()
+        .hmset(uKey, insert)
+        .hset(aKey,[
+        	username, id
+        ])
+        .hgetall(uKey)
         .exec();
-        const walletCount = results[1]?results[1]:0;
-        let status = STATUS.REQUEST_NEW_USER;
-        
-        if(results[0][0] === null) {
-
-            await global.redisClient.multi()
-            .hmset(aKey,[
-            	username, id
-            ])
-            .hmset(uKey,[
-                'status', status,
-                'username',username,
-                'id',id,
-                'selected', 0
-            ])
-            .exec();
-
-        } else {
-        	status = results[0][1];
-        }
                     
-        if(walletCount >= this.MaxWalletUser) {
-            return STATUS.ERROR_WALLET_CREATE_EXCEED;
+        if(!result[2]) {
+        	global.log("error",logSystem, "Error %j => %j",[result, insert]);
+        	return STATUS.ERROR_CREATE_ACCOUNT;
         }
 
-        if(status != STATUS.REQUEST_NEW_USER) {
-            return STATUS.ERROR_REQUEST_PENDING;
-        }
-
-        return STATUS.OK;
+        return result[2];
 	}
 }
 
