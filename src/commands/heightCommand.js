@@ -6,7 +6,6 @@
  */
 const Command = require('./BaseCommand');
 const TimeAgo = require('javascript-time-ago');
-TimeAgo.addDefaultLocale(require('javascript-time-ago/locale/en'));
 const timeAgo = new TimeAgo('en-US')
 const logSystem = "command/height";
 

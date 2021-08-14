@@ -48,6 +48,36 @@ class Wallet {
 
 	}
 
+	async update(wallet) {
+		const ukey = [global.config.coin, 'Users' , wallet.user_id].join(':');
+
+		wallet = Object.assign(wallet, {
+			user_id: wallet.user_id,
+			last_sync:Date.now(),
+			status:STATUS.WALLET_READY
+		});
+
+
+		const result = await global.redisClient
+		.multi()
+		.hmset(ukey, [	
+			["status",  STATUS.WALLET_READY],
+			["wallet",  JSON.stringify(wallet)]
+		])
+		.hmget(ukey,"wallet")
+		.exec();
+		let wallets;
+		if(result[1]) {
+			try{
+				wallets = JSON.parse(result[1]);
+			} catch(e) {
+				wallets = null;
+			}
+		}
+		return wallets;
+
+	}
+
 	async findByUserId(id) {
 		const ukey = [global.config.coin, 'Users' , id].join(':');
 

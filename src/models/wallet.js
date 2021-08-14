@@ -25,6 +25,10 @@ class Wallet extends Model
 	addByUser(user, address, options) {
 		return this.Query(options).addByUser(user, address, options);
 	}
+
+	update(wallet, options) {
+		return this.Query(options).update(wallet, options);
+	}
 }
 
 

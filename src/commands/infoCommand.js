@@ -32,16 +32,16 @@ class InfoCommand extends Command {
 
 		let totalBalance = 0;
 		let output = "";
-		output +='**User Information**\n';
+		output +='** User Information **\n';
 		for(const i in User.properties) {
 			const property = User.properties[i];
-			if(property === "wallet") {
+			if(!!~['wallet_id','wallet','status','id'].indexOf(property)) {
 				continue;
 			}
 			output += '['+property+'] : ' + result[property] + "\n";
 		}
 
-		output +='\n\n**Wallets Information**\n';
+		output +='\n** WalletInformation **\n';
 
 		const wallet = result.wallet;
 

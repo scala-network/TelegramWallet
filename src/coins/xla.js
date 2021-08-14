@@ -40,6 +40,14 @@ class xla {
 		});	
 	}
 
+	async getBalance(id,idx) {
+		const { host,port} = this.server;
+		return await request.fetch(host,port,id,"get_balance",{
+			"account_index":parseInt(idx || id),
+			"address_index":[0]
+		});
+	}
+
 	async createSubAddress(id) {
 		const { host,port} = this.server;
 		return await request.fetch(host,port,id,"create_account",{

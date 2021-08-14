@@ -6,6 +6,8 @@
 
 require("./src/bootstrap");
 
+const TimeAgo = require('javascript-time-ago');
+TimeAgo.addDefaultLocale(require('javascript-time-ago/locale/en'));
 const Telegraf = require('telegraf');
 const logSystem = "app";
 const bot = new Telegraf.Telegraf(global.config.bot.token);
