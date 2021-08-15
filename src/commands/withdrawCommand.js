@@ -67,7 +67,9 @@ class WithdrawCommand extends Command {
 
 				const uuid = await Wallet.metaToUid(ctx.from.id, trx.tx_metadata);
 
-				return ctx.reply(`
+				return ctx.telegram.sendMessage(
+					ctx.from.id,
+					`
 					** Transaction Details **
 
 					From: 

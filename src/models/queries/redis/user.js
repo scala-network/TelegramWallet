@@ -33,8 +33,14 @@ class User {
 
 			}
 		}
+
+		if(!('tip' in results)) {
+			results.tip = parseInt(global.config.command.tip ?global.config.command.tip :1000);
+		}
 		return results;
 	}
+
+	async update(user)
 
 	async exists(id) {
 		const ukey = [global.config.coin, 'Users' , id].join(':');

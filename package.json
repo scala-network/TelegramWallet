@@ -1,6 +1,6 @@
 {
-  "name": "torque_telegram_wallet",
-  "version": "0.0.1",
+  "name": "ScalaTelegramWallet",
+  "version": "0.1.0",
   "description": "",
   "main": "app.js",
   "scripts": {

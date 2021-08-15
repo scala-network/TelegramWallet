@@ -16,6 +16,7 @@ const bot = new Telegraf.Telegraf(global.config.bot.token);
 bot.telegram.getMe().then((bot_informations) => {
     bot.options.username = bot_informations.username;
     global.log('info',logSystem,"Server has initialized bot nickname. Nick: @"+bot_informations.username);
+    global.config.bot.name = "@"+bot_informations.username;
 });
 
 
@@ -23,16 +24,17 @@ bot.use(async (ctx, next) => {
 
     const start = new Date()
     await next()
-    const ms = new Date() - start
+    const ms = new Date() - start;
+    let msg = ('update' in ctx) ? ctx.update.message.text : (('message' in ctx) ? ctx.message.text : "");
     global.log('info',logSystem, "From: %s Request : %s [%sms]",[
         ctx.from.username, 
-        ctx.update.message.text,
+        msg,
         ms
     ]);
-
 });
 
 require('./src/registries/command')(bot);
+
 bot.launch()
 
 // Enable graceful stop

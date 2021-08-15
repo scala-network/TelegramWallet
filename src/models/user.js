@@ -7,7 +7,8 @@ class User extends Model
 		"username",
 		"status",
 		"wallet",
-		"wallet_id"
+		"wallet_id",
+		"tip"
 	];
 
 	get className() {

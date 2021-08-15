@@ -37,13 +37,15 @@ class CommandManager {
 	}
 
 	setCommandContext(cmd, ctx) {
-		
 		const c = this.getCommand(cmd);
 
 		if(!c || !c.enabled || ctx.from.is_bot) return;
 		//if query /donate address
 		//we remove /donate and just get address
 		let query = ctx.message.text.replace(`/${cmd}`,'').trim();
+		if(query.startsWith(global.config.bot.name)) {
+			query = query.replace(global.config.bot.name,'').trim();
+		}
 		let args = [];
 		if(query !== "") {
 			args = query.split(' ');
@@ -85,6 +87,9 @@ class CommandManager {
 			global.log('info',logSystem, "Initializing command/%s", [c]);
 			
 			bot.command(c,ctx => {
+				self.setCommandContext(c,ctx)
+			});
+			bot.command(c + global.config.bot.name,ctx => {
 				self.setCommandContext(c,ctx)
 			});
 		}

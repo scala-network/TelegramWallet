@@ -19,7 +19,6 @@ try {
 }
 
 
-global.coin = require('./coins/' + global.config.coin);
 
 require('./interfaces/redis');
 

@@ -40,10 +40,13 @@ module.exports = {
     		'address',
     		'info',
     		'remove',
+    		'tip',
+    		'set',
     		'transfer',
     		'withdraw',
     		'submit',
     		'version'
-		]
+		],
+		"tip" : 1000
 	}    
 }

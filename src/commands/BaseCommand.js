@@ -35,8 +35,8 @@ class BaseCommand {
 			console.error("Method missing run");
 			process.exit();
 		}
-		
-		const Coin = require('../coins/xla');
+
+		const Coin = require(`../coins/${global.config.coin}`);
         this.#_coin = new Coin();
 
 	}
@@ -53,7 +53,7 @@ class BaseCommand {
 		const self = this;
 		this.beforeRun(ctx, c => {
 			if(!self.auth(c)) {
-				return c.reply("Authorization failed for command");
+				return ctx.telegram.sendMessage(ctx.from.id,`Authorization failed for command \`${ctx.appRequest.action}\``);
 			}
 			self.run(c);
 		});

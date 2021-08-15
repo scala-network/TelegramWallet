@@ -17,12 +17,12 @@ class VersionCommand extends Command {
 
 	async run(ctx) {
         if(ctx.test)  return;
-        const package =  path.join(process.cwd(),'package.json');
+        const pjson = path.join(process.cwd(),'package.json');
 
 		try {
 
-		    const rfs = fs.readFileSync(configFile);
-      		ctx.reply(`Version : ${rfs.version}`);
+		    const rfs = fs.readFileSync(pjson);
+      		ctx.reply(`Version : ${JSON.parse(rfs).version}`);
 
 		} catch(e){
 		    ctx.reply("Unable to display version");
