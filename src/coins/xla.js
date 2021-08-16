@@ -86,6 +86,16 @@ class xla {
 			"account_index":parseInt(idx || id),
 			"address_index":[0]
 		});
+
+		if(!response) {
+			return null;
+		}
+
+		if('error' in response) {
+			return { error: response.error.message };
+		}
+
+		return response.result;
 	}
 
 	async createSubAddress(id) {

@@ -35,9 +35,9 @@ class HeightCommand extends Command {
         	timestamp = now;
 	        Network.addHeight(height);
 	  
-	        global.log('info',logSystem,"Fetched from last height %s : %s", [
-		     	height,now - parseInt(timestamp)
-		     ]);
+	      //   global.log('info',logSystem,"Fetched from last height %s : %s", [
+		     // 	height,now - parseInt(timestamp)
+		     // ]);
    	
         } else {
         	timestamp = result.timestamp;

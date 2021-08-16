@@ -1,6 +1,6 @@
 const STATUS = require('../../../status');
-
-class Address
+const Query = require('../BaseQuery');
+class Address extends Query
 {
 
 	async add(id, index) {

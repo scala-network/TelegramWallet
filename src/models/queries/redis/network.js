@@ -1,5 +1,6 @@
-
-class Network {
+const Query = require('../BaseQuery');
+class Network  extends Query
+{
 	
 	async lastHeight() {
 		const key = [global.config.coin, 'network'].join(':');

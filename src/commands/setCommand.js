@@ -39,9 +39,9 @@ class SetCommand extends Command {
 
 		switch(ctx.appRequest.args[0]) {
 			case 'tip':
-			result.tip = this.Coin.parse(ctx.appRequest.args[1]);
-			await User.update();
-			return ctx.reply("Tip value changed");
+			const amount = this.Coin.parse(ctx.appRequest.args[1]);
+			await User.updateField("tip",amount);
+			return ctx.reply("Tip amount saved");
 			default:
 			return ctx.reply("Invalid settings");
 		}

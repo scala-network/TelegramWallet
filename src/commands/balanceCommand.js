@@ -35,14 +35,27 @@ class BalanceCommand extends Command {
 			const step = now - (global.config.rpc.interval * 1000);
 			if(parseInt(wallet.last_sync) <= step) {
 				const result = await this.Coin.getBalance(ctx.from.id, wallet.id);
-				wallet.balance = result.result.balance;
-				wallet.unlock = result.result.unlocked_balance;
+
+				if('error' in response) {
+					return ctx.reply(response.error);
+				}
+
+				wallet.balance = result.balance;
+				wallet.unlock = result.unlocked_balance;
+				if(wallet.balance === wallet.unlock) {
+					wallet.pending = 0;
+				} else {
+					wallet.pending = parseInt(result.blocks_to_unlock);
+				}
 				wallet = await Wallet.update(wallet);
 			}
 			if(wallet) {
 				output +=`Balance: ${this.Coin.format(wallet.balance)}\n`;
 				output +=`Unlocked Balance: ${this.Coin.format(wallet.unlock)}\n`;
 				output +=`Last Sync: ${timeAgo.format(parseInt(wallet.last_sync),'round')}\n`;
+				if(wallet.pending > 0) {
+					output +=`Confirmations Remaining: ${wallet.pending}\n`;	
+				}
 			} else {
 				output +='Error retrieving record';
 			}

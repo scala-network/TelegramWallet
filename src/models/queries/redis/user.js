@@ -1,9 +1,24 @@
 const STATUS = require('../../../status');
 
 const logSystem = "model/redis/user";
+const Query = require('../BaseQuery');
+class User  extends Query
+{
+	async updateField(id, field, value) {
+		const ukey = [global.config.coin, 'Users' , id].join(':');
+		const exists = await this.exists(id);
+		if(!exists) {
+			return STATUS.ERROR_ACCOUNT_NOT_EXISTS;
+        }
+        if(properties)
+		const user = await global.redisClient.hset(ukey, field, value);
 
-class User {
-	
+        if(!result) {
+        	return STATUS.ERROR_ACCOUNT_NOT_EXISTS;
+        }
+	}
+
+
 	async findByUsername(username) {
         const aKey = [global.config.coin, "Alias"].join(':');
 		const ukey = [global.config.coin, 'Users' , id].join(':');

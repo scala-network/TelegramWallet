@@ -1,8 +1,8 @@
 const STATUS = require('../../../status');
 const { v4: UUID } = require('uuid');
 
-
-class Wallet {
+class Wallet  extends Query
+{
 	/**
 	 * addByUser
 	 * 

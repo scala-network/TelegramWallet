@@ -2,6 +2,7 @@
 
 class BaseModel {
 	#_qryObj = {};
+
 	get engine() {
 		return "redis";
 	}
@@ -9,6 +10,11 @@ class BaseModel {
 	constructor() {
 		if(!this.className) {
 			console.error("Missing model's name")
+			process.exit();
+		}
+
+		if(!this.properties) {
+			console.error("Missing model's properties")
 			process.exit();
 		}
 	}
@@ -24,7 +30,7 @@ class BaseModel {
 
 		if(!(engine in this.#_qryObj)) {
 			const classObject = require(`./queries/${engine}/${this.className}`);
-			this.#_qryObj[engine] = new classObject();
+			this.#_qryObj[engine] = new classObject(this.properties);
 		}
 
 		return this.#_qryObj[engine];
