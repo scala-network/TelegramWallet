@@ -8,7 +8,6 @@ class User extends Model
 		"status",
 		"wallet",
 		"wallet_id",
-		"tip"
 	];
 
 	get className() {
@@ -34,10 +33,6 @@ class User extends Model
 
 	findByUsername(username, options) {
 		return this.Query(options).findByUsername(username);
-	}
-
-	updateField(id, field, value, options) {
-		return this.Query(options).updateField(id, field, value);
 	}
 }
 

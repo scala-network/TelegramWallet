@@ -18,6 +18,7 @@ class SetCommand extends Command {
 		return `Set value for your config. (usages: /set <config> <value>
 		Configs avaliable:
 		tip - Set default tip value (usages: /set tip 100)
+		tip_submit - Enabled / Disabled /submit after tip (usages /set tip_submit disabled) or (usages /set tip_submit enabled)
 		`;
 	}
 
@@ -39,6 +40,8 @@ class SetCommand extends Command {
 			return ctx.reply("User and wallet not avaliable please /create");
 		}
 
+		const Setting = this.loadModel("Setting");
+		let status;
 		switch(ctx.appRequest.args[0]) {
 			case 'tip':
 			const amount = parseFloat(ctx.appRequest.args[1]);
@@ -46,9 +49,22 @@ class SetCommand extends Command {
 			if(amount <= minTip) {
 				return ctx.reply(`Unable to set tip amount lower than ${minTip} ${this.Coin.symbol}`);
 			}
-			const status = await User.updateField("tip",,this.Coin.parse(amount));
+
+			status = await Setting.updateField(ctx.from.id,"tip",this.Coin.parse(amount));
 			if(status !== STATUS.OK) {
 				return ctx.reply("Unable to save tip amount");
+			}
+			return ctx.reply("Tip amount saved");
+			case 'tip_submit':
+			let enabledDisabled = ctx.appRequest.args[1].toLowerCase();
+			if(enabledDisabled !== 'enabled' && enabledDisabled !== 'disabled') {
+				return ctx.reply(`Invalid tip_submit options use enabled or disabled`);
+			}
+
+			status = await Setting.updateField(ctx.from.id, "tip_submit",enabledDisabled);
+
+			if(status !== STATUS.OK) {
+				return ctx.reply("Unable to save submit enabled/disabled for tip");
 			}
 			return ctx.reply("Tip amount saved");
 			default:

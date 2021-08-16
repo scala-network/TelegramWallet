@@ -18,7 +18,7 @@ class TransferCommand extends Command {
 	}
 
 	auth(ctx) {
-		return !ctx.appRequest.is.group;
+		return ctx.appRequest.is.group;
 	}
 
 	async run(ctx) {

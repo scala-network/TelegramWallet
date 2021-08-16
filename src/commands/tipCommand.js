@@ -31,12 +31,12 @@ class TransferCommand extends Command {
 
 		const Wallet = this.loadModel("Wallet");
 		const User = this.loadModel("User");
-		const donator = User.findById(ctx.from.id);
-		if(!donator) {
+		const sender = User.findById(ctx.from.id);
+		if(!sender) {
 			return ctx.telegram.sendMessage(ctx.from.id,`User not avaliable please /create`);
 		}
 
-		if(!donator.wallet) {
+		if(!sender.wallet) {
 			return ctx.telegram.sendMessage(ctx.from.id,`No wallet avaliable`);
 		}
 
@@ -49,6 +49,12 @@ class TransferCommand extends Command {
 		let now = Date.now();
 		const step = now - (global.config.rpc.interval * 1000);
 
+		if(!sender.wallet) {
+			return ctx.reply('No wallet avaliable');
+		}
+
+		let wallet = sender.wallet;
+
 		if(parseInt(wallet.last_sync) <= step) {
 			const result = await this.Coin.getBalance(ctx.from.id, wallet.id);
 			wallet.balance = result.result.balance;
@@ -56,37 +62,66 @@ class TransferCommand extends Command {
 			wallet = await Wallet.update(wallet);
 		}
 
-		const amount = this.Coin.parse(user.tip);
+		const amount = this.Coin.parse(ctx.appRequest.args[1]);
 		if(amount > parseFloat(wallet.unlock)) {
 			return ctx.reply('Insufficient fund');	
 		}
 
-		const trx = await this.Coin.transfer(ctx.from.id, wallet.id, user.wallet.address, amount);
+		if(sender.tip_submit === 'enabled') {
 
-		if('error' in trx) {
-			return ctx.reply(trx.error);
+			const trx = await this.Coin.transfer(ctx.from.id, wallet.id, user.wallet.address, amount);
+			if('error' in trx) {
+				return ctx.reply(trx.error);
+			}
+
+			const uuid = await Wallet.metaToUid(ctx.from.id, trx.tx_metadata);
+
+			return ctx.telegram.sendMessage(ctx.from.id,`
+				** Transaction Details **
+
+				From: 
+				${wallet.address}
+				
+				To: 
+				@${user.username}
+				
+				Amount : ${this.Coin.format(trx.amount)}
+				Fee : ${this.Coin.format(trx.fee)}
+				Trx Meta ID: ${uuid}
+				Trx Expiry: ${global.config.rpc.metaTTL} seconds
+				Current Unlock Balance : ${this.Coin.format(wallet.balance)}
+
+				To proceed with transaction run
+				/submit ${uuid} 
+			`);
+
+		} else {
+			const trx = await this.Coin.transferSubmit(ctx.from.id, wallet.id, user.wallet.address, amount);
+			if('error' in trx) {
+				return ctx.reply(trx.error);
+			}
+
+			const balance = parseInt(wallet.balance) - parseInt(trx.amount) - parseInt(trx.fee);
+
+			return ctx.telegram.sendMessage(ctx.from.id,`
+				** Transaction Details **
+
+				From: 
+				${wallet.address}
+				
+				To: 
+				@${user.username}
+				
+				Amount : ${this.Coin.format(trx.amount)}
+				Fee : ${this.Coin.format(trx.fee)}
+				Trx Hash: ${trx.tx_hash}
+				Current Balance : ${this.Coin.format(balance)}
+			`);
 		}
 
-		const uuid = await Wallet.metaToUid(ctx.from.id, trx.tx_metadata);
+		
 
-		return ctx.telegram.sendMessage(ctx.from.id,`
-			** Transaction Details **
-
-			From: 
-			${wallet.address}
-			
-			To: 
-			@${user.username}
-			
-			Amount : ${this.Coin.format(trx.amount)}
-			Fee : ${this.Coin.format(trx.fee)}
-			Trx Meta ID: ${uuid}
-			Trx Expiry: ${global.config.rpc.metaTTL} seconds
-			Current Unlock Balance : ${this.Coin.format(wallet.balance)}
-
-			To proceed with transaction run
-			/submit ${uuid} 
-		`);
+		
 
 
 	}
