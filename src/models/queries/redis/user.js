@@ -10,12 +10,16 @@ class User  extends Query
 		if(!exists) {
 			return STATUS.ERROR_ACCOUNT_NOT_EXISTS;
         }
-        if(properties)
+        if(!~properties.indexOf(field)) {
+        	return STATUS.ERROR_MODEL_PROPERTIES_NOT_AVALIABLE;
+        }
 		const user = await global.redisClient.hset(ukey, field, value);
 
         if(!result) {
         	return STATUS.ERROR_ACCOUNT_NOT_EXISTS;
         }
+
+        return STATUS.OK;
 	}
 
 
@@ -54,8 +58,6 @@ class User  extends Query
 		}
 		return results;
 	}
-
-	async update(user)
 
 	async exists(id) {
 		const ukey = [global.config.coin, 'Users' , id].join(':');

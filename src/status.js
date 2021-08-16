@@ -43,6 +43,10 @@ class Status {
 	static get ERROR_ACCOUNT_NOT_EXISTS() {
 		return 404;
 	}
+
+	static get ERROR_MODEL_PROPERTIES_NOT_AVALIABLE() {
+		return 405;
+	}
 }
 
 module.exports = Status;

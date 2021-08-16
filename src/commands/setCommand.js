@@ -1,6 +1,8 @@
 /**
  * A Telegram Command. Set value for your preference
  * usages: /set <config> <value>
+ * Available configs:
+ * - tip - Set tip amount
  * @module Commands/set
  */
 const Command = require('./BaseCommand');
@@ -39,8 +41,15 @@ class SetCommand extends Command {
 
 		switch(ctx.appRequest.args[0]) {
 			case 'tip':
-			const amount = this.Coin.parse(ctx.appRequest.args[1]);
-			await User.updateField("tip",amount);
+			const amount = parseFloat(ctx.appRequest.args[1]);
+			const minTip = global.config.commands.tip;
+			if(amount <= minTip) {
+				return ctx.reply(`Unable to set tip amount lower than ${minTip} ${this.Coin.symbol}`);
+			}
+			const status = await User.updateField("tip",,this.Coin.parse(amount));
+			if(status !== STATUS.OK) {
+				return ctx.reply("Unable to save tip amount");
+			}
 			return ctx.reply("Tip amount saved");
 			default:
 			return ctx.reply("Invalid settings");
