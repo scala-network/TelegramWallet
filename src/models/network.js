@@ -2,10 +2,13 @@ const Model = require('./base');
 
 class Network extends Model
 {
-	properties = [
-		"height",
-		"timestamp",
-	];
+	get fields() {
+		return [
+			"height",
+			"timestamp",
+		];
+	} 
+	
 
 	get className() {
 		return 'network';

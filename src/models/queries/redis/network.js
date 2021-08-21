@@ -1,4 +1,6 @@
 const Query = require('../BaseQuery');
+
+
 class Network  extends Query
 {
 	

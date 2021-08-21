@@ -2,13 +2,15 @@ const Model = require('./base');
 
 class User extends Model
 {
-	properties = [
-		"id",
-		"username",
-		"status",
-		"wallet",
-		"wallet_id",
-	];
+	get fields() {
+		return [
+			"id",
+			"username",
+			"status",
+			"wallet",
+			"wallet_id"
+		];
+	};
 
 	get className() {
 		return 'user';

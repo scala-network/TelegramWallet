@@ -1,4 +1,4 @@
-
+const logSystem = "model";
 
 class BaseModel {
 	#_qryObj = {};
@@ -7,14 +7,18 @@ class BaseModel {
 		return "redis";
 	}
 	
+	get fields() {
+		return [];
+	}
+
 	constructor() {
 		if(!this.className) {
 			console.error("Missing model's name")
 			process.exit();
 		}
 
-		if(!this.properties) {
-			console.error("Missing model's properties")
+		if(!this.fields || this.fields.length <= 0) {
+			global.log('error',logSystem,'Missing  model\'s properties',[this.className]);
 			process.exit();
 		}
 	}
@@ -30,7 +34,7 @@ class BaseModel {
 
 		if(!(engine in this.#_qryObj)) {
 			const classObject = require(`./queries/${engine}/${this.className}`);
-			this.#_qryObj[engine] = new classObject(this.properties);
+			this.#_qryObj[engine] = new classObject(this.fields);
 		}
 
 		return this.#_qryObj[engine];

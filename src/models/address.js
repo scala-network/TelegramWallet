@@ -2,7 +2,9 @@ const Model = require('./base');
 
 class Address extends Model
 {
-	properties = [
+
+	get fields() {
+		return [
 		"id",
 		"user_id",
 		"address",
@@ -11,8 +13,8 @@ class Address extends Model
 		"balance",
 		"unlocked",
 		"status"
-	];
-
+		];
+	};
 
 	get className() {
 		return 'address';

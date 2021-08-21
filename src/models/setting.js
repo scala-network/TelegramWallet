@@ -2,11 +2,14 @@ const Model = require('./base');
 
 class Setting extends Model
 {
-	properties = [
+
+	get fields() {
+		return [
 		"tip",
 		"tip_submit"
-	];
-
+		];
+	} 
+	
 	get className() {
 		return 'user';
 	}
@@ -18,4 +21,4 @@ class Setting extends Model
 }
 
 
-module.exports = User;
+module.exports = Setting;

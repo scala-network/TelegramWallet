@@ -3,6 +3,24 @@
 ![Screenshot 2021-08-14 at 10 04 42 PM](https://user-images.githubusercontent.com/630603/129448879-48c8b551-21e6-4a8a-89ed-77c84eae4de5.png)
 
 ## Commands
+Below are the commands available
+
+* /help - Show all commands
+* /create - Create a new account
+* /balance - Check current wallet balance
+* /address - Reveal you coin wallet address
+* /withdraw - Withdraw coin from wallet to another coin address
+* /transfer - Transfer you coin from wallet to another telegram user
+* /tip - Sends coin base on your setup tip amount
+* /info - Display information about wallet and account
+* /submit - Once withdraw and transfer is done you need to reply submit with id to confirm payment
+* /version - Display current server's version
+* /height - Display wallet's height
+* /set - Configure settings. Amongst settings avaliable
+    * tip - Set tip amount
+* /rain - Airdrop coin to users in group who have registered with coin
+
+### Commands Development
 
 To create a new command, you must follow these rules.
 

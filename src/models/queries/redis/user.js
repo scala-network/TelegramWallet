@@ -54,7 +54,7 @@ class User  extends Query
 		}
 
 		if(!('tip' in results)) {
-			results.tip = parseInt(global.config.command.tip ?global.config.command.tip :1000);
+			results.tip = parseInt(global.config.commands.tip ?global.config.commands.tip :1000);
 		}
 		return results;
 	}

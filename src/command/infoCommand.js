@@ -24,6 +24,7 @@ class InfoCommand extends Command {
 		if(ctx.test)  return;
 		
 		const User = this.loadModel("user");
+		const Settings = this.loadModel("Setting");
 
 		const result = await User.findAllById(ctx.from.id);
 		if (!result) {
@@ -33,12 +34,27 @@ class InfoCommand extends Command {
 		let totalBalance = 0;
 		let output = "";
 		output +='** User Information **\n';
-		for(const i in User.properties) {
-			const property = User.properties[i];
+		for(const i in User.fields) {
+			const property = User.fields[i];
 			if(!!~['wallet_id','wallet','status','id'].indexOf(property)) {
 				continue;
 			}
 			output += '['+property+'] : ' + result[property] + "\n";
+		}
+
+		output +='\n** User Settings **\n';
+		for(const i in Settings.fields) {
+			const property = Settings.fields[i];
+			let out = result[property];
+			if(property == 'tip_submit') {
+				out = (out == "enabled") ? "enabled" : "disabled";
+			}else if(property == 'tip') {
+				if(parseInt(out) < global.config.commands.tip) {
+					out = global.config.commands.tip;
+				}
+				out = this.Coin.parse(out);
+			}
+			output += '['+property+'] : ' + out + "\n";
 		}
 
 		output +='\n** WalletInformation **\n';
@@ -46,8 +62,8 @@ class InfoCommand extends Command {
 		const wallet = result.wallet;
 
 		if(wallet) {
-			output += 'Address : ' + wallet.address + "\n" ;
-			output += 'Balance : ' + wallet.balance + "\n" ;
+			output += 'Address : ' + this.Coin.parse(wallet.address) + "\n" ;
+			output += 'Balance : ' + this.Coin.parse(wallet.balance) + "\n" ;
 			output += 'Unlock : ' + (wallet.unlock?wallet.unlock:0) + "\n" ;
 			if(!global.config.swm) {
 				output += 'Height : ' + wallet.height + "\n" ;	

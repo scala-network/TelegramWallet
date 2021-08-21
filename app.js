@@ -19,21 +19,36 @@ bot.telegram.getMe().then((bot_informations) => {
     global.config.bot.name = "@"+bot_informations.username;
 });
 
-
+bot.command('start', ctx => {
+    bot.telegram.sendMessage(ctx.chat.id, 'hello there! Welcome to my new telegram bot.', { })
+})
 bot.use(async (ctx, next) => {
 
+    if('update' in ctx && 'my_chat_member' in ctx.update ){
+        if('chat' in ctx.update.my_chat_member) {
+
+            
+        }
+        return next();
+    }
+
+
     const start = new Date()
-    await next()
+    await next();
     const ms = new Date() - start;
-    let msg = ('update' in ctx) ? ctx.update.message.text : (('message' in ctx) ? ctx.message.text : "");
+    
+    let msg = (ctx.update && ctx.update.message) ? ctx.update.message.text : (('message' in ctx) ? ctx.message.text : "");
     global.log('info',logSystem, "From: %s Request : %s [%sms]",[
         ctx.from.username, 
         msg,
         ms
     ]);
+    // console.log(ctx);
+    // console.log(ctx.update);
 });
 
 require('./src/registries/command')(bot);
+// require('./src/registries/action')(bot);
 
 bot.launch()
 

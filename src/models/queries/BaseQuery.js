@@ -1,13 +1,16 @@
 
 class BaseQuery {
 
-	#_properties;
+	#_fields;
 
-	get properties() {
-		return this.#_properties;
+	get fields() {
+		return this.#_fields;
 	}
 
-	constructor(properties) {
-		this.#_properties = properties;
+	constructor(fields) {
+		this.#_fields = fields;
 	}
 }
+
+
+module.exports = BaseQuery;
