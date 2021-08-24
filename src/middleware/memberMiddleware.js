@@ -27,16 +27,20 @@ class MemberMiddleware extends Middleware {
 
 
 
-        if(!('members' in ctx)) {
-            ctx.members = {
-                findAllByChatId
-            };
-        }
+
 
         if (('chat' in ctx) && ('id' in ctx.chat)) {
             if(!(ctx.chat.id in MemberMiddleware.Chats)) {
                 MemberMiddleware.Chats[ctx.chat.id] = {}
             }  
+
+            if(!('members' in ctx)) {
+                ctx.members = {
+                    findAll:function() {
+                        return findAllByChatId(ctx.chat.id);
+                    }
+                };
+            }
 
             if (('from' in ctx) && ('id' in ctx.from)) {
                 if(!('existsInChatId' in ctx.members)) {

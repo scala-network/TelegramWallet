@@ -146,6 +146,28 @@ class xla {
 		return response.result;
 	}
 
+	async transferSubmitMany(id, idx, destinations) {
+		const { host,port } = this.server;
+		const response = await request.fetch(host,port,id,"transfer",{
+			destinations : [],
+			ring_size: 3,
+			do_not_relay: false,
+			get_tx_metadata: false,
+			get_tx_keys: true,
+			account_index:parseInt(idx || id)
+		});
+
+		if(!response) {
+			return null;
+		}
+
+		if('error' in response) {
+			return { error: response.error.message };
+		}
+
+		return response.result;
+	}
+
 	async transferSubmit(id, idx, address, amount) {
 		const { host,port } = this.server;
 		const response = await request.fetch(host,port,id,"transfer",{

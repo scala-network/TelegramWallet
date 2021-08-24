@@ -39,32 +39,23 @@ class TransferCommand extends Command {
 		if(!sender.wallet) {
 			return ctx.telegram.sendMessage(ctx.from.id,`No wallet avaliable`);
 		}
+		
+		let wallet = sender.wallet;
 
 		const user = User.findByUsername(ctx.appRequest.args[1]);
 
 		if(user === STATUS.ERROR_ACCOUNT_NOT_EXISTS) {
 			return ctx.reply("User account is not avaliable. Share bot to user and create an account");
 		}
-		
-		let now = Date.now();
-		const step = now - (global.config.rpc.interval * 1000);
 
-		if(!sender.wallet) {
-			return ctx.reply('No wallet avaliable');
-		}
-
-		let wallet = sender.wallet;
-
-		if(parseInt(wallet.last_sync) <= step) {
-			const result = await this.Coin.getBalance(ctx.from.id, wallet.id);
-			wallet.balance = result.result.balance;
-			wallet.unlock = result.result.unlocked_balance;
-			wallet = await Wallet.update(wallet);
-		}
+		const result = await this.Coin.getBalance(ctx.from.id, wallet.id);
+		wallet.balance = result.result.balance;
+		wallet.unlock = result.result.unlocked_balance;
+		wallet = await Wallet.update(wallet);
 
 		const amount = this.Coin.parse(ctx.appRequest.args[1]);
 		if(amount > parseFloat(wallet.unlock)) {
-			return ctx.reply('Insufficient fund');	
+			return ctx.telegram.sendMessage(ctx.from.id,'Insufficient fund');	
 		}
 
 		if(sender.tip_submit === 'enabled') {
