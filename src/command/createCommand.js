@@ -19,7 +19,7 @@ class CreateCommand extends Command {
     }
 
     get name() {
-        return "address";
+        return "create";
     } 
     
     auth(ctx) {
@@ -47,68 +47,52 @@ class CreateCommand extends Command {
                 let address;
                 let heightOrWalletId;
 
-                if(!global.config.swm) {
-                    const a = await this.Coin.createWallet(ctx.from.id,password);
-                    if('error' in a) {
-                        return ctx.reply(a.error.message);    
-                    }
-                    
-                    await this.Coin.openWallet(id, password);
-                    let address = await this.Coin.getAddress(id);
-                    address = address.result.address;
+                const Address = this.loadModel('Address'); 
+                const index = await Address.findByUserId(id);
+                let result;
+                if(index) {
+                  
+                    result = await this.Coin.getAddress(id, index);
 
-                    heightOrWalletId = await this.Coin.getHeight(id);
-                    heightOrWalletId = height.result.height;
-
-                    await this.Coin.closeWallet(id);
-
-                } else {
-                    const Address = this.loadModel('Address'); 
-                    const index = await Address.findByUserId(id);
-                    let result;
-                    if(index) {
-                      
-                        result = await this.Coin.getAddress(id, index);
-
-                        if(result) {
-                            if('error' in result) {
-                                await User.remove(id);
-
-                                global.log("error",logSystem, "Getting old subaddress for %s at %s\n %s",[
-                                    `${id}@${username}`,index, result.error.message
-                                ]);
-
-                                return ctx.reply(result.error.message);
-                            }
-                            global.log("info",logSystem, "Getting old subaddress for %s at %s\n",[
-                                `${id}@${username}`,index
-                            ]);
-                            heightOrWalletId = index;
-                            if(result.result.addresses.length > 0 ) {
-                                address = result.result.addresses[0].address;
-                            }
-                        }
-                    }
-                    if(!address) {
-                        global.log("warn",logSystem, "Create new subaddress for %s",[
-                            `${id}@${username}`
-                        ]);
-
-                        result = await this.Coin.createSubAddress(id); 
-                        if(!result) {
-                            await User.remove(id);
-                            return ctx.reply("Unable to create address for wallet");
-                        }
+                    if(result) {
                         if('error' in result) {
+                            await User.remove(id);
+
+                            global.log("error",logSystem, "Getting old subaddress for %s at %s\n %s",[
+                                `${id}@${username}`,index, result.error.message
+                            ]);
+
                             return ctx.reply(result.error.message);
                         }
-
-                        heightOrWalletId = result.result.account_index;
-                        address = result.result.address; 
-
-                        await Address.add(id, heightOrWalletId);
+                        global.log("info",logSystem, "Getting old subaddress for %s at %s\n",[
+                            `${id}@${username}`,index
+                        ]);
+                        heightOrWalletId = index;
+                        if(result.result.addresses.length > 0 ) {
+                            address = result.result.addresses[0].address;
+                        }
                     }
                 }
+                if(!address) {
+                    global.log("warn",logSystem, "Create new subaddress for %s",[
+                        `${id}@${username}`
+                    ]);
+
+                    result = await this.Coin.createSubAddress(id); 
+                    if(!result) {
+                        await User.remove(id);
+                        return ctx.reply("Unable to create address for wallet");
+                    }
+                    if('error' in result) {
+                        return ctx.reply(result.error.message);
+                    }
+
+                    heightOrWalletId = result.result.account_index;
+                    address = result.result.address; 
+
+                    await Address.add(id, heightOrWalletId);
+                }
+                
 
                 const Wallet = this.loadModel('Wallet');
                 await Wallet.addByUser(user, address, heightOrWalletId);
