@@ -17,38 +17,15 @@ bot.telegram.getMe().then((bot_informations) => {
     bot.options.username = bot_informations.username;
     global.log('info',logSystem,"Server has initialized bot nickname. Nick: @"+bot_informations.username);
     global.config.bot.name = "@"+bot_informations.username;
+
+    bot.command('start', ctx => {
+        bot.telegram.sendMessage(ctx.chat.id, 'hello there! Welcome to Scala Telegram Wallet', { })
+    });
+
+    require('./src/registries/middleware')(bot);
+    require('./src/registries/command')(bot);
 });
 
-bot.command('start', ctx => {
-    bot.telegram.sendMessage(ctx.chat.id, 'hello there! Welcome to my new telegram bot.', { })
-})
-bot.use(async (ctx, next) => {
-
-    if('update' in ctx && 'my_chat_member' in ctx.update ){
-        if('chat' in ctx.update.my_chat_member) {
-
-            
-        }
-        return next();
-    }
-
-
-    const start = new Date()
-    await next();
-    const ms = new Date() - start;
-    
-    let msg = (ctx.update && ctx.update.message) ? ctx.update.message.text : (('message' in ctx) ? ctx.message.text : "");
-    global.log('info',logSystem, "From: %s Request : %s [%sms]",[
-        ctx.from.username, 
-        msg,
-        ms
-    ]);
-    // console.log(ctx);
-    // console.log(ctx.update);
-});
-
-require('./src/registries/command')(bot);
-// require('./src/registries/action')(bot);
 
 bot.launch()
 

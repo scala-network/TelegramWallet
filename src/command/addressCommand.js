@@ -3,7 +3,7 @@
  * To return current wallets address do /address or /address <index> for a singular wallet's address
  * @module Commands/address
  */
- const Command = require('./BaseCommand');
+const Command = require('../base/command');
 
 class AddressCommand extends Command {
 	enabled = true;

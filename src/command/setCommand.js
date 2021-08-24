@@ -5,7 +5,7 @@
  * - tip - Set tip amount
  * @module Commands/set
  */
-const Command = require('./BaseCommand');
+const Command = require('../base/command');
 
 class SetCommand extends Command {
 	enabled = true;

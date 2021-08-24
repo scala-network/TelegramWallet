@@ -1,4 +1,4 @@
-const Command = require('./BaseCommand');
+const Command = require('../base/command');
 const STATUS = require('../status');
 
 class RemoveCommand extends Command {

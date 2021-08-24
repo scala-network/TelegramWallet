@@ -3,7 +3,7 @@
  * To return current daemon height do /height
  * @module Commands/height
  */
-const Command = require('./BaseCommand');
+const Command = require('../base/command');
 
 class InfoCommand extends Command {
 	get name () {
@@ -52,7 +52,7 @@ class InfoCommand extends Command {
 				if(parseInt(out) < global.config.commands.tip) {
 					out = global.config.commands.tip;
 				}
-				out = this.Coin.parse(out);
+				out = this.Coin.format(out);
 			}
 			output += '['+property+'] : ' + out + "\n";
 		}
@@ -62,9 +62,9 @@ class InfoCommand extends Command {
 		const wallet = result.wallet;
 
 		if(wallet) {
-			output += 'Address : ' + this.Coin.parse(wallet.address) + "\n" ;
-			output += 'Balance : ' + this.Coin.parse(wallet.balance) + "\n" ;
-			output += 'Unlock : ' + (wallet.unlock?wallet.unlock:0) + "\n" ;
+			output += 'Address : ' + wallet.address + "\n" ;
+			output += 'Balance : ' + this.Coin.format(wallet.balance) + "\n" ;
+			output += 'Unlock : ' + this.Coin.format(wallet.unlock?wallet.unlock:0) + "\n" ;
 			if(!global.config.swm) {
 				output += 'Height : ' + wallet.height + "\n" ;	
 			}

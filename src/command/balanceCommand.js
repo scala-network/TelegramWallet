@@ -3,7 +3,7 @@
  * @module Commands/balance
  */
 
-const Command = require('./BaseCommand');
+const Command = require('../base/command');
 const TimeAgo = require('javascript-time-ago');
 const timeAgo = new TimeAgo('en-US')
 const logSystem = "command/balance";
@@ -36,10 +36,10 @@ class BalanceCommand extends Command {
 			if(parseInt(wallet.last_sync) <= step) {
 				const result = await this.Coin.getBalance(ctx.from.id, wallet.id);
 
-				if('error' in response) {
-					return ctx.reply(response.error);
+				if('error' in result) {
+					return ctx.reply(result.error);
 				}
-
+				
 				wallet.balance = result.balance;
 				wallet.unlock = result.unlocked_balance;
 				if(wallet.balance === wallet.unlock) {
@@ -50,6 +50,7 @@ class BalanceCommand extends Command {
 				wallet = await Wallet.update(wallet);
 			}
 			if(wallet) {
+
 				output +=`Balance: ${this.Coin.format(wallet.balance)}\n`;
 				output +=`Unlocked Balance: ${this.Coin.format(wallet.unlock)}\n`;
 				output +=`Last Sync: ${timeAgo.format(parseInt(wallet.last_sync),'round')}\n`;

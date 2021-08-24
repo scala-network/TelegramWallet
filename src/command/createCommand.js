@@ -1,5 +1,5 @@
 
-const Command = require('./BaseCommand');
+const Command = require('../base/command');
 const STATUS = require('../status');
 const logSystem = "command/address";
 class CreateCommand extends Command {

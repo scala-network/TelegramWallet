@@ -3,7 +3,7 @@
  * To return current wallets address do /transfer <username> <amount>
  * @module Commands/transfer
  */
-const Command = require('./BaseCommand');
+const Command = require('../base/command');
 const STATUS = require('../status');
 
 class SubmitCommand extends Command {

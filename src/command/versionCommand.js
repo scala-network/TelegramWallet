@@ -1,5 +1,5 @@
 
-const Command = require('./BaseCommand');
+const Command = require('../base/command');
 const logSystem = "command/height";
 const path = require('path');
 const fs = require('fs');

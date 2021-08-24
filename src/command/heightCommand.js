@@ -4,7 +4,7 @@
  * To a height for a selected wallet at index do /height <index> eg. /height 3
  * @module Commands/height
  */
-const Command = require('./BaseCommand');
+const Command = require('../base/command');
 const TimeAgo = require('javascript-time-ago');
 const timeAgo = new TimeAgo('en-US')
 const logSystem = "command/height";

@@ -51,11 +51,14 @@ class BaseCommand {
 
 	exec(ctx) {
 		const self = this;
-		this.beforeRun(ctx, c => {
-			if(!self.auth(c)) {
-				return ctx.telegram.sendMessage(ctx.from.id,`Authorization failed for command \`${ctx.appRequest.action}\``);
+		this.beforeRun(ctx, cintex => {
+			if(ctx.from.is_bot){
+				return;
 			}
-			self.run(c);
+			if(!self.auth(cintex)) {
+				return cintex.telegram.sendMessage(cintex.from.id,`Authorization failed for command \`${cintex.appRequest.action}\``);
+			}
+			self.run(cintex);
 		});
 	}
 }

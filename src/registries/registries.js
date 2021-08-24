@@ -5,7 +5,7 @@ class Registeries
 	#_registers = {};
 
 	get allowed() {
-		return global.config.commands.allowed;
+		return [];
 	}
 
 	get registerName() {
@@ -45,22 +45,19 @@ class Registeries
 	}
 
 	setBot(bot) {
-		const allowCommands = Object.keys(this.getRegisters());
+		const allowRegisteries = Object.keys(this.getRegisters());
 		const self = this;
-		for(let i =0; i < allowCommands.length;i++) {
+		for(let i =0; i < allowRegisteries.length;i++) {
 					
-			let c = allowCommands[i];
-			const cmd = self.getRegister(c);
+			let reg = allowRegisteries[i];
+			const register = this.getRegister(reg);
+	
+			if(!register || !register.enabled) return;
 
-			if(!cmd || !cmd.enabled) return;
-			global.log('info',logSystem, "Initializing %s/%s", [this.registerName,c]);
-			
-			bot.command(c,ctx => {
-				self.setCommandContext(c,ctx)
-			});
-			bot.command(c + global.config.bot.name,ctx => {
-				self.setCommandContext(c,ctx)
-			});
+			global.log('info',logSystem, "Initializing %s/%s", [this.registerName,reg]);
+
+			this.setBotRegistry(register, bot);
+
 		}
 	}
 }

@@ -1,4 +1,4 @@
-const Command = require('./BaseCommand');
+const Command = require('../base/command');
 
 class HelpCommand extends Command {
 	enabled = true;
@@ -6,7 +6,7 @@ class HelpCommand extends Command {
 		return "shows all commands avaliable";
 	}
 	get name() {
-		return "name";
+		return "help";
 	}
 
 	async run(ctx) {

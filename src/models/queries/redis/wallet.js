@@ -59,7 +59,6 @@ class Wallet  extends Query
 			status:STATUS.WALLET_READY
 		});
 
-
 		const result = await global.redisClient
 		.multi()
 		.hmset(ukey, [	

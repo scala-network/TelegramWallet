@@ -5,20 +5,6 @@ class ActionManager {
 		return "Action";
 	}
 
-
-	
-	setCommandContext(cmd, ctx) {
-		const c = this.getRegister(cmd);
-
-		if(!c || !c.enabled || ctx.from.is_bot) return;
-		
-
-		bot.action(cmd, ctx => {
-		    
-
-		})
-
-	}
 }
 
 
