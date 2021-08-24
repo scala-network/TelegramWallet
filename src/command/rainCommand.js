@@ -22,62 +22,31 @@ class TransferCommand extends Command {
 		return ctx.appRequest.is.group;
 	}
 
-	send(user_id, amount) {
-		const User = this.loadModel("User");
-
-		const user = User.findById(user_id);
-
-		if(user === STATUS.ERROR_ACCOUNT_NOT_EXISTS) {
-			return;
-		}
-		
-
-		const trx = await this.Coin.transferSubmit(ctx.from.id, wallet.id, user.wallet.address, amount);
-			if('error' in trx) {
-				return ctx.reply(trx.error);
-			}
-
-			const balance = parseInt(wallet.balance) - parseInt(trx.amount) - parseInt(trx.fee);
-
-			return ctx.telegram.sendMessage(ctx.from.id,`
-				** Transaction Details **
-
-				From: 
-				${wallet.address}
-				
-				To: 
-				@${user.username}
-				
-				Amount : ${this.Coin.format(trx.amount)}
-				Fee : ${this.Coin.format(trx.fee)}
-				Trx Hash: ${trx.tx_hash}
-				Current Balance : ${this.Coin.format(balance)}
-			`);
-	}
 
 	async run(ctx) {
 		if(ctx.test)  return;
 		
-		if(ctx.appRequest.args.length <= 0) {
-            return ctx.reply(`Missing arguments\n${this.description}`);
-        }
-
 		const Wallet = this.loadModel("Wallet");
 		const User = this.loadModel("User");
-		const sender = User.findById(ctx.from.id);
+
+		const sender = await User.findAllById(ctx.from.id);
 
 		if(!sender) {
 			return ctx.telegram.sendMessage(ctx.from.id,`User not avaliable please /create`);
 		}
-
 		if(!sender.wallet) {
 			return ctx.telegram.sendMessage(ctx.from.id,`No wallet avaliable`);
 		}
 		let wallet = sender.wallet;
 
 		const result = await this.Coin.getBalance(ctx.from.id, wallet.id);
-		wallet.balance = result.result.balance;
-		wallet.unlock = result.result.unlocked_balance;
+
+		if('error' in result) {
+			return ctx.telegram.sendMessage(ctx.from.id,result.error);
+		}
+		
+		wallet.balance = result.balance;
+		wallet.unlock = result.unlocked_balance;
 		wallet = await Wallet.update(wallet);
 
 		
@@ -87,6 +56,11 @@ class TransferCommand extends Command {
 		
 		const destinations = [];
 		let userNames = [];
+
+		if(members.length <= 0) {
+			return ctx.reply("No members avaliable");
+		}
+
 		for(let i =0;i< members.length;i++) {
 			
 			
@@ -94,7 +68,7 @@ class TransferCommand extends Command {
 			if(!user || !user.wallet) {
 				continue;
 			}
-			
+
 			userNames.push("@"+user.usernames);
 			destinations.push({
 				address:user.wallet.address,
@@ -102,6 +76,11 @@ class TransferCommand extends Command {
 			});
 			
 		}
+
+		if(destinations.length <= 0) {
+			return ctx.reply("No member have an account. /create everybody");
+		}
+
 		const send = amount*userNames;
 		if(send > parseInt(wallet.unlock)) {
 			return ctx.telegram.sendMessage(ctx.from.id,`Insufficient fund to ${members.length} total required ${this.Coin.format(send)}`);

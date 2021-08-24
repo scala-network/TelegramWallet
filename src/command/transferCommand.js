@@ -46,8 +46,8 @@ class TransferCommand extends Command {
 		}
 		
 		const result = await this.Coin.getBalance(ctx.from.id, wallet.id);
-		wallet.balance = result.result.balance;
-		wallet.unlock = result.result.unlocked_balance;
+		wallet.balance = result.balance;
+		wallet.unlock = result.unlocked_balance;
 		wallet = await Wallet.update(wallet);
 
 		const amount = this.Coin.parse(ctx.appRequest.args[1]);

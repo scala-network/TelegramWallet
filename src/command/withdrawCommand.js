@@ -39,7 +39,7 @@ class WithdrawCommand extends Command {
 			case false:
 				return ctx.reply("Address is not valid");
 			case true:
-				let wallet = await Wallet.findByUserId(ctx.from.id);
+				let wallet = await Wallet.findAllById(ctx.from.id);
 
 				if(!wallet) {
 					return ctx.reply('No wallet avaliable');
@@ -49,8 +49,8 @@ class WithdrawCommand extends Command {
 
 				if(parseInt(wallet.last_sync) <= step) {
 					const result = await this.Coin.getBalance(ctx.from.id, wallet.id);
-					wallet.balance = result.result.balance;
-					wallet.unlock = result.result.unlocked_balance;
+					wallet.balance = result.balance;
+					wallet.unlock = result.unlocked_balance;
 					wallet = await Wallet.update(wallet);
 				}
 

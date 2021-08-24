@@ -41,6 +41,7 @@ module.exports = {
     		'info',
     		'remove',
     		'tip',
+    		'rain',
     		'set',
     		'transfer',
     		'withdraw',

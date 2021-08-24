@@ -39,7 +39,7 @@ class TransferCommand extends Command {
 		if(!sender.wallet) {
 			return ctx.telegram.sendMessage(ctx.from.id,`No wallet avaliable`);
 		}
-		
+
 		let wallet = sender.wallet;
 
 		const user = User.findByUsername(ctx.appRequest.args[1]);
@@ -49,8 +49,8 @@ class TransferCommand extends Command {
 		}
 
 		const result = await this.Coin.getBalance(ctx.from.id, wallet.id);
-		wallet.balance = result.result.balance;
-		wallet.unlock = result.result.unlocked_balance;
+		wallet.balance = result.balance;
+		wallet.unlock = result.unlocked_balance;
 		wallet = await Wallet.update(wallet);
 
 		const amount = this.Coin.parse(ctx.appRequest.args[1]);
