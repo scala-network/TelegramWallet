@@ -24,7 +24,7 @@ class HelpCommand extends Command {
 			}
 			
 		} else {
-			const commands = global.CommandManager.getCommands();
+			const commands = global.CommandManager.getRegisters();
 			const commandLists = Object.keys(commands);
 			for(let i = 0; i < commandLists.length;i++) {
 				const cmdName = commandLists[i];

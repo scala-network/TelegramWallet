@@ -1,5 +1,6 @@
 const STATUS = require('../../../status');
 const { v4: UUID } = require('uuid');
+const Query = require('../BaseQuery');
 
 class Wallet  extends Query
 {

@@ -2,7 +2,7 @@ const Model = require('./base');
 
 class Wallet extends Model
 {
-	get properties() {
+	get fields() {
 		return [
 			"id",
 			"user_id",
