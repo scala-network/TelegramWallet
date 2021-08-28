@@ -8,8 +8,6 @@ class MemberMiddleware extends Middleware {
         return "member";
     }
 
-    static Chats = {}
-
     async run(ctx, next) {
         const findAllByChatId = chatId => {
             if (!MemberMiddleware.Chats[chatId]) {
@@ -19,18 +17,17 @@ class MemberMiddleware extends Middleware {
         }   
 
         const existsInChatId = (chatId,userId) => {
-            return new Promise((resolve, reject) => {
-                const members = findAllByChatId(chatId);
-                resolve(!!~members.indexOf(userId));
-            });
+            // return new Promise((resolve, reject) => {
+            //     const members = findAllByChatId(chatId);
+            //     resolve(!!~members.indexOf(userId));
+            // });
+            return 
         }   
-
-
-
 
 
         if (('chat' in ctx) && ('id' in ctx.chat)) {
             if(!(ctx.chat.id in MemberMiddleware.Chats)) {
+
                 MemberMiddleware.Chats[ctx.chat.id] = {}
             }  
 

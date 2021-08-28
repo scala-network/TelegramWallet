@@ -31,16 +31,17 @@ class TransferCommand extends Command {
 
 		const Wallet = this.loadModel("Wallet");
 		const User = this.loadModel("User");
-		const sender = User.findById(ctx.from.id);
+		const sender = User.findAllById(ctx.from.id);
 		if(!sender) {
 			return ctx.telegram.sendMessage(ctx.from.id,`User not avaliable please /create`);
 		}
+		
+		let wallet = sender.wallet;
 
-		if(!sender.wallet) {
+		if(!wallet) {
 			return ctx.telegram.sendMessage(ctx.from.id,`No wallet avaliable`);
 		}
 
-		let wallet = sender.wallet;
 
 		const user = User.findByUsername(ctx.appRequest.args[1]);
 
