@@ -7,7 +7,7 @@ const Command = require('../base/command');
 const STATUS = require('../status');
 
 class TransferCommand extends Command {
-	enabled = true;
+	enabled = false;
 
 	get name() {
         return "transfer";
@@ -36,7 +36,7 @@ class TransferCommand extends Command {
 		if(username.startsWith("@")) {
 			username = username.substr(1);
 		}
-		
+
 		const user = User.findByUsername(username);
 
 		if(user === STATUS.ERROR_ACCOUNT_NOT_EXISTS) {
@@ -58,7 +58,7 @@ class TransferCommand extends Command {
 			return ctx.reply('Insufficient fund');	
 		}
 
-		const trx = await this.Coin.transfer(ctx.from.id, wallet.id, user.wallet.address, amount, true);
+		const trx = await this.Coin.transfer(ctx.from.id, wallet.wallet_id, user.wallet.address, amount, true);
 
 		if('error' in trx) {
 			return ctx.reply("Error transfering : "+trx.error);

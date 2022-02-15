@@ -28,8 +28,10 @@ class TransferCommand extends Command {
 		
 		const Wallet = this.loadModel("Wallet");
 		const User = this.loadModel("User");
+		const Member = this.loadModel("Member");
+		const Meta = this.loadModel("Meta");
 
-		const sender = await User.findAllById(ctx.from.id);
+		const sender = await User.findById(ctx.from.id);
 
 		if(!sender) {
 			return ctx.telegram.sendMessage(ctx.from.id,`User not avaliable please /create`);
@@ -52,7 +54,7 @@ class TransferCommand extends Command {
 		
 		const amount = sender.rain;
 
-		const members = Member.findByLast10(ctx.chat.id);
+		const members = await Member.findByLast10(ctx.chat.id);
 		
 		const destinations = [];
 		let userNames = [];
@@ -60,18 +62,19 @@ class TransferCommand extends Command {
 		if(members.length <= 0) {
 			return ctx.reply("No members avaliable");
 		}
+
 		let more = 0;
 		for(let i =0;i< members.length;i++) {
 
-			const user_id = members.user_id;
-			if(user_id === sender.user_id) continue;
-			const user = User.findById(user_id);
+			const user_id = members[i];
+			if(parseInt(user_id) === parseInt(sender.user_id)) continue;
+
+			const user = await User.findById(user_id);
 
 			if(!user || !user.wallet) {
 				continue;
 			}
-
-			userNames.push("@"+user.usernames);
+			userNames.push("@"+user.username);
 			destinations.push({
 				address:user.wallet.address,
 				amount
@@ -82,7 +85,6 @@ class TransferCommand extends Command {
 		if(destinations.length <= 0) {
 			return ctx.reply("No member with an account");
 		}
-
 		const send = amount * destinations.length;
 		if(send > parseInt(wallet.unlock)) {
 			return ctx.telegram.sendMessage(ctx.from.id,`Insufficient fund to ${destinations.length} total required ${this.Coin.format(send)}`);
@@ -90,7 +92,9 @@ class TransferCommand extends Command {
 
 		if(sender.rain_submit === 'enabled') {
 			const trx = await this.Coin.transferMany(ctx.from.id, wallet.wallet_id, destinations, false);
-
+			if(!trx) {
+				return ctx.reply('Unable to connect with rpc. Please try again later');
+			}
 			if('error' in trx) {
 				return ctx.reply(trx.error);
 			}
@@ -111,7 +115,11 @@ Fee : ${this.Coin.format(trx.fee)}
 Trx Hash: ${trx.tx_hash}
 Current Balance : ${this.Coin.format(balance)}
 			`);
+
+
 		} else {
+
+
 			const trx = await this.Coin.transferMany(ctx.from.id, wallet.wallet_id, destinations, true);
 			if('error' in trx) {
 				return ctx.reply(trx.error);

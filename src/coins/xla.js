@@ -143,7 +143,7 @@ class xla {
 				address,
 				amount
 			}],
-			ring_size: 4,
+			ring_size: 11,
 			do_not_relay,
 			get_tx_metadata: do_not_relay,
 			get_tx_keys: !do_not_relay,
@@ -184,7 +184,7 @@ class xla {
 		const { host,port } = this.server;
 		const response = await request.fetch(host,port,id,"transfer",{
 			destinations,
-			ring_size: 4,
+			ring_size: 11,
 			do_not_relay,
 			get_tx_metadata: do_not_relay,
 			get_tx_keys: !do_not_relay,

@@ -16,7 +16,7 @@ class TransferCommand extends Command {
     }
 	
 	get description() {
-		return "Tip coin to another user. To set default tip value go to /set tip <amount> (usages : /tip <username>)";
+		return "Tip coin to another user. To set default tip value go to /set tip <amount> (usages : /tip <username>) or you can custom tip /tip <username> <custom_amount>";
 	}
 
 	auth(ctx) {
@@ -55,15 +55,30 @@ class TransferCommand extends Command {
 		if(!user || !('wallet' in user) || user === STATUS.ERROR_WALLET_NOT_AVALIABLE) {
 			return ctx.reply("User wallet is not avaliable");
 		}
+		let tipAmount;
+		let amount;
+		if(ctx.appRequest.args.length > 1) {
+			tipAmount = ctx.appRequest.args[1];
+			amount = this.Coin.parse(tipAmount)
+		} else {
+			tipAmount = await this.loadModel('Setting').findByFieldAndUserId('tip', ctx.from.id);
+			if(tipAmount && 'tip' in tipAmount) {
+				amount = tipAmount.tip;
+			}
+		}
 
-		const amount = this.Coin.parse(ctx.appRequest.args[1]);
+		if(!tipAmount || tipAmount < 1){
+			tipAmount = 10;
+			amount = this.Coin.parse(tipAmount)
+		}
+		
 		if(amount > parseFloat(wallet.unlock)) {
 			return ctx.telegram.sendMessage(ctx.from.id,'Insufficient fund');	
 		}
 
-		if(sender.tip_submit === 'disabled') {
+		if(sender.tip_submit !== 'enabled') {
 
-			const trx = await this.Coin.transfer(ctx.from.id, wallet.id, user.wallet.address, amount, true);
+			const trx = await this.Coin.transfer(ctx.from.id, wallet.wallet_id, user.wallet.address, amount, true);
 			if('error' in trx) {
 				return ctx.reply(trx.error);
 			}
@@ -90,7 +105,7 @@ class TransferCommand extends Command {
 			`);
 
 		} else {
-			const trx = await this.Coin.transfer(ctx.from.id, wallet.id, user.wallet.address, amount, false);
+			const trx = await this.Coin.transfer(ctx.from.id, wallet.wallet_id, user.wallet.address, amount, false);
 			if('error' in trx) {
 				return ctx.reply(trx.error);
 			}

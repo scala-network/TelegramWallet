@@ -74,7 +74,7 @@ class Setting  extends Query
 			return STATUS.ERROR_ACCOUNT_NOT_EXISTS;
         }
 
-		const ukey = [global.config.coin, 'Users' , id].join(':');
+		const ukey = [global.config.coin, 'Users' , user_id].join(':');
 
 		const setting = await global.redisClient.hget(ukey, field);
 

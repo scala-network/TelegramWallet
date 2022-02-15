@@ -11,7 +11,7 @@ class LogMiddleware extends Middleware {
     async run(ctx, next) {
         if(ctx.test)  return;
 
-        if('update' in ctx && 'my_chat_member' in ctx.update || !ctx.appRequest.is.action){
+        if('update' in ctx && 'my_chat_member' in ctx.update ||  !ctx.appRequest || !ctx.appRequest.is.action){
             return next(ctx);
         }
 

@@ -42,6 +42,9 @@ class Wallet extends Model
 		const step = now - (global.config.rpc.interval * 1000);
 		if(parseInt(wallet.updated) <= step) {
 			const result = await coin.getBalance(wallet.user_id, wallet.wallet_id);
+			if(!result) {
+				return ctx.reply("Unable to connect with rpc. Please try again later");
+			}
 			if('error' in result) {
 				return ctx.reply(result.error);
 			}
