@@ -8,7 +8,6 @@ STW is a designed telegram wallet which is easily customize by coin developers t
 * [Usages](#usages)
 * [Command](#commands)
 * [Models](#models)
-* Customization
 
 
 ## Usages
