@@ -39,7 +39,7 @@ Clone the repository and run `npm install` for all the dependencies to be instal
 
 ### Configurations
 
-Copy the `config.default.json` to `config.json` then overview each options and change any to match your preferred setup. Below are details for each keys
+Copy the `config.default.json` to `config.json` then view each options and change to match your preferred setup. Below are details for each keys
 
 | Key | Description |
 |---|---|
