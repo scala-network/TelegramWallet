@@ -15,12 +15,11 @@
     "cli-color": "^1.4.0",
     "cli-progress": "^3.9.1",
     "dateformat": "^3.0.3",
-    "handy-redis": "^2.2.2",
     "http": "0.0.0",
     "https": "^1.0.0",
+    "ioredis": "^4.28.5",
     "javascript-time-ago": "^2.3.8",
     "monero-nodejs": "^3.2.2",
-    "redis": "^4.0.2",
     "telegraf": "^4.4.1",
     "uuid": "^8.3.2"
   }

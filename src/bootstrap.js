@@ -2,7 +2,7 @@ const path = require('path');
 const fs = require('fs');
 const logSystem = 'bootstrap';
 
-const redis = require('redis');
+const redis = require('ioredis');
 let config = {};
 
 const configFile =  path.join(process.cwd(),'config.json');
