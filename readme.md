@@ -201,9 +201,9 @@ eg. of a chat transpose to appRequest
 
 ```/tip username 1000```
 
-`action` - `tip`
-`query` - `username 1000`
-`args` - [`username`,`1000`]
+* `action` - `tip`
+* `query` - `username 1000`
+* `args` - [`username`,`1000`]
 
 
 ### Calling models into commands
