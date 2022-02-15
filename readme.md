@@ -55,7 +55,7 @@ Copy the `config.default.json` to `config.json` then view each options and chang
 
 ### Other Configurations
 
-These configurations is predefine and can be overwriten via config.json
+These configurations are predefine and can be overwriten via config.json
 
 | Key | Description | Default value |
 |---|---|---|
@@ -77,6 +77,35 @@ Configuration for sqlite (*experimental*)
 | Key | Description | Default value |
 |---|---|---|
 | datasource.path | Path to sqlite file  | database.sqlite |
+
+"log": {
+        "files": {
+            "enabled" : false,
+            "level" : "error",
+            "directory" : "logs",
+            "flushInterval" : 5
+        },
+        "console"  : {
+            "enabled" : true,
+            "level" : "info",
+            "colors" : true
+        }
+    },
+
+Configurations for log
+
+| Key | Description | Default value |
+|---|---|---|
+| **log** |
+| log.files |
+| log.files.enabled | Enable logging to file | false |
+| log.files.level | Logging for certain level and above only | error |
+| log.files.directory | Logging file to which directory | logs |
+| log.files.flushInterval | Interval for logging file to write | logs |
+| log.console |
+| log.console.level | Logging for certain level and above only  | info |
+| log.console.colors | Logging to console with colors  | true |
+
 
 ### Bot
 
