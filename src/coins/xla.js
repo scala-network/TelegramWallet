@@ -45,7 +45,7 @@ class xla {
 		});
 
 		if(!result) {
-			return null;
+			return { error: "Unable to get a response from RPC" };
 		}
 
 		if('error' in result) {
@@ -72,7 +72,7 @@ class xla {
 		const { host,port} = this.server;
 		const response = await request.fetch(host,port,id,"get_height",{});
 		if(!response) {
-			return null;
+			return { error: "Unable to get a response from RPC" };
 		}
 
 		if('error' in response) {
@@ -90,7 +90,7 @@ class xla {
 		});	
 
 		if(!response) {
-			return null;
+			return { error: "Unable to get a response from RPC" };
 		}
 
 		if('error' in response) {
@@ -101,14 +101,17 @@ class xla {
 	}
 
 	async getBalance(id,wallet_id) {
+		if(!wallet_id) {
+			return { error: "Missing wallet index" };
+		}
 		const { host,port} = this.server;
 		const response = await request.fetch(host,port,id,"get_balance",{
-			"account_index":parseInt(wallet_id || id),
+			"account_index":parseInt(wallet_id),
 			"address_index":[0]
 		});
 
 		if(!response) {
-			return null;
+			return { error: "Unable to get a response from RPC" };
 		}
 
 		if('error' in response) {
@@ -125,7 +128,7 @@ class xla {
 		});	
 
 		if(!response) {
-			return null;
+			return { error: "Unable to get a response from RPC" };
 		}
 
 		if('error' in response) {
@@ -136,29 +139,7 @@ class xla {
 	}
 
 	async transfer(id, idx, address, amount, do_not_relay) {
-		do_not_relay = do_not_relay || false;
-		const { host,port } = this.server;
-		const response = await request.fetch(host,port,id,"transfer",{
-			destinations : [{
-				address,
-				amount
-			}],
-			ring_size: 11,
-			do_not_relay,
-			get_tx_metadata: do_not_relay,
-			get_tx_keys: !do_not_relay,
-			account_index:parseInt(idx || id)
-		});
-
-		if(!response) {
-			return null;
-		}
-
-		if('error' in response) {
-			return { error: response.error.message };
-		}
-
-		return response.result;
+		return await this.transferMany(id, idx, [{address, amount}], do_not_relay);
 	}
 
 	async relay(id, meta) {
@@ -168,7 +149,7 @@ class xla {
 		});
 
 		if(!response) {
-			return { error: "Unable to get response from rpc" };
+			return { error: "Unable to get a response from RPC" };
 		}
 
 		if('error' in response) {
@@ -179,6 +160,9 @@ class xla {
 	}
 
 	async transferMany(id, idx, destinations, do_not_relay) {
+		if(!idx) {
+			return { error: "Missing wallet index" };
+		}
 		do_not_relay = do_not_relay || false;
 
 		const { host,port } = this.server;
@@ -188,11 +172,11 @@ class xla {
 			do_not_relay,
 			get_tx_metadata: do_not_relay,
 			get_tx_keys: !do_not_relay,
-			account_index:parseInt(idx || id)
+			account_index:parseInt(idx)
 		});
 
 		if(!response) {
-			return null;
+			return { error: "Unable to get a response from RPC" };
 		}
 
 		if('error' in response) {
