@@ -1,4 +1,4 @@
-class BaseMiddleware {
+class Middleware {
 	enabled = false;
 
 	constructor() {
@@ -19,4 +19,4 @@ class BaseMiddleware {
 	
 }
 
-module.exports = BaseMiddleware;
+module.exports = Middleware;

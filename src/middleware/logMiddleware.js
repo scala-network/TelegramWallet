@@ -23,9 +23,11 @@ class LogMiddleware extends Middleware {
         const start = new Date()
         await next(ctx);
         const ms = new Date() - start;
+        const chatID = ('chat' in ctx) && ('id' in ctx.chat) ? ctx.chat.id : 'private';
 
         let msg = (ctx.update && ctx.update.message) ? ctx.update.message.text : (('message' in ctx) ? ctx.message.text : "");
-        global.log('info',logSystem, "From: %s Request : %s [%sms]",[
+        global.log('info',logSystem, "Chat: %s From: %s Request : %s [%sms]",[
+            chatID,
             ctx.from.username, 
             msg,
             ms

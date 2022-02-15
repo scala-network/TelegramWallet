@@ -1,7 +1,9 @@
 // Load required modules
+
+const logSystem = "engine/request";
+
 const http = require('http');
 const https = require('https');
-const logSystem = "interfaces/request";
 
 function jsonHttpRequest (host, port, data, path, callback) {
 	path = path || '/json_rpc';
@@ -50,12 +52,14 @@ function jsonHttpRequest (host, port, data, path, callback) {
  * Send RPC request
  **/
 function rpc (host, port,id, method, params, path, callback) {
+	id = id || 0;
 	var data = JSON.stringify({
 		id: `${id}`,
 		jsonrpc: "2.0",
 		method: method,
 		params: params
 	});
+	console.log(data);
 	jsonHttpRequest(host, port, data, path, function (error, replyJson) {
 		
 		if (error) {
@@ -79,7 +83,7 @@ module.exports = {
 				}
 				resolve(data);
 			});
-		}).catch(e => global.log("error",logSystem, "RPC Error %j",[error]));
+		}).catch(e => global.log("error",logSystem, "RPC Error %j",[e]));
 	}
 
 }

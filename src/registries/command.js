@@ -1,5 +1,5 @@
 const logSystem = 'registry/command';
-const Registeries = require('./registries');
+const Registeries = require('../base/registries');
 
 class CommandManager extends Registeries {
 

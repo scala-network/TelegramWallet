@@ -24,10 +24,10 @@
 }
 
 require('./src/log');
-require('./src/interfaces/redis');
+require('./src/engines/redis');
 
 
-const rpcRequest = require("./src/interfaces/request");
+const rpcRequest = require("./src/engines/request");
 let currentHeight = 0;
 
 async.forever(function(next) {
@@ -60,7 +60,7 @@ if(noOfRpcServers === 0 || global.config.rpc.enable === false) {
 }
 
 const Events = require("./src/registries/events");
-const Wallet = require('./src/interfaces/wallet');
+const Wallet = require('./src/engines/wallet');
 const Queue = require("./src/handlers/queue");
 const eventCache = {};
 

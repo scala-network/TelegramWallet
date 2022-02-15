@@ -1,6 +1,7 @@
 const STATUS = require('../../../status');
 const { v4: UUID } = require('uuid');
-const Query = require('../BaseQuery');
+const Query = require('../../../base/query');
+const Model = require('../../../base/model');
 
 class Wallet  extends Query
 {
@@ -11,42 +12,35 @@ class Wallet  extends Query
 	 * address - The wallet address
 	 * heightOrIndex - In SWM heightOrIndex is the index of the address
 	 * */
-	async addByUser(user, address, heightOrIndex) {
-		const ukey = [global.config.coin, 'Users' , user.id].join(':');
+	async addByUser(user, address, wallet_id, height) {
+		const ukey = [global.config.coin, 'Users' , user.user_id].join(':');
         const wKey = [global.config.coin, "AddressAlias"].join(':');
 
 		const wallet = {
 			address,
 			balance:0,
-			user_id:user.id,
-			last_sync:Date.now(),
+			user_id:user.user_id,
+			updated:Date.now(),
 			unlocked:0,
-			status:STATUS.WALLET_READY
+			status:STATUS.WALLET_READY,
+			coin_id : global.config.coin,
+			wallet_id,
+			height: height
 		};
-
-		if(global.config.swm) {
-			wallet.id = heightOrIndex;
-			wallet.height = 0;
-		} else {
-			wallet.id = 0;
-			wallet.height = heightOrIndex;
-		}
-
+		const hmset = [
+			"status",  STATUS.WALLET_READY,
+			"wallet",  JSON.stringify(wallet),
+			"wallet_id", wallet_id
+		];
 		const result = await global.redisClient
 		.multi()
-		.hmset(ukey, [	
-			["status",  STATUS.WALLET_READY],
-			["wallet",  JSON.stringify(wallet)],
-			["wallet_id", global.config.swm?heightOrIndex:0]
-		])
-		.hset(wKey, [
+		.hmset(ukey, hmset)
+		.hset(wKey, 
 			user.username,
-			global.config.swm?heightOrIndex:wallet.address
-		])
-		.hgetall(ukey)
+			address
+		)
 		.exec();
-
-		return result;
+		return wallet;
 
 	}
 
@@ -55,7 +49,7 @@ class Wallet  extends Query
 
 		wallet = Object.assign(wallet, {
 			user_id: wallet.user_id,
-			last_sync:Date.now(),
+			updated:Date.now(),
 			status:STATUS.WALLET_READY
 		});
 
@@ -67,20 +61,20 @@ class Wallet  extends Query
 		])
 		.hmget(ukey,"wallet")
 		.exec();
-		let wallets;
+
 		if(result[1]) {
 			try{
-				wallets = JSON.parse(result[1]);
+				wallet = JSON.parse(result[1]);
 			} catch(e) {
-				wallets = null;
+				
 			}
 		}
-		return wallets;
+		return wallet;
 
 	}
 
-	async findByUserId(id) {
-		const ukey = [global.config.coin, 'Users' , id].join(':');
+	async findByUserId(user_id) {
+		const ukey = [global.config.coin, 'Users' , user_id].join(':');
 
 		const results = await global.redisClient.hget(ukey, 'wallet');
 
@@ -88,34 +82,18 @@ class Wallet  extends Query
         	return null;
 		} 
 
-		let wallets = [];
+		let wallet = {};
 		if(results) {
 			try{
-				wallets = JSON.parse(results);
+				wallet = JSON.parse(results);
 			} catch(e) {
 
 			}
 		}
 		
-		return wallets;
+		return wallet;
 	}
 
-	async metaToUid(id, meta) {
-		const uuid = UUID();
-		const ukey = [global.config.coin, 'Meta', id, uuid].join(':');
-
-		await global.redisClient.setex(ukey, global.config.rpc.metaTTL, meta);
-
-		return uuid;
-
-	}
-
-	async uidToMeta(id, uuid) {
-		const ukey = [global.config.coin, 'Meta', id, uuid].join(':');
-		const meta = await global.redisClient.get(ukey);
-		return meta;
-
-	}
 }
 
 module.exports = Wallet;

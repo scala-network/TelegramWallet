@@ -1,9 +1,9 @@
 
 
-const logSystem = 'registry/command';
-const Registeries = require('./registries');
+const logSystem = 'registry/middleware';
+const Registeries = require('../base/registries');
 
-class MiddlewareManager extends Registeries {
+class Middleware extends Registeries {
     get allowed() {
         return [
             "request",
@@ -25,6 +25,6 @@ class MiddlewareManager extends Registeries {
 
 
 module.exports = bot => {
-    const man = new MiddlewareManager();
+    const man = new Middleware();
     man.setBot(bot);
 }

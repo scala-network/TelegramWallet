@@ -1,4 +1,5 @@
-const logSystem = 'registry/registries';
+const logSystem = 'base/registries';
+const cliProgress = require('cli-progress');
 
 class Registeries
 {
@@ -30,6 +31,8 @@ class Registeries
 			}
 			this.#_registers[c] = o;
 		}
+
+
 	}
 
 	getRegisters() {
@@ -47,18 +50,26 @@ class Registeries
 	setBot(bot) {
 		const allowRegisteries = Object.keys(this.getRegisters());
 		const self = this;
+		const bar = new cliProgress.SingleBar({
+			format: `${this.registerName} | {bar} | {percentage}% | {value}/{total}`
+		}, cliProgress.Presets.shades_classic);
+
+		bar.start(allowRegisteries.length, 0);
 		for(let i =0; i < allowRegisteries.length;i++) {
 					
 			let reg = allowRegisteries[i];
 			const register = this.getRegister(reg);
-	
+			bar.update(i+1);
+
 			if(!register || !register.enabled) return;
 
-			global.log('info',logSystem, "Initializing %s/%s", [this.registerName,reg]);
+			//global.log('info',logSystem, "Initializing %s/%s", [this.registerName,reg]);
 
 			this.setBotRegistry(register, bot);
 
 		}
+		bar.stop();
+
 	}
 }
 

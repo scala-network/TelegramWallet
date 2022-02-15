@@ -1,27 +1,81 @@
-const STATUS = require('../../../status');
-
 const logSystem = "model/redis/setting";
-const Query = require('../BaseQuery');
 
+const STATUS = require('../../../status');
+const Query = require('../../../base/query');
+const Model = require('../../../base/model');
 
 class Setting  extends Query
 {
 	async updateField(id, field, value) {
+
+		const User = Model.LoadRegistry('User');
+		
 		const ukey = [global.config.coin, 'Users' , id].join(':');
-		const exists = await this.exists(id);
+
+		const exists = await User.exists(id);
+		
 		if(!exists) {
 			return STATUS.ERROR_ACCOUNT_NOT_EXISTS;
         }
-        if(!~properties.indexOf(field)) {
+
+        if(!~this.fields.indexOf(field)) {
         	return STATUS.ERROR_MODEL_PROPERTIES_NOT_AVALIABLE;
         }
-		const user = await global.redisClient.hset(ukey, field, value);
 
-        if(!result) {
-        	return STATUS.ERROR_ACCOUNT_NOT_EXISTS;
-        }
+		await global.redisClient.hset(ukey, field, value);
 
         return STATUS.OK;
+	}
+
+	async findAllByUserId(user_id) {
+		const User = Model.LoadRegistry('User');
+		
+		const exists = await User.exists(user_id);
+		
+		if(!exists) {
+			return STATUS.ERROR_ACCOUNT_NOT_EXISTS;
+        }
+
+		const ukey = [global.config.coin, 'Users' , id].join(':');
+
+		const settings = await global.redisClient.hmget(ukey, this.fields);
+
+		if(!settings) {
+			return {};
+		}
+		const results = {};
+		for(let i=0;i<settings.length;i++){
+			const setting = settings[i];
+			const field = setting[0];
+			if(!~this.fields.indexOf(field)) {
+				continue;
+			}
+
+			results[field] = setting[1];
+		}
+
+		return results;
+
+	}
+
+	async findByFieldAndUserId(field,user_id) {
+		const User = Model.LoadRegistry('User');
+		
+		const exists = await User.exists(user_id);
+		
+		if(!exists) {
+			return STATUS.ERROR_ACCOUNT_NOT_EXISTS;
+        }
+
+		const ukey = [global.config.coin, 'Users' , id].join(':');
+
+		const setting = await global.redisClient.hget(ukey, field);
+
+		const results = {};
+		
+		results[field] = setting ? setting : null;
+
+		return results;
 	}
 
 }

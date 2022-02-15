@@ -1,24 +1,24 @@
 
-const { STATUS_CODES } = require('http');
 const Command = require('../base/command');
 const STATUS = require('../status');
-const logSystem = "command/create";
-class CreateCommand extends Command {
+const utils = require('../utils');
 
-    get MaxWalletUser() {
-        return 1;
-    }
+const logSystem = "command/start";
+
+class StartCommand extends Command {
 
     enabled = true;
 
     get description() {
-        let o = "Creates a wallet";
-        o += ' usages: /create';
+        let o = "Function on start";
+        if (!global.config.swm) {
+            o += ' usages: /start';
+        }
         return o;
     }
 
     get name() {
-        return "create";
+        return "start";
     }
 
     auth(ctx) {
@@ -33,13 +33,14 @@ class CreateCommand extends Command {
         const Wallet = this.loadModel('Wallet');
 
         const user = await User.add(id, username);
+
         let wallet;
         switch (user) {
             case STATUS.ERROR_ACCOUNT_EXISTS:
                 wallet = await Wallet.findByUserId(user.user_id);
-                return ctx.reply("Account already exists");
+                return ctx.reply(`Hello ${username}. Welcome back!`);
             case STATUS.ERROR_CREATE_ACCOUNT:
-                return ctx.reply("Account creation failed");
+                return ctx.reply("Account start failed");
             default:
                 wallet = await Wallet.findByUserId(user.user_id);
                 
@@ -98,8 +99,9 @@ class CreateCommand extends Command {
                 }
 
                 if (!wallet || user.status === STATUS.WALLET_REQUIRED) {
-                    const height = Network.lastHeight();
-                    if(!height) {
+                    const network = Network.lastHeight(this.Coin);
+                    let height;
+                    if(!network || !network.height) {
                         height = 0;
                     }
                     wallet = await Wallet.addByUser(user, address, wallet_id, height);
@@ -123,4 +125,4 @@ class CreateCommand extends Command {
 
 }
 
-module.exports = CreateCommand;
+module.exports = StartCommand;

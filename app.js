@@ -13,22 +13,19 @@ const logSystem = "app";
 const bot = new Telegraf.Telegraf(global.config.bot.token);
 
 // We can get bot nickname from bot informations. This is particularly useful for groups.
-bot.telegram.getMe().then((bot_informations) => {
+bot.telegram.getMe().then(bot_informations => {
     bot.options.username = bot_informations.username;
-    global.log('info',logSystem,"Server has initialized bot nickname. Nick: @"+bot_informations.username);
-    global.config.bot.name = "@"+bot_informations.username;
-
-    bot.command('start', ctx => {
-        bot.telegram.sendMessage(ctx.chat.id, 'hello there! Welcome to Scala Telegram Wallet', { })
-    });
-
+    global.config.bot.name = "@" + bot_informations.username;
+    global.log('info', logSystem, "Server initialized");
+    global.log('info', logSystem, "Bot Nick: %s", global.config.bot.name);
+    global.log('info', logSystem, "Loading Registries");
     require('./src/registries/middleware')(bot);
     require('./src/registries/command')(bot);
 });
-
 
 bot.launch()
 
 // Enable graceful stop
 process.once('SIGINT', () => bot.stop('SIGINT'))
 process.once('SIGTERM', () => bot.stop('SIGTERM'))
+                                                                                                                    

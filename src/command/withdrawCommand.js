@@ -30,6 +30,7 @@ class WithdrawCommand extends Command {
 
 		const Wallet = this.loadModel("Wallet");
 		const User = this.loadModel("User");
+		const Meta = this.loadModel("Meta");
 		const address = ctx.appRequest.args[0];
 		const valid = await this.Coin.validateAddress(ctx.from.id, address);
 
@@ -44,48 +45,41 @@ class WithdrawCommand extends Command {
 				if(!wallet) {
 					return ctx.reply('No wallet avaliable');
 				}
-				let now = Date.now();
-				const step = now - (global.config.rpc.interval * 1000);
 
-				if(parseInt(wallet.last_sync) <= step) {
-					const result = await this.Coin.getBalance(ctx.from.id, wallet.id);
-					wallet.balance = result.balance;
-					wallet.unlock = result.unlocked_balance;
-					wallet = await Wallet.update(wallet);
-				}
+				wallet  = await Wallet.syncBalance(ctx, wallet, this.Coin);
 
 				const amount = this.Coin.parse(ctx.appRequest.args[1]);
 				if(amount > parseFloat(wallet.unlock)) {
 					return ctx.reply('Insufficient fund');	
 				}
 
-				const trx = await this.Coin.transfer(ctx.from.id, wallet.id, address, amount);
+				const trx = await this.Coin.transfer(ctx.from.id, wallet.id, address, amount, true);
 
 				if('error' in trx) {
 					return ctx.reply(trx.error);
 				}
 
-				const uuid = await Wallet.metaToUid(ctx.from.id, trx.tx_metadata);
+				const uuid = await Meta.getId(ctx.from.id, trx.tx_metadata);
 
 				return ctx.telegram.sendMessage(
 					ctx.from.id,
 					`
-					** Transaction Details **
+** Transaction Details **
 
-					From: 
-					${wallet.address}
-					
-					To: 
-					${address}
-					
-					Amount : ${this.Coin.format(trx.amount)}
-					Fee : ${this.Coin.format(trx.fee)}
-					Trx Meta ID: ${uuid}
-					Trx Expiry: ${global.config.rpc.metaTTL} seconds
-					Current Unlock Balance : ${this.Coin.format(wallet.balance)}
+From: 
+${wallet.address}
 
-					To proceed with transaction run
-					/submit ${uuid} 
+To: 
+${address}
+
+Amount : ${this.Coin.format(trx.amount)}
+Fee : ${this.Coin.format(trx.fee)}
+Trx Meta ID: ${uuid}
+Trx Expiry: ${global.config.rpc.metaTTL} seconds
+Current Unlock Balance : ${this.Coin.format(wallet.balance)}
+
+To proceed with transaction run
+/submit ${uuid} 
 				`
 				);
 			default:
@@ -96,10 +90,6 @@ class WithdrawCommand extends Command {
 				}
 				break;
 		}
-
-		
-
-
 	}
 }
 module.exports = WithdrawCommand;

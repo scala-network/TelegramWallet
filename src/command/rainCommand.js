@@ -34,25 +34,25 @@ class TransferCommand extends Command {
 		if(!sender) {
 			return ctx.telegram.sendMessage(ctx.from.id,`User not avaliable please /create`);
 		}
-		if(!sender.wallet) {
-			return ctx.telegram.sendMessage(ctx.from.id,`No wallet avaliable`);
-		}
-		let wallet = sender.wallet;
-
-		const result = await this.Coin.getBalance(ctx.from.id, wallet.id);
-
-		if('error' in result) {
-			return ctx.telegram.sendMessage(ctx.from.id,result.error);
-		}
 		
-		wallet.balance = result.balance;
-		wallet.unlock = result.unlocked_balance;
-		wallet = await Wallet.update(wallet);
+		if(!sender.wallet) {
+			
+			sender.wallet = Wallet.findById(sender.user_id);
+			
+			if(!sender.wallet) {
+				return ctx.telegram.sendMessage(ctx.from.id,`No wallet avaliable`);
+			}
+		}
 
+		let wallet =await Wallet.syncBalance(ctx, sender.wallet, this.Coin);
+		
+		if(!sender.rain) {
+			sender.rain = Settings.findByFieldAndUserId('rain', ctx.from.id);
+		}
 		
 		const amount = sender.rain;
 
-		const members = ctx.members.findAll();
+		const members = Member.findByLast10(ctx.chat.id);
 		
 		const destinations = [];
 		let userNames = [];
@@ -60,11 +60,12 @@ class TransferCommand extends Command {
 		if(members.length <= 0) {
 			return ctx.reply("No members avaliable");
 		}
-
+		let more = 0;
 		for(let i =0;i< members.length;i++) {
-			
+			const user_id = members.user_id;
 			
 			const user = User.findById(user_id);
+
 			if(!user || !user.wallet) {
 				continue;
 			}
@@ -78,34 +79,66 @@ class TransferCommand extends Command {
 		}
 
 		if(destinations.length <= 0) {
-			return ctx.reply("No member have an account. /create everybody");
+			return ctx.reply("No member with an account");
 		}
 
-		const send = amount*userNames;
+		const send = amount * destinations.length;
 		if(send > parseInt(wallet.unlock)) {
-			return ctx.telegram.sendMessage(ctx.from.id,`Insufficient fund to ${members.length} total required ${this.Coin.format(send)}`);
-		}
-		const trx = await this.Coin.transferSubmitMany(ctx.from.id, wallet.id, destinations);
-		if('error' in trx) {
-			return ctx.reply(trx.error);
+			return ctx.telegram.sendMessage(ctx.from.id,`Insufficient fund to ${destinations.length} total required ${this.Coin.format(send)}`);
 		}
 
-		const balance = parseInt(wallet.balance) - parseInt(trx.amount) - parseInt(trx.fee);
+		if(sender.rain_submit === 'enabled') {
+			const trx = await this.Coin.transferMany(ctx.from.id, wallet.wallet_id, destinations, false);
 
-		return ctx.telegram.sendMessage(ctx.from.id,`
-			** Transaction Details **
+			if('error' in trx) {
+				return ctx.reply(trx.error);
+			}
+	
+			const balance = parseInt(wallet.balance) - parseInt(trx.amount) - parseInt(trx.fee);
+	
+			return ctx.telegram.sendMessage(ctx.from.id,`
+** Transaction Details **
 
-			From: 
-			${wallet.address}
-			
-			To: 
-			${userNames.join(",")}
-			
-			Amount : ${this.Coin.format(trx.amount)}
-			Fee : ${this.Coin.format(trx.fee)}
-			Trx Hash: ${trx.tx_hash}
-			Current Balance : ${this.Coin.format(balance)}
-		`);
+From: 
+${wallet.address}
+
+To: 
+@${userNames.join("\n@")}
+
+Amount : ${this.Coin.format(trx.amount)}
+Fee : ${this.Coin.format(trx.fee)}
+Trx Hash: ${trx.tx_hash}
+Current Balance : ${this.Coin.format(balance)}
+			`);
+		} else {
+			const trx = await this.Coin.transferMany(ctx.from.id, wallet.wallet_id, destinations, true);
+			if('error' in trx) {
+				return ctx.reply(trx.error);
+			}
+
+			const uuid = await Meta.getId(ctx.from.id, trx.tx_metadata);
+
+			return ctx.telegram.sendMessage(ctx.from.id,`
+** Transaction Details **
+
+From: 
+${wallet.address}
+
+To: 
+@${userNames.join("\n@")}
+				
+Amount : ${this.Coin.format(trx.amount)}
+Fee : ${this.Coin.format(trx.fee)}
+Trx Meta ID: ${uuid}
+Trx Expiry: ${global.config.rpc.metaTTL} seconds
+Current Unlock Balance : ${this.Coin.format(wallet.balance)}
+
+To proceed with transaction run
+/submit ${uuid} 
+			`);
+		}
+
+		
 				
 
 

@@ -73,6 +73,9 @@ global.log = function(severity, system, text, data){
     var formattedMessage = text;
 
     if (data) {
+		if(!Array.isArray(data)) {
+			data = [data];
+		}
         data.unshift(text);
         formattedMessage = util.format.apply(null, data);
     }

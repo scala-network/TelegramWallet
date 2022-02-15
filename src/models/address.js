@@ -1,18 +1,14 @@
-const Model = require('./base');
+const Model = require('../base/model');
+const logSystem = "model/address";
 
 class Address extends Model
 {
 
 	get fields() {
 		return [
-		"id",
-		"user_id",
-		"address",
-		"last_sync",
-		"height",
-		"balance",
-		"unlocked",
-		"status"
+			'address',
+			'user_id',
+			'coin_id'
 		];
 	};
 
@@ -20,8 +16,8 @@ class Address extends Model
 		return 'address';
 	}
 	
-	add(id, index, options) {
-		return this.Query(options).add(id, index);
+	add(data, options) {
+		return this.Query(options).add(data);
 	}
 
 	findByUserId(id, options) {

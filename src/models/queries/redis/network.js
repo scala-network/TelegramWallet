@@ -1,21 +1,21 @@
-const Query = require('../BaseQuery');
-
-
+const Query = require('../../../base/query');
+const Model = require('../../../base/model');
 class Network  extends Query
 {
 	
 	async lastHeight() {
+
 		const key = [global.config.coin, 'network'].join(':');
 
-		const result = await global.redisClient.hmget(key,['height','timestamp']);
+		const result = await global.redisClient.hmget(key,['height','updated']);
 
 		if(!result) {
-        	return null;
+        	return {};
 		}
 
 		return {
 			height: result[0]?result[0]:0,
-			timestamp: result[1]?parseInt(result[1]):0,
+			updated: result[1]?parseInt(result[1]):0,
 		};
 	} 
 
@@ -24,7 +24,7 @@ class Network  extends Query
 
 		return await global.redisClient.hmset(key,[
 			'height', height,
-			'timestamp',  Date.now()
+			'updated',  Date.now()
 		]);
 
 	} 

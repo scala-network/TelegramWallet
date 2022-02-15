@@ -1,10 +1,24 @@
-const logSystem = "model";
+const logSystem = "base/model";
 
-class BaseModel {
+class Model {
+
+	static Registries = {};
+	static LoadRegistry(registry) {
+		registry = registry.toLowerCase();
+		if(registry in Model.Registries) {
+			return Model.Registries[registry];
+		}
+
+		const model = require(`../models/${registry}`);
+		const registerModel = new model();
+		Model.Registries[registry] = registerModel;
+		return registerModel;
+	}
+
 	#_qryObj = {};
 
 	get engine() {
-		return "redis";
+		return global.config.datasource.engine;
 	}
 	
 	get fields() {
@@ -33,7 +47,7 @@ class BaseModel {
 		}
 
 		if(!(engine in this.#_qryObj)) {
-			const classObject = require(`./queries/${engine}/${this.className}`);
+			const classObject = require(`../models/queries/${engine}/${this.className}`);
 			this.#_qryObj[engine] = new classObject(this.fields);
 		}
 
@@ -42,4 +56,4 @@ class BaseModel {
 }
 
 
-module.exports = BaseModel;
+module.exports = Model;

@@ -1,33 +1,12 @@
 const STATUS = require('../../../status');
-const Query = require('../BaseQuery');
+const Query = require('../../../base/query');
 class Address extends Query
 {
 
-	async add(id, index) {
-		
+	async findByUserId(user_id) {
 		const key = [global.config.coin, 'Addresses'].join(':');
 
-		const result = await global.redisClient
-		.multi()
-		.hset(key,[
-			`${id}`, `${index}`
-		]).
-		hget(key,`${id}`)
-		.exec();
-
-		if(!result || !result[1]) {
-        	return null;
-		} 
-
-		return (result[1] === `${index}`) ? STATUS.OK : null;
-
-	}
-
-
-	async findByUserId(id) {
-		const key = [global.config.coin, 'Addresses'].join(':');
-
-		const result = await global.redisClient.hget(key,`${id}`);
+		const result = await global.redisClient.hget(key,`${user_id}`);
 
 		if(!result) {
         	return null;

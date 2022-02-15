@@ -4,6 +4,7 @@
  */
 
 const Command = require('../base/command');
+const utils = require('../utils');
 const TimeAgo = require('javascript-time-ago');
 const timeAgo = new TimeAgo('en-US')
 const logSystem = "command/balance";
@@ -30,35 +31,18 @@ class BalanceCommand extends Command {
 
 		let wallet = await Wallet.findByUserId(ctx.from.id);
 		let output = "*** Wallet Information ***\n";
+
 		if(wallet) {
-	        let now = Date.now();
-			const step = now - (global.config.rpc.interval * 1000);
-			if(parseInt(wallet.last_sync) <= step) {
-				const result = await this.Coin.getBalance(ctx.from.id, wallet.id);
+			wallet = await Wallet.syncBalance(ctx, wallet, this.Coin);
+			
+			output +=`Coin ID: ${wallet.coin_id}\n`;
+			output +=`Balance: ${utils.formatNumber(this.Coin.format(wallet.balance))}\n`;
+			output +=`Unlocked Balance: ${utils.formatNumber(this.Coin.format(wallet.unlock))}\n`;
+			output +=`Last Sync: ${timeAgo.format(parseInt(wallet.updated),'round')}\n`;
+			output +=`Last Height: ${utils.formatNumber(wallet.height)}\n`;
 
-				if('error' in result) {
-					return ctx.reply(result.error);
-				}
-				
-				wallet.balance = result.balance;
-				wallet.unlock = result.unlocked_balance;
-				if(wallet.balance === wallet.unlock) {
-					wallet.pending = 0;
-				} else {
-					wallet.pending = parseInt(result.blocks_to_unlock);
-				}
-				wallet = await Wallet.update(wallet);
-			}
-			if(wallet) {
-
-				output +=`Balance: ${this.Coin.format(wallet.balance)}\n`;
-				output +=`Unlocked Balance: ${this.Coin.format(wallet.unlock)}\n`;
-				output +=`Last Sync: ${timeAgo.format(parseInt(wallet.last_sync),'round')}\n`;
-				if(wallet.pending > 0) {
-					output +=`Confirmations Remaining: ${wallet.pending}\n`;	
-				}
-			} else {
-				output +='Error retrieving record';
+			if(wallet.pending > 0) {
+				output +=`Confirmations Remaining: ${wallet.pending}\n`;	
 			}
 			
 		} else {

@@ -1,14 +1,18 @@
-const STATUS = require('../../../status');
-
 const logSystem = "model/redis/member";
-const Query = require('../BaseQuery');
+const STATUS = require('../../../status');
+const Query = require('../../../base/query');
 
 
 class Member  extends Query
 {
-	async updateInChatId(chatID, memberID) {
+
+	async addMember(chatID, memberID) {
 		const ckey = [global.config.coin,"GroupMembers", chatID].join(":");
 		return await redisClient.zadd(ckey, new Date().getTime(),memberID);
+	}
+
+	async updateInChatId(chatID, memberID) {
+		return await this.addMember(chatID, memberID);
 	}
 
 	async existInChatId(chatID, memberID) {

@@ -27,8 +27,11 @@ class SubmitCommand extends Command {
 		if(ctx.appRequest.args.length <= 0) {
             return ctx.reply(`Missing argument for trx key\n${this.description}`);
         }
-        const Wallet = this.loadModel('Wallet');
-		const meta = await Wallet.uidToMeta(ctx.from.id, ctx.appRequest.args[0]);
+		
+		const Meta = this.loadModel('Meta');
+
+		const meta = await Meta.findById(ctx.appRequest.args[0], ctx.from.id);
+
 		if(!meta) {
 			return ctx.reply("Invalid or expired meta id");
 		}

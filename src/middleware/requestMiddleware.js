@@ -1,5 +1,5 @@
 const Middleware = require('../base/middleware');
-const logSystem = "middleware/log";
+const logSystem = "middleware/request";
 
 class RequestMiddleware extends Middleware {
     enabled = true;

@@ -47,6 +47,17 @@ class Status {
 	static get ERROR_MODEL_PROPERTIES_NOT_AVALIABLE() {
 		return 405;
 	}
+
+	static get ERROR_MODEL_UPDATE() {
+		return 406;
+	}
+
+	static get ERROR_WALLET_NOT_AVALIABLE() {
+		return 406;
+	}
+	static get ERROR_FETCHED_DAEMON() {
+		return 406;
+	}
 }
 
 module.exports = Status;

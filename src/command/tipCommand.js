@@ -6,6 +6,7 @@
 const Command = require('../base/command');
 const STATUS = require('../status');
 const Telegraf = require('telegraf');
+const { STATUS_CODES } = require('http');
 
 class TransferCommand extends Command {
 	enabled = true;
@@ -31,42 +32,42 @@ class TransferCommand extends Command {
 
 		const Wallet = this.loadModel("Wallet");
 		const User = this.loadModel("User");
-		const sender = User.findAllById(ctx.from.id);
-		if(!sender) {
+		const Meta = this.loadModel("Meta");
+
+		const sender = await User.findById(ctx.from.id);
+		if(!sender || sender === STATUS.ERROR_ACCOUNT_NOT_EXISTS){
 			return ctx.telegram.sendMessage(ctx.from.id,`User not avaliable please /create`);
 		}
 		
-		let wallet = sender.wallet;
 
-		if(!wallet) {
+		if(!('wallet' in sender) || sender === STATUS.ERROR_WALLET_NOT_AVALIABLE) {
 			return ctx.telegram.sendMessage(ctx.from.id,`No wallet avaliable`);
 		}
-
+		let wallet = await Wallet.syncBalance(ctx, wallet, this.Coin);
 
 		const user = User.findByUsername(ctx.appRequest.args[1]);
 
 		if(user === STATUS.ERROR_ACCOUNT_NOT_EXISTS) {
-			return ctx.reply("User account is not avaliable. Share bot to user and create an account");
+			return ctx.reply("User account is not avaliable");
 		}
 
-		const result = await this.Coin.getBalance(ctx.from.id, wallet.id);
-		wallet.balance = result.balance;
-		wallet.unlock = result.unlocked_balance;
-		wallet = await Wallet.update(wallet);
+		if(!('wallet' in user) || user === STATUS.ERROR_WALLET_NOT_AVALIABLE) {
+			return ctx.reply("User wallet is not avaliable");
+		}
 
 		const amount = this.Coin.parse(ctx.appRequest.args[1]);
 		if(amount > parseFloat(wallet.unlock)) {
 			return ctx.telegram.sendMessage(ctx.from.id,'Insufficient fund');	
 		}
 
-		if(sender.tip_submit === 'enabled') {
+		if(sender.tip_submit === 'disabled') {
 
-			const trx = await this.Coin.transfer(ctx.from.id, wallet.id, user.wallet.address, amount);
+			const trx = await this.Coin.transfer(ctx.from.id, wallet.id, user.wallet.address, amount, true);
 			if('error' in trx) {
 				return ctx.reply(trx.error);
 			}
 
-			const uuid = await Wallet.metaToUid(ctx.from.id, trx.tx_metadata);
+			const uuid = await Meta.getId(ctx.from.id, trx.tx_metadata);
 
 			return ctx.telegram.sendMessage(ctx.from.id,`
 				** Transaction Details **
@@ -88,7 +89,7 @@ class TransferCommand extends Command {
 			`);
 
 		} else {
-			const trx = await this.Coin.transferSubmit(ctx.from.id, wallet.id, user.wallet.address, amount);
+			const trx = await this.Coin.transfer(ctx.from.id, wallet.id, user.wallet.address, amount, false);
 			if('error' in trx) {
 				return ctx.reply(trx.error);
 			}
@@ -110,12 +111,6 @@ class TransferCommand extends Command {
 				Current Balance : ${this.Coin.format(balance)}
 			`);
 		}
-
-		
-
-		
-
-
 	}
 }
 module.exports = TransferCommand;

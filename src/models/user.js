@@ -1,14 +1,15 @@
-const Model = require('./base');
+const Model = require('../base/model');
 
 class User extends Model
 {
 	get fields() {
 		return [
-			"id",
+			"user_id",
 			"username",
 			"status",
 			"wallet",
-			"wallet_id"
+			"wallet_id",
+			"coin_id"
 		];
 	};
 
@@ -16,8 +17,8 @@ class User extends Model
 		return 'user';
 	}
 
-	findAllById(id, options) {
-		return this.Query(options).findAllById(id);
+	findById(id, options) {
+		return this.Query(options).findById(id);
 	}
 
 

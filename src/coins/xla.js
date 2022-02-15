@@ -1,4 +1,4 @@
-const request = require('../interfaces/request');
+const request = require('../engines/request');
 class xla {
 	get server() {
 		return global.config.rpc.server;
@@ -51,6 +51,7 @@ class xla {
 		if('error' in result) {
 			return result.error.message;
 		}
+		
 		return (result.result.valid === true || result.result.valid === 'true');
 	}
 
@@ -69,21 +70,40 @@ class xla {
 
 	async getHeight(id) {
 		const { host,port} = this.server;
-		return await request.fetch(host,port,id,"get_height",{});	
+		const response = await request.fetch(host,port,id,"get_height",{});
+		if(!response) {
+			return null;
+		}
+
+		if('error' in response) {
+			return { error: response.error.message };
+		}
+
+		return response.result;
 	}
 
-	async getAddress(id,idx) {
+	async getAddress(id,wallet_id) {
 		const { host,port} = this.server;
-		return await request.fetch(host,port,id,"get_address",{
-			"account_index":parseInt(idx || id),
+		const response = await request.fetch(host,port,id,"get_address",{
+			"account_index":parseInt(wallet_id || id),
 			"address_index":[0]
 		});	
+
+		if(!response) {
+			return null;
+		}
+
+		if('error' in response) {
+			return { error: response.error.message };
+		}
+
+		return response.result;
 	}
 
-	async getBalance(id,idx) {
+	async getBalance(id,wallet_id) {
 		const { host,port} = this.server;
 		const response = await request.fetch(host,port,id,"get_balance",{
-			"account_index":parseInt(idx || id),
+			"account_index":parseInt(wallet_id || id),
 			"address_index":[0]
 		});
 
@@ -100,21 +120,33 @@ class xla {
 
 	async createSubAddress(id) {
 		const { host,port} = this.server;
-		return await request.fetch(host,port,id,"create_account",{
+		const response = await request.fetch(host,port,id,"create_account",{
 			"label":`${id}`,
 		});	
+
+		if(!response) {
+			return null;
+		}
+
+		if('error' in response) {
+			return { error: response.error.message };
+		}
+
+		return response.result;
 	}
 
-	async transfer(id, idx, address, amount) {
+	async transfer(id, idx, address, amount, do_not_relay) {
+		do_not_relay = do_not_relay || false;
 		const { host,port } = this.server;
 		const response = await request.fetch(host,port,id,"transfer",{
 			destinations : [{
 				address,
 				amount
 			}],
-			ring_size: 3,
-			do_not_relay: true,
-			get_tx_metadata: true,
+			ring_size: 4,
+			do_not_relay,
+			get_tx_metadata: do_not_relay,
+			get_tx_keys: !do_not_relay,
 			account_index:parseInt(idx || id)
 		});
 
@@ -146,14 +178,16 @@ class xla {
 		return response.result;
 	}
 
-	async transferSubmitMany(id, idx, destinations) {
+	async transferMany(id, idx, destinations, do_not_relay) {
+		do_not_relay = do_not_relay || false;
+
 		const { host,port } = this.server;
 		const response = await request.fetch(host,port,id,"transfer",{
-			destinations : [],
-			ring_size: 3,
-			do_not_relay: false,
-			get_tx_metadata: false,
-			get_tx_keys: true,
+			destinations,
+			ring_size: 4,
+			do_not_relay,
+			get_tx_metadata: do_not_relay,
+			get_tx_keys: !do_not_relay,
 			account_index:parseInt(idx || id)
 		});
 
@@ -168,30 +202,7 @@ class xla {
 		return response.result;
 	}
 
-	async transferSubmit(id, idx, address, amount) {
-		const { host,port } = this.server;
-		const response = await request.fetch(host,port,id,"transfer",{
-			destinations : [{
-				address,
-				amount
-			}],
-			ring_size: 3,
-			do_not_relay: false,
-			get_tx_metadata: false,
-			get_tx_keys: true,
-			account_index:parseInt(idx || id)
-		});
-
-		if(!response) {
-			return null;
-		}
-
-		if('error' in response) {
-			return { error: response.error.message };
-		}
-
-		return response.result;
-	}
+	
 }
 
 module.exports = xla;

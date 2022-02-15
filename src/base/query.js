@@ -1,5 +1,6 @@
+const logSystem = 'base/query';
 
-class BaseQuery {
+class Query {
 
 	#_fields;
 
@@ -13,4 +14,4 @@ class BaseQuery {
 }
 
 
-module.exports = BaseQuery;
+module.exports = Query;

@@ -1,5 +1,8 @@
+const logSystem = 'base/Command';
 
-class BaseCommand {
+const Model = require('./model');
+
+class Command {
 	enabled = false;
 	#_coin;
 	get Coin() {
@@ -10,16 +13,8 @@ class BaseCommand {
 		return false;
 	}
 
-	static #_models = {};
-
-	loadModel(model) {
-		
-		if(!(model in BaseCommand.#_models)) {
-			const Model = require(`../models/${model.toLowerCase()}`);
-			BaseCommand.#_models[model] = new Model();
-		}
-		
-		return BaseCommand.#_models[model];
+	loadModel(modelName) {
+		return Model.LoadRegistry(modelName);
 	}
 
 	constructor() {
@@ -63,4 +58,4 @@ class BaseCommand {
 	}
 }
 
-module.exports = BaseCommand;
+module.exports = Command;

@@ -1,5 +1,7 @@
 const Middleware = require('../base/middleware');
-const logSystem = "middleware/log";
+const Model = require('../base/model');
+
+const logSystem = "middleware/member";
 
 class MemberMiddleware extends Middleware {
     enabled = true;
@@ -9,47 +11,17 @@ class MemberMiddleware extends Middleware {
     }
 
     async run(ctx, next) {
-        const findAllByChatId = chatId => {
-            if (!MemberMiddleware.Chats[chatId]) {
-                return []
+        if ('chat' in ctx) {
+
+            const Member = Model.LoadRegistry("Member");
+
+            if (await Member.existInChatId(ctx.chat.id, ctx.from.id)) {
+                await Member.updateInChatId(ctx.chat.id, ctx.from.id);
             }
-            return Object.keys(MemberMiddleware.Chats[chatId]).map(id => MemberMiddleware.Chats[chatId][id]);
-        }   
+        }
 
-        const existsInChatId = (chatId,userId) => {
-            // return new Promise((resolve, reject) => {
-            //     const members = findAllByChatId(chatId);
-            //     resolve(!!~members.indexOf(userId));
-            // });
-            return 
-        }   
-
-
-        if (('chat' in ctx) && ('id' in ctx.chat)) {
-            if(!(ctx.chat.id in MemberMiddleware.Chats)) {
-
-                MemberMiddleware.Chats[ctx.chat.id] = {}
-            }  
-
-            if(!('members' in ctx)) {
-                ctx.members = {
-                    findAll:function() {
-                        return findAllByChatId(ctx.chat.id);
-                    }
-                };
-            }
-
-            if (('from' in ctx) && ('id' in ctx.from)) {
-                if(!('existsInChatId' in ctx.members)) {
-                    ctx.members.existsByUserId = async id => {
-                        return await existsInChatId(ctx.chat.id, id);
-                    }
-                }
-            }
-        } 
-
-        if(next) {
-            await next(ctx);    
+        if (next) {
+            await next(ctx);
         }
 
     };

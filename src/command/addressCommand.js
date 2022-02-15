@@ -26,7 +26,7 @@ class AddressCommand extends Command {
 		const Wallet = this.loadModel("Wallet");
 
 		const wallet = await Wallet.findByUserId(ctx.from.id);
-		let output = "Wallets address: ";
+		let output = "Wallet address: ";
 
 		if(wallet) {
 			output +=wallet.address;

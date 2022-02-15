@@ -27,29 +27,15 @@ class HeightCommand extends Command {
         let height = 0;
         const step = now - (global.config.rpc.interval * 1000);
         const Network = this.loadModel("Network");
-        const result = await Network.lastHeight();
+        const result = await Network.lastHeight(this.Coin);
         
-        if(result.height == 0 || result.timestamp < step) {
-        	const resultFromCoin = await this.Coin.getHeight(ctx.from.id);
-        	height = resultFromCoin.result.height;
-        	timestamp = now;
-	        Network.addHeight(height);
-	  
-	      //   global.log('info',logSystem,"Fetched from last height %s : %s", [
-		     // 	height,now - parseInt(timestamp)
-		     // ]);
-   	
-        } else {
-        	timestamp = result.timestamp;
-        	height = result.height;
-        }
 
-
-        let output = "Daemon height: " +  height +" \n";
-        output += "Sync Time: " +  timeAgo.format(parseInt(timestamp),'round') +" \n";
+        let output = "Coin ID :" + this.Coin.symbol +" \n";
+		output = "Daemon height: " +  result.height +" \n";
+        output += "Sync Time: " +  timeAgo.format(parseInt(result.updated),'round') +" \n";
         const {id} = ctx.from;
 
-        if(!global.config.swm && !ctx.appRequest.is.group) {
+        if(!ctx.appRequest.is.group) {
         	const wallet = this.loadModel("Wallet").findByUserId(id);
 			
 			if(wallet) {
