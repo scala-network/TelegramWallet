@@ -58,14 +58,14 @@ Copy the `config.default.json` to `config.json` then overview each options and c
 These configurations is predefine and can be overwriten via config.json
 
 | Key | Description | Default value |
-|---|---|
+|---|---|---|
 | [datasource](#datasource)		|
 | datasource.engine | Your database engine to be use   | redis |
 
 Below configuration keys are for redis engine 
 
 | Key | Description | Default value |
-|---|---|
+|---|---|---|
 | datasource.address | Redis address   | "127.0.0.1" |
 | datasource.port | Redis port   | 6379 |
 | datasource.db | Your database number   | 5 |
@@ -75,7 +75,7 @@ Below configuration keys are for redis engine
 Configuration for sqlite (*experimental*)
 
 | Key | Description | Default value |
-|---|---|
+|---|---|---|
 | datasource.path | Path to sqlite file  | database.sqlite |
 
 ### Bot
