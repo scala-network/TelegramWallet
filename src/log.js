@@ -64,7 +64,7 @@ global.log = function(severity, system, text, data){
 	
     var logConsole =  severityLevels.indexOf(severity) >= severityLevels.indexOf(global.config.log.console.level);
     
-    logFiles = (!logFileDisbled)? severityLevels.indexOf(severity) >= severityLevels.indexOf(global.config.log.files.level):false;
+    let logFiles = (!logFileDisbled)? severityLevels.indexOf(severity) >= severityLevels.indexOf(global.config.log.files.level):false;
     if (!logConsole && !logFiles) {
     	return;
     }

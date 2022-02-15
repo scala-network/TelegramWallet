@@ -112,7 +112,7 @@ class TransferCommand extends Command {
 
 			const balance = parseInt(wallet.balance) - parseInt(trx.amount) - parseInt(trx.fee);
 
-			return ctx.telegram.sendMessage(ctx.from.id,`
+			ctx.telegram.sendMessage(ctx.from.id,`
 				** Transaction Details **
 
 				From: 
@@ -126,6 +126,21 @@ class TransferCommand extends Command {
 				Trx Hash: ${trx.tx_hash}
 				Current Balance : ${this.Coin.format(balance)}
 			`);
+			ctx.telegram.sendMessage(user.user_id,`
+				** Transaction Details **
+
+				From: 
+				${wallet.address}
+				
+				To: 
+				@${user.username}
+				
+				Amount : ${this.Coin.format(trx.amount)}
+				Fee : ${this.Coin.format(trx.fee)}
+				Trx Hash: ${trx.tx_hash}
+				Current Balance : ${this.Coin.format(balance)}
+			`);
+			return;
 		}
 	}
 }
