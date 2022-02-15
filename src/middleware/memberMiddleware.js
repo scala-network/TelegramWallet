@@ -11,17 +11,25 @@ class MemberMiddleware extends Middleware {
     }
 
     async run(ctx, next) {
-        if ('chat' in ctx) {
+        if(ctx.test) return;
+      
+        
 
-            const Member = Model.LoadRegistry("Member");
-
-            if (await Member.existInChatId(ctx.chat.id, ctx.from.id)) {
-                await Member.updateInChatId(ctx.chat.id, ctx.from.id);
+        if (!ctx.appRequest.is.group || ctx.appRequest.is.action) {
+            if (next) {
+                return next();
             }
         }
-
+        
+        if (!await Model.LoadRegistry("User").exists(ctx.from.id)){
+            if (next) {
+                return next();
+            }
+        }
+        await Model.LoadRegistry("Member").addMember(ctx.chat.id, ctx.from.id);
+        global.log("info",logSystem,"Char id %d updated for member id %d" , [ctx.chat.id, ctx.from.id]);
         if (next) {
-            await next(ctx);
+            return next();
         }
 
     };

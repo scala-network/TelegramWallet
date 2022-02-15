@@ -8,12 +8,6 @@ class User  extends Query
 		
 		const ukey = [global.config.coin, 'Users' , id].join(':');
 		
-		const exists = await this.exists(id);
-		
-		if(!exists) {
-			return STATUS.ERROR_ACCOUNT_NOT_EXISTS;
-        }
-        
 		if(!~this.fields.indexOf(field)) {
         	return STATUS.ERROR_MODEL_PROPERTIES_NOT_AVALIABLE;
         }
@@ -64,8 +58,7 @@ class User  extends Query
 	async exists(user_id) {
 		const ukey = [global.config.coin, 'Users' , user_id].join(':');
 
-		const result = await global.redisClient.hget(ukey, 'id');
-
+		const result = await global.redisClient.hget(ukey, 'user_id');
 		return (result !== null && `${result}` === `${user_id}`);
 	}
 
@@ -107,8 +100,7 @@ class User  extends Query
         	global.log("error",logSystem, "Error %j => %j",[result, insert]);
         	return STATUS.ERROR_CREATE_ACCOUNT;
         }
-
-        return result[2];
+        return result[2][1];
 	}
 }
 

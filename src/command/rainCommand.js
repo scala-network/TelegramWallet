@@ -62,8 +62,9 @@ class TransferCommand extends Command {
 		}
 		let more = 0;
 		for(let i =0;i< members.length;i++) {
+
 			const user_id = members.user_id;
-			
+			if(user_id === sender.user_id) continue;
 			const user = User.findById(user_id);
 
 			if(!user || !user.wallet) {

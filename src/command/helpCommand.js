@@ -16,7 +16,7 @@ class HelpCommand extends Command {
 		let cmd;
 		if(ctx.appRequest.args.length > 0) {
 			const name = ctx.appRequest.args[0];
-			cmd = global.CommandManager.getCommand(name);
+			cmd = global.CommandManager.getRegister(name);
 			if(cmd) {
 				output += cmd.description;	
 			} else {

@@ -17,27 +17,11 @@ class Member extends Model {
         }
 	
         addMember(chatID, memberID, option) {
-                return this.Query(option).addMember(chatID, memberID);
-        }
-
-        updateInChatId(chatID, memberID, option) {
-                return this.Query(option).updateInChatId(chatID, memberID);
-        }
-
-        existInChatId(chatID, memberID, option) {
-                return this.Query(option).existInChatId(chatID, memberID);
-        }
-
-        totalMembers(chatID, option) {
-                return this.Query(option).totalMembers(chatID);
-        }
-
-        findAllByChatId(chatID, page, limit, option) {
-                return this.Query(option).findAllByChatId(chatID, page, limit);
+            return this.Query(option).addMember(chatID, memberID);
         }
 
         findByLast10(chatID, option) {
-                return this.Query(option).findByLast10(chatID);
+            return this.Query(option).findByLast10(chatID);
         }
 
 }

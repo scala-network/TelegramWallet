@@ -23,6 +23,7 @@ bot.telegram.getMe().then(bot_informations => {
     require('./src/registries/command')(bot);
 });
 
+
 bot.launch()
 
 // Enable graceful stop

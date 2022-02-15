@@ -20,7 +20,6 @@ class Network extends Model
 
 		let updated = Date.now();
 		const step = updated - (global.config.rpc.interval * 1000);
-
 		if(result.height == 0 || !result.updated || parseInt(result.updated) <= step) {
 
 			const resultFromCoin = await coin.getHeight();

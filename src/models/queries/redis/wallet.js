@@ -52,22 +52,16 @@ class Wallet  extends Query
 			updated:Date.now(),
 			status:STATUS.WALLET_READY
 		});
-
 		const result = await global.redisClient
 		.multi()
-		.hmset(ukey, [	
-			["status",  STATUS.WALLET_READY],
-			["wallet",  JSON.stringify(wallet)]
-		])
+		.hmset(ukey, ["status",  STATUS.WALLET_READY])
+		.hmset(ukey, ["wallet",  JSON.stringify(wallet)])
 		.hmget(ukey,"wallet")
 		.exec();
+		try{
+			wallet = JSON.parse(result[2][1][0]);
+		}catch{
 
-		if(result[1]) {
-			try{
-				wallet = JSON.parse(result[1]);
-			} catch(e) {
-				
-			}
 		}
 		return wallet;
 
@@ -77,7 +71,6 @@ class Wallet  extends Query
 		const ukey = [global.config.coin, 'Users' , user_id].join(':');
 
 		const results = await global.redisClient.hget(ukey, 'wallet');
-
 		if(!results) {
         	return null;
 		} 

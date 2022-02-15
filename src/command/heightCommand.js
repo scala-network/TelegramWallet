@@ -8,6 +8,7 @@ const Command = require('../base/command');
 const TimeAgo = require('javascript-time-ago');
 const timeAgo = new TimeAgo('en-US')
 const logSystem = "command/height";
+const utils = require('../utils');
 
 class HeightCommand extends Command {
 	enabled = true;
@@ -31,15 +32,14 @@ class HeightCommand extends Command {
         
 
         let output = "Coin ID :" + this.Coin.symbol +" \n";
-		output = "Daemon height: " +  result.height +" \n";
-        output += "Sync Time: " +  timeAgo.format(parseInt(result.updated),'round') +" \n";
+		output = "Daemon height: " +  utils.formatNumber(result.height | 0) + " \n";
+        output += "Sync Time: " +  timeAgo.format(parseInt(result.updated),'round') + " \n";
         const {id} = ctx.from;
 
         if(!ctx.appRequest.is.group) {
-        	const wallet = this.loadModel("Wallet").findByUserId(id);
-			
+        	const wallet = await this.loadModel("Wallet").findByUserId(id);
 			if(wallet) {
-				output += "Wallet height: " +  wallet.height +" \n";
+				output += "Wallet height: " +  utils.formatNumber(wallet.height | 0) +" \n";
 			} else {
 				output +='No wallet avaliable';
 			}

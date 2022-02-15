@@ -8,42 +8,24 @@ class Member  extends Query
 
 	async addMember(chatID, memberID) {
 		const ckey = [global.config.coin,"GroupMembers", chatID].join(":");
-		return await redisClient.zadd(ckey, new Date().getTime(),memberID);
+		const result = await redisClient
+		.multi()
+		.zadd(ckey, Date.now(),memberID)
+		.zcard(ckey)
+		.exec();
+		// We set to 11 so that if any of the top10 is sending the money we will get the 11th member
+		if(result[1][1] > 11) {
+			redisClient.zpopmin(ckey);
+		}
 	}
 
-	async updateInChatId(chatID, memberID) {
-		return await this.addMember(chatID, memberID);
-	}
-
-	async existInChatId(chatID, memberID) {
-		const ckey = [global.config.coin,"GroupMembers", chatID].join(":");
-		return await redisClient.zscore(ckey, memberID) || false;
-
-	}
-
-	async totalMembers(chatID) {
-		const ckey = [global.config.coin,"GroupMembers", chatID].join(":");
-		return await redisClient.zcard(ckey) || 0;
-
-	}
-
-
-	async findAllByChatId(chatID, page, limit) {
-		limit = limit || 10;
 		
+	async findByLast10(chatID) {
 		const ckey = [global.config.coin,"GroupMembers", chatID].join(":");
-
-		if(typeof page == 'undefined' ) {
-			page = 1;
-		}
-
-		if(page < 0) {
-			return await redisClient.zrevrangebyscore([ckey, "+inf", 0, 'BYSCORE']);
-		}
-
-		return await redisClient.zrevrangebyscore([ckey, "+inf", 0, 'BYSCORE', 'LIMIT', page, limit]);
-
+		return await redisClient.zrevrange(ckey,0,-1);
 	}
+
+	
 }
 
 module.exports = Member;

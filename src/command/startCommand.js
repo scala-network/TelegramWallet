@@ -99,12 +99,15 @@ class StartCommand extends Command {
                 }
 
                 if (!wallet || user.status === STATUS.WALLET_REQUIRED) {
+                    const Network = this.loadModel('Network');
+
                     const network = Network.lastHeight(this.Coin);
                     let height;
                     if(!network || !network.height) {
                         height = 0;
                     }
                     wallet = await Wallet.addByUser(user, address, wallet_id, height);
+                    
                 } else if(
                     (!wallet_id && wallet.wallet_id !== wallet_id) || 
                     (!address && wallet.address !== address)

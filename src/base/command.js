@@ -47,7 +47,7 @@ class Command {
 	exec(ctx) {
 		const self = this;
 		this.beforeRun(ctx, cintex => {
-			if(ctx.from.is_bot){
+			if(ctx.from.is_bot || !ctx.appRequest.is.action){
 				return;
 			}
 			if(!self.auth(cintex)) {

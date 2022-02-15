@@ -10,11 +10,12 @@ class Network  extends Query
 		const result = await global.redisClient.hmget(key,['height','updated']);
 
 		if(!result) {
-        	return {};
+        	return {
+        		height:0
+        	};
 		}
-
 		return {
-			height: result[0]?result[0]:0,
+			height: result[0]?parseInt(result[0]):0,
 			updated: result[1]?parseInt(result[1]):0,
 		};
 	} 

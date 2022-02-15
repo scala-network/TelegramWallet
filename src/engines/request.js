@@ -59,7 +59,6 @@ function rpc (host, port,id, method, params, path, callback) {
 		method: method,
 		params: params
 	});
-	console.log(data);
 	jsonHttpRequest(host, port, data, path, function (error, replyJson) {
 		
 		if (error) {

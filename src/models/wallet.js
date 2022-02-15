@@ -42,14 +42,13 @@ class Wallet extends Model
 		const step = now - (global.config.rpc.interval * 1000);
 		if(parseInt(wallet.updated) <= step) {
 			const result = await coin.getBalance(wallet.user_id, wallet.wallet_id);
-
 			if('error' in result) {
 				return ctx.reply(result.error);
 			}
-			const network = await Network.lastHeight(coin);
+			const {height} = await Network.lastHeight(coin);
 			wallet.balance = result.balance;
 			wallet.unlock = result.unlocked_balance;
-			wallet.height = network.height;
+			wallet.height = height;
 			if(wallet.balance === wallet.unlock) {
 				wallet.pending = 0;
 			} else {
