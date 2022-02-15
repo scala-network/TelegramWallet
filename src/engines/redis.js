@@ -77,15 +77,15 @@ module.exports = config => {
             }
 
             if (!version) {
-                global.log('error', 'Datasource/Redis: Could not detect redis version - must be super old or broken');
+                global.log('error', 'Datasource/Redis','Could not detect redis version - must be super old or broken');
                 return process.exit();
             }
 
             if (version < 5.0) {
-                global.log('error', `Datasource/Redis: You're using redis version ${versionString} the minimum required version is 2.6. Follow the damn usage instructions...`);
+                global.log('error', `Datasource/Redis`, `You're using redis version ${versionString} the minimum required version is 2.6. Follow the damn usage instructions...`);
                 return process.exit();
             }
-            global.log('info', 'Datasource/Redis: Version checked ' + version);
+            global.log('info', `Datasource/Redis`, `Version checked ${version}`);
             // client.disconnect();
         })();
     }
