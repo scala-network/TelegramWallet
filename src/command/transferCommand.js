@@ -18,7 +18,7 @@ class TransferCommand extends Command {
 	}
 
 	auth(ctx) {
-		return ctx.appRequest.is.group;
+		return true;
 	}
 
 	async run(ctx) {
@@ -32,8 +32,11 @@ class TransferCommand extends Command {
 		const User = this.loadModel("User");
 		const Meta = this.loadModel("Meta");
 
-		const username = ctx.appRequest.args[0].replace(/^(@\.)/,"");
-
+		let username = ctx.appRequest.args[0].trim();
+		if(username.startsWith("@")) {
+			username = username.substr(1);
+		}
+		
 		const user = User.findByUsername(username);
 
 		if(user === STATUS.ERROR_ACCOUNT_NOT_EXISTS) {

@@ -11,7 +11,7 @@ class RequestMiddleware extends Middleware {
     async run(ctx, next) {
          if(ctx.test)  return;
 
-        if(!ctx || !('message' in ctx) || !('text' in ctx.message)) {
+        if(!ctx || !ctx.message || !ctx.message.text) {
             if(next) {
                 await next(ctx);    
             }

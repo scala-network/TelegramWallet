@@ -39,19 +39,20 @@ class TransferCommand extends Command {
 			return ctx.telegram.sendMessage(ctx.from.id,`User not avaliable please /create`);
 		}
 		
-
 		if(!('wallet' in sender) || sender === STATUS.ERROR_WALLET_NOT_AVALIABLE) {
 			return ctx.telegram.sendMessage(ctx.from.id,`No wallet avaliable`);
 		}
-		let wallet = await Wallet.syncBalance(ctx, wallet, this.Coin);
 
-		const user = User.findByUsername(ctx.appRequest.args[1]);
-
-		if(user === STATUS.ERROR_ACCOUNT_NOT_EXISTS) {
-			return ctx.reply("User account is not avaliable");
+		let wallet = await Wallet.syncBalance(ctx, sender.wallet, this.Coin);
+		let username = ctx.appRequest.args[0].trim();
+		if(username.startsWith("@")) {
+			username = username.substr(1);
 		}
-
-		if(!('wallet' in user) || user === STATUS.ERROR_WALLET_NOT_AVALIABLE) {
+		const user = await User.findByUsername(username);
+		if(!user || user === STATUS.ERROR_ACCOUNT_NOT_EXISTS) {
+			return ctx.reply("User account is not avaliable " + ctx.appRequest.args[0] + " /create to create an account");
+		}
+		if(!user || !('wallet' in user) || user === STATUS.ERROR_WALLET_NOT_AVALIABLE) {
 			return ctx.reply("User wallet is not avaliable");
 		}
 

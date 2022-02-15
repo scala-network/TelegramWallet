@@ -22,7 +22,7 @@ class StartCommand extends Command {
     }
 
     auth(ctx) {
-        return !ctx.appRequest.is.group;
+        return !ctx.appRequest.is.group && ctx.appRequest.is.action;
     }
 
     async run(ctx) {
@@ -40,7 +40,7 @@ class StartCommand extends Command {
                 wallet = await Wallet.findByUserId(user.user_id);
                 return ctx.reply(`Hello ${username}. Welcome back!`);
             case STATUS.ERROR_CREATE_ACCOUNT:
-                return ctx.reply("Account start failed");
+                return ctx.reply("Account create failed");
             default:
                 wallet = await Wallet.findByUserId(user.user_id);
                 

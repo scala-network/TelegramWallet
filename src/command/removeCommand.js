@@ -23,9 +23,7 @@ class RemoveCommand extends Command {
 
     async run(ctx) {
         if(ctx.test) return;
-        if(!global.config.swm && ctx.appRequest.args.length <= 0) {
-            return ctx.reply(`Missing argument for password\n${this.description}`);
-        }
+       
         const User = this.loadModel('User');
 
         if(!(await User.exists(ctx.from.id))) {

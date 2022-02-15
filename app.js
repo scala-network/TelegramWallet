@@ -4,6 +4,19 @@
  * @module APP
  */
 
+const cluster = require('cluster');
+
+if(!cluster.isWorker) {
+    const spawn = function() {
+        const worker = cluster.fork();
+        worker.on('exit', function (code, signal) {
+            setTimeout(function () {
+               spawn();
+            }, 500);
+        });
+    }
+    return spawn();
+}
 require("./src/bootstrap");
 
 const TimeAgo = require('javascript-time-ago');
@@ -26,7 +39,8 @@ bot.telegram.getMe().then(bot_informations => {
 
 bot.launch()
 
-// Enable graceful stop
+// // Enable graceful stop
 process.once('SIGINT', () => bot.stop('SIGINT'))
 process.once('SIGTERM', () => bot.stop('SIGTERM'))
+
                                                                                                                     

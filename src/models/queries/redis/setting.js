@@ -36,16 +36,23 @@ class Setting  extends Query
 			return STATUS.ERROR_ACCOUNT_NOT_EXISTS;
         }
 
-		const ukey = [global.config.coin, 'Users' , id].join(':');
+		const ukey = [global.config.coin, 'Users' , user_id].join(':');
 
 		const settings = await global.redisClient.hmget(ukey, this.fields);
 
 		if(!settings) {
 			return {};
 		}
+
 		const results = {};
-		for(let i=0;i<settings.length;i++){
+		for(let i = 0; i< this.fields.length;i++) {
+			if(!(i in settings)){
+				continue;
+			}
 			const setting = settings[i];
+			if(!setting || setting.length <= 0) {
+				continue;
+			}
 			const field = setting[0];
 			if(!~this.fields.indexOf(field)) {
 				continue;

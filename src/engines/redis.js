@@ -49,46 +49,44 @@ module.exports = config => {
         }
     });
 
-    if (!cluster.isWorker && (!('disableVersionCheck' in config) || config.disableVersionCheck !== true)) {
-        (async () => {
-            const info = await client.info();
+    (async () => {
+        const info = await client.info();
 
-            if (!info) {
-                global.log('error', 'Datasource/Redis: Redis version check failed');
-                return process.exit();
-            }
+        if (!info) {
+            global.log('error', 'Datasource/Redis: Redis version check failed');
+            return process.exit();
+        }
 
-            const parts = info.split('\r\n');
-            let versionString;
-            let version;
-            for (let i = 0; i < parts.length; i++) {
-                if (parts[i].indexOf(':') !== -1) {
-                    const valParts = parts[i].split(':');
-                    if (~['redis_version'].indexOf(valParts[0].toLowerCase())) {
-                        versionString = valParts[1];
-                        version = parseFloat(versionString);
-                        if (version === 0) {
-                            versionString = '';
-                            continue;
-                        }
-                        break;
+        const parts = info.split('\r\n');
+        let versionString;
+        let version;
+        for (let i = 0; i < parts.length; i++) {
+            if (parts[i].indexOf(':') !== -1) {
+                const valParts = parts[i].split(':');
+                if (~['redis_version'].indexOf(valParts[0].toLowerCase())) {
+                    versionString = valParts[1];
+                    version = parseFloat(versionString);
+                    if (version === 0) {
+                        versionString = '';
+                        continue;
                     }
+                    break;
                 }
             }
+        }
 
-            if (!version) {
-                global.log('error', 'Datasource/Redis','Could not detect redis version - must be super old or broken');
-                return process.exit();
-            }
+        if (!version) {
+            global.log('error', 'Datasource/Redis','Could not detect redis version - must be super old or broken');
+            return process.exit();
+        }
 
-            if (version < 5.0) {
-                global.log('error', `Datasource/Redis`, `You're using redis version ${versionString} the minimum required version is 2.6. Follow the damn usage instructions...`);
-                return process.exit();
-            }
-            global.log('info', `Datasource/Redis`, `Version checked ${version}`);
-            // client.disconnect();
-        })();
-    }
+        if (version < 5.0) {
+            global.log('error', `Datasource/Redis`, `You're using redis version ${versionString} the minimum required version is 2.6. Follow the damn usage instructions...`);
+            return process.exit();
+        }
+        global.log('info', `Datasource/Redis`, `Version checked ${version}`);
+        // client.disconnect();
+    })();
 
     return client;
 };

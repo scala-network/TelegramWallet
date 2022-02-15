@@ -24,15 +24,11 @@ class User  extends Query
 
 	async findByUsername(username) {
         const aKey = [global.config.coin, "Alias"].join(':');
-
         const user_id = await global.redisClient.hget(aKey, username);
-
         if(!user_id) {
         	return null;
         }
-
-        return await this.findAllById(user_id);
-
+        return await this.findById(user_id);
 	}
 
 	async findById(user_id) {
@@ -91,9 +87,7 @@ class User  extends Query
 
     	let result = await global.redisClient.multi()
         .hmset(uKey, insert)
-        .hset(aKey,[
-        	username, user_id
-        ])
+        .hset(aKey,[username, user_id])
         .hgetall(uKey)
         .exec();
         if(!result[2]) {
