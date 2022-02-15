@@ -11,7 +11,7 @@ class RequestMiddleware extends Middleware {
     async run(ctx, next) {
          if(ctx.test)  return;
 
-        if(!('message' in ctx) || !('text' in ctx.message)) {
+        if(!ctx || !('message' in ctx) || !('text' in ctx.message)) {
             if(next) {
                 await next(ctx);    
             }
@@ -28,7 +28,7 @@ class RequestMiddleware extends Middleware {
         }
 
         const is_group = ctx.message.chat.type == "group" ||  ctx.message.chat.type == "supergroup";
-        const isAnAction = action.startsWith("/") && global.CommandManager.getRegisters().indexOf(action.replace("/","") >= 0);
+        const isAnAction = action.startsWith("/");
         const is = {
             admin : global.config.admins.indexOf(ctx.from.id) >= 0,
             group : is_group,

@@ -13,9 +13,7 @@ class MemberMiddleware extends Middleware {
     async run(ctx, next) {
         if(ctx.test) return;
       
-        
-
-        if (!ctx.appRequest.is.group || ctx.appRequest.is.action) {
+        if (!ctx || !ctx.appRequest || !ctx.appRequest.is.group || ctx.appRequest.is.action) {
             if (next) {
                 return next();
             }
@@ -27,7 +25,7 @@ class MemberMiddleware extends Middleware {
             }
         }
         await Model.LoadRegistry("Member").addMember(ctx.chat.id, ctx.from.id);
-        global.log("info",logSystem,"Char id %d updated for member id %d" , [ctx.chat.id, ctx.from.id]);
+        global.log("info",logSystem,"Chat id %d updated for member id %d" , [ctx.chat.id, ctx.from.id]);
         if (next) {
             return next();
         }
