@@ -1,3 +1,5 @@
+'use strict'
+
 const logSystem = "base/model";
 
 class Model {
@@ -40,10 +42,8 @@ class Model {
 	Query(options) {
 		let engine = this.engine;
 
-		if(options && (options.constructor === Object) ){
-			if('engine' in options) {
-				engine =  options.engine;
-			}
+		if(options && (options.constructor === Object) && options.engine) {
+			engine =  options.engine;
 		}
 
 		if(!(engine in this.#_qryObj)) {

@@ -108,7 +108,7 @@ From:
 ${wallet.address}
 
 To: 
-@${userNames.join("\n@")}
+* ${userNames.join("\n*")}
 
 Amount : ${this.Coin.format(trx.amount)}
 Fee : ${this.Coin.format(trx.fee)}
@@ -116,11 +116,13 @@ Trx Hash: ${trx.tx_hash}
 Current Balance : ${this.Coin.format(balance)}
 			`);
 
-
 		} else {
 
 
 			const trx = await this.Coin.transferMany(ctx.from.id, wallet.wallet_id, destinations, true);
+			if(!trx) {
+				return ctx.reply('Unable to connect with rpc. Please try again later');
+			}
 			if('error' in trx) {
 				return ctx.reply(trx.error);
 			}
@@ -134,7 +136,7 @@ From:
 ${wallet.address}
 
 To: 
-@${userNames.join("\n@")}
+* ${userNames.join("\n*")}
 				
 Amount : ${this.Coin.format(trx.amount)}
 Fee : ${this.Coin.format(trx.fee)}
@@ -146,11 +148,6 @@ To proceed with transaction run
 /submit ${uuid} 
 			`);
 		}
-
-		
-				
-
-
 	}
 }
 module.exports = TransferCommand;
