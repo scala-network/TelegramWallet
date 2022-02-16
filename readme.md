@@ -78,20 +78,6 @@ Configuration for sqlite (*experimental*)
 |---|---|---|
 | datasource.path | Path to sqlite file  | database.sqlite |
 
-"log": {
-        "files": {
-            "enabled" : false,
-            "level" : "error",
-            "directory" : "logs",
-            "flushInterval" : 5
-        },
-        "console"  : {
-            "enabled" : true,
-            "level" : "info",
-            "colors" : true
-        }
-    },
-
 Configurations for log
 
 | Key | Description | Default value |
