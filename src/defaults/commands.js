@@ -16,6 +16,6 @@ module.exports = {
         'submit',
         'version'
     ],
-    "tip" : 10000, // equals to 1000.00 XLA
+    "tip" : 1000, // equals to 10.00 XLA
     "rain" : 1000 // equals to 10.00 XLA
 };

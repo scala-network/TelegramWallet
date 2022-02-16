@@ -7,7 +7,8 @@ class Setting extends Model
 		return [
 			"rain",
 			"tip",
-			"tip_submit"
+			"tip_submit",
+			"rain_submit"
 		];
 	} 
 	
@@ -31,29 +32,31 @@ class Setting extends Model
 	validateValue(field, value) {
 		switch(field) {
 			case 'tip_submit':
+			case 'rain_submit':
 				if(typeof value == 'undefined') {
-					return false;
+					return 'disable';
 				}
 				value = value.toLowerCase();
-				if (!~['enabled','disabled'].indexOf(value)) {
-					return false;
+				if (!~['enable','disable'].indexOf(value)) {
+					return 'disable';
 				}
 				break;
 			case 'tip':
 				value = parseInt(value) || 0;
-				const tip = parseInt(global.config.commands.tip ? global.config.commands.tip :100000);
-				if(value <= tip) {
+				const tip = parseInt(global.config.commands.tip ? global.config.commands.tip : value);
+				if(value < tip) {
 					return tip;
 				}
 				break;
 			case 'rain':
 				value = parseInt(value) || 0;
-				const rain = parseInt(global.config.commands.rain ?global.config.commands.rain :1000);
-				if(value <= rain) {
+				const rain = parseInt(global.config.commands.rain ?global.config.commands.rain :value);
+				if(value < rain) {
 					return rain;
 				}
 				break;
 			default:
+				return false;
 				break;
 		}
 

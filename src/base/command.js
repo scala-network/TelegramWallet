@@ -51,7 +51,11 @@ class Command {
 				return;
 			}
 			if(!self.auth(cintex)) {
-				return cintex.telegram.sendMessage(cintex.from.id,`Authorization failed for command \`${cintex.appRequest.action}\``);
+				if(!cintex.appRequest.is.group) {
+					return cintex.telegram.sendMessage(cintex.from.id,`Authorization failed for command \`${cintex.appRequest.action}\``);
+				} else {
+					return cintex.telegram.sendMessage(cintex.chat.id,`Authorization failed for command \`${cintex.appRequest.action}\``);
+				}
 			}
 			self.run(cintex);
 		});

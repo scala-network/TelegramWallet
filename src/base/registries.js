@@ -46,6 +46,10 @@ class Registeries
 
 		return false;
 	}
+	
+	setBotRegistry(reg, bot) {
+		throw new Error("Function setBotRegistry not set for class");
+	}
 
 	setBot(bot) {
 		const allowRegisteries = Object.keys(this.getRegisters());
@@ -63,10 +67,7 @@ class Registeries
 
 			if(!register || !register.enabled) return;
 
-			//global.log('info',logSystem, "Initializing %s/%s", [this.registerName,reg]);
-
 			this.setBotRegistry(register, bot);
-
 		}
 		bar.stop();
 

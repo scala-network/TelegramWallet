@@ -21,8 +21,8 @@ Set value for your config. usages: /set <config> <value>
 **Configs avaliable**
 rain - Set default rain value (usages: /set rain 10)
 tip - Set default tip value (usages: /set tip 100)
-tip_submit - (enabled | disabled). On enable tip will automatically be sent without confirmation via /submit (default: disabled)
-rain_submit - (enabled | disabled). On enable rain will automatically be sent without confirmation via /submit (default: disabled)`;
+tip_submit - (enable | disable). On enable tip will automatically be sent without confirmation via /submit (default: disable)
+rain_submit - (enable | disable). On enable rain will automatically be sent without confirmation via /submit (default: disable)`;
 	}
 
 	auth(ctx) {
@@ -70,8 +70,8 @@ rain_submit - (enabled | disabled). On enable rain will automatically be sent wi
 			case 'tip_submit':
 			case 'rain_submit':
 				let enabledDisabled = ctx.appRequest.args[1].toLowerCase();
-				enabledDisabled = Setting.validateValue(field. enabledDisabled);
-				if (enabledDisabled === false) {
+				enabledDisabled = Setting.validateValue(field, enabledDisabled);
+				if (!enabledDisabled) {
 					return ctx.reply("Invalid value send enabled / disabled only");
 				}
 				status = await Setting.updateField(ctx.from.id, field, enabledDisabled);

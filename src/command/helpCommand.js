@@ -1,3 +1,12 @@
+'use strict'
+/**
+ * A Telegram Command. Help all commands description.
+ * By passing command as an argument help will display
+ * the particular command's description only. 
+ * eg. /help set
+ * 
+ * @module Commands/help
+ */
 const Command = require('../base/command');
 
 class HelpCommand extends Command {

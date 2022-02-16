@@ -52,11 +52,8 @@ class Wallet extends Model
 			wallet.balance = result.balance;
 			wallet.unlock = result.unlocked_balance;
 			wallet.height = height;
-			if(wallet.balance === wallet.unlock) {
-				wallet.pending = 0;
-			} else {
-				wallet.pending = parseInt(result.blocks_to_unlock);
-			}
+			wallet.pending = parseInt(result.blocks_to_unlock);
+			wallet.balance === wallet.unlock;
 			wallet = await this.update(wallet);
 		}
 

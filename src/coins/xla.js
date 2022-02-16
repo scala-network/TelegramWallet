@@ -168,7 +168,9 @@ class xla {
 		const { host,port } = this.server;
 		const response = await request.fetch(host,port,id,"transfer",{
 			destinations,
-			ring_size: 11,
+			ring_size: 6,
+			mixin:0,
+			priority:0,
 			do_not_relay,
 			get_tx_metadata: do_not_relay,
 			get_tx_keys: !do_not_relay,

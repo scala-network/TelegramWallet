@@ -31,6 +31,9 @@ class StartCommand extends Command {
         const { id, username } = ctx.from;
         const User = this.loadModel('User');
         const Wallet = this.loadModel('Wallet');
+        if(!username) {
+           return ctx.send("To create an account user must have username"); 
+        }
 
         const user = await User.add(id, username);
 

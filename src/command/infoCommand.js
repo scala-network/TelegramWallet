@@ -1,6 +1,7 @@
+'use strict'
 /**
- * A Telegram Command. Balance basically returns daemon height.
- * To return current daemon height do /height
+ * A Telegram Command. Info basically returns wallet and settings
+ * information. To return execute do /info
  * @module Commands/height
  */
 const Command = require('../base/command');
@@ -30,6 +31,7 @@ class InfoCommand extends Command {
 
 
 		let result = await User.findById(ctx.from.id);
+		
 		if (!result) {
 			return ctx.reply("User and wallet not avaliable please /create");
 		}
@@ -37,20 +39,13 @@ class InfoCommand extends Command {
 		let totalBalance = 0;
 		let output = "";
 		output += '** User Information **\n';
-		for (const i in User.fields) {
-			const field = User.fields[i];
+		for (let field of User.fields) {
 			if (!!~['wallet_id', 'wallet', 'status', 'user_id', 'coin_id'].indexOf(field)) {
 				continue;
 			}
 			output += `[${field}] : ${result[field]}\n`;
 		}
 
-		if (!result.tip) {
-			const setting = await Settings.findAllByUserId(ctx.from.id);
-			if(setting) {
-				result = Object.assign(setting, result);
-			}
-		}
 		output += '\n** User Settings **\n';
 		for (const i in Settings.fields) {
 			const field = Settings.fields[i];
@@ -62,9 +57,10 @@ class InfoCommand extends Command {
 					out = this.Coin.format(out);
 					break;
 				case 'tip_submit':
+				case 'rain_submit':
 				default:
 					if(out === false) {
-						out = 'disabled';
+						out = 'disable';
 					}
 					break;
 			}

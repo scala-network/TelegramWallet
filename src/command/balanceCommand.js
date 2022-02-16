@@ -35,10 +35,10 @@ class BalanceCommand extends Command {
 		if(wallet) {
 			wallet = await Wallet.syncBalance(ctx, wallet, this.Coin);
 			output +=`Coin ID: ${wallet.coin_id}\n`;
-			output +=`Balance: ${utils.formatNumber(this.Coin.format(wallet.balance | 0))}\n`;
-			output +=`Unlocked Balance: ${utils.formatNumber(this.Coin.format(wallet.unlock | 0))}\n`;
-			output +=`Last Sync: ${timeAgo.format(parseInt(wallet.updated),'round')}\n`;
-			output +=`Last Height: ${utils.formatNumber(wallet.height | 0)}\n`;
+			output +=`Balance: ${utils.formatNumber(this.Coin.format(wallet.balance || 0))}\n`;
+			output +=`Unlocked Balance: ${utils.formatNumber(this.Coin.format(wallet.unlock || 0))}\n`;
+			output +=`Last Sync: ${timeAgo.format(parseInt(wallet.updated || 0),'round')}\n`;
+			output +=`Last Height: ${utils.formatNumber(wallet.height || 0)}\n`;
 
 			if(wallet.pending > 0) {
 				output +=`Confirmations Remaining: ${wallet.pending}\n`;	

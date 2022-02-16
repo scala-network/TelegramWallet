@@ -1,6 +1,8 @@
+'use strict'
 /**
  * A Telegram Command. Address basically returns wallet*s) address.
- * To return current wallets address do /address or /address <index> for a singular wallet's address
+ * To return current wallets address do /address 
+ * 
  * @module Commands/address
  */
 const Command = require('../base/command');

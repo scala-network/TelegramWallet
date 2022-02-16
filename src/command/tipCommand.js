@@ -62,23 +62,25 @@ class TransferCommand extends Command {
 			amount = this.Coin.parse(tipAmount)
 		} else {
 			tipAmount = await this.loadModel('Setting').findByFieldAndUserId('tip', ctx.from.id);
-			if(tipAmount && 'tip' in tipAmount) {
-				amount = tipAmount.tip;
+			if(tipAmount) {
+				amount = tipAmount;
 			}
 		}
 
 		if(!tipAmount || tipAmount < 1){
-			tipAmount = 10;
-			amount = this.Coin.parse(tipAmount)
+			amount = global.config.tip;
 		}
 		
 		if(amount > parseFloat(wallet.unlock)) {
 			return ctx.telegram.sendMessage(ctx.from.id,'Insufficient fund');	
 		}
 
-		if(sender.tip_submit !== 'enabled') {
+		if(sender.tip_submit !== 'enable') {
 
 			const trx = await this.Coin.transfer(ctx.from.id, wallet.wallet_id, user.wallet.address, amount, true);
+			if(!trx) {
+				return ctx.reply("No response from  RPC");
+			}
 			if('error' in trx) {
 				return ctx.reply(trx.error);
 			}
@@ -116,7 +118,7 @@ class TransferCommand extends Command {
 				** Transaction Details **
 
 				From: 
-				${wallet.address}
+				@${sender.username}
 				
 				To: 
 				@${user.username}
@@ -130,7 +132,7 @@ class TransferCommand extends Command {
 				** Transaction Details **
 
 				From: 
-				${wallet.address}
+				@${sender.username}
 				
 				To: 
 				@${user.username}
@@ -138,7 +140,6 @@ class TransferCommand extends Command {
 				Amount : ${this.Coin.format(trx.amount)}
 				Fee : ${this.Coin.format(trx.fee)}
 				Trx Hash: ${trx.tx_hash}
-				Current Balance : ${this.Coin.format(balance)}
 			`);
 			return;
 		}

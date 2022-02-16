@@ -21,9 +21,8 @@ class Setting  extends Query
         if(!~this.fields.indexOf(field)) {
         	return STATUS.ERROR_MODEL_PROPERTIES_NOT_AVALIABLE;
         }
-
 		await global.redisClient.hset(ukey, field, value);
-
+		
         return STATUS.OK;
 	}
 
@@ -77,12 +76,8 @@ class Setting  extends Query
 		const ukey = [global.config.coin, 'Users' , user_id].join(':');
 
 		const setting = await global.redisClient.hget(ukey, field);
+		return  setting ? setting : null;
 
-		const results = {};
-		
-		results[field] = setting ? setting : null;
-
-		return results;
 	}
 
 }
