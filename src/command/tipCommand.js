@@ -33,7 +33,7 @@ class TransferCommand extends Command {
 		const Wallet = this.loadModel("Wallet");
 		const User = this.loadModel("User");
 		const Meta = this.loadModel("Meta");
-
+		const Setting = this.loadModel('Setting');
 		const sender = await User.findById(ctx.from.id);
 		if(!sender || sender === STATUS.ERROR_ACCOUNT_NOT_EXISTS){
 			return ctx.telegram.sendMessage(ctx.from.id,`User not avaliable please /create`);
@@ -56,23 +56,18 @@ class TransferCommand extends Command {
 			return ctx.reply("User wallet is not avaliable");
 		}
 		let tipAmount;
-		let amount;
 		if(ctx.appRequest.args.length > 1) {
-			tipAmount = ctx.appRequest.args[1];
-			amount = this.Coin.parse(tipAmount)
+			tipAmount = this.Coin.parse( ctx.appRequest.args[1]);
 		} else {
-			tipAmount = await this.loadModel('Setting').findByFieldAndUserId('tip', ctx.from.id);
-			if(tipAmount) {
-				amount = tipAmount;
-			}
+			tipAmount = await Setting.findByFieldAndUserId('tip', ctx.from.id);
+			
 		}
 
-		if(!tipAmount || tipAmount < 1){
-			amount = global.config.tip;
-		}
+		const amount = Setting.validateValue('tip', tipAmount) * 1.01;//Assuming 2% XLA transaction fee
+
 		
 		if(amount > parseFloat(wallet.unlock)) {
-			return ctx.telegram.sendMessage(ctx.from.id,'Insufficient fund');	
+			return ctx.telegram.sendMessage(ctx.from.id,'Insufficient fund estimate require ' + this.Coin.format(amount));	
 		}
 
 		if(sender.tip_submit !== 'enable') {
@@ -91,7 +86,7 @@ class TransferCommand extends Command {
 				** Transaction Details **
 
 				From: 
-				${wallet.address}
+				@${sender.username}
 				
 				To: 
 				@${user.username}

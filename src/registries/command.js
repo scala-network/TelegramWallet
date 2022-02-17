@@ -13,20 +13,30 @@ class CommandManager extends Registeries {
 	}
 
 	setBotRegistry(reg, bot) {	
-		bot.command(reg.name, async ctx => {
+		const exec = async ctx => {
+			if(!ctx.from.username) {
+				ctx.reply("Unable to process request for users without username");
+				return;
+			}
 
-			if(!ctx.appRequest || !ctx.appRequest.is.action || !ctx.from.username || !ctx.from.id) {
+			if(!ctx.from.id) {
+				ctx.reply("Unable to process request for users without id");
+				return;
+			}
+
+			if(!ctx.appRequest || !ctx.appRequest.is.action) {
 				return;
 			}
 			const User = Model.LoadRegistry('User');
 			const exists = await User.exists(ctx.from.id);
 			if(ctx.appRequest.is.group && !exists) {
-				ctx.reply("Please create a wallet https://t.me/scalawalletbot");
+				ctx.reply("Please create a wallet https://t.me/" + global.config.bot.username);
 				return;
 			}
 			reg.exec(ctx);
-		});
-		bot.command(reg.name + global.config.bot.name, ctx => reg.exec(ctx));
+		};
+		bot.command(reg.name, exec);
+		bot.command(reg.name + '@' + global.config.bot.username, exec);
 	}
 }
 

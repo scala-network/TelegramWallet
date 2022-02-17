@@ -73,9 +73,9 @@ class InfoCommand extends Command {
 
 		if (wallet) {
 			output += `Address : ${wallet.address}\n`;
-			output += `Balance : ${utils.formatNumber(this.Coin.format(wallet.balance))}\n`;
-			output += `Unlock : ${utils.formatNumber(this.Coin.format(wallet.unlock ? wallet.unlock : 0))}\n`;
-			output += `Height : ${utils.formatNumber(wallet.height)}\n`;
+			output += `Balance : ${utils.formatNumber(this.Coin.format(wallet.balance || 0))}\n`;
+			output += `Unlock : ${utils.formatNumber(this.Coin.format(wallet.unlock || 0))}\n`;
+			output += `Height : ${utils.formatNumber(wallet.height || 0)}\n`;
 		} else {
 			output += 'No wallet avaliable\n';
 		}

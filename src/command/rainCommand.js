@@ -15,7 +15,7 @@ class TransferCommand extends Command {
     }
 	
 	get description() {
-		return "Send coins to other users. To set default rain value go to /set rain <amount>";
+		return "Send coins to latest active users. To set default rain value go to /set rain <amount>";
 	}
 
 	auth(ctx) {
@@ -96,7 +96,7 @@ class TransferCommand extends Command {
 		if(destinations.length <= 0) {
 			return ctx.reply("No member with an account");
 		}
-		const send = amount * destinations.length + 100; //We assume the fee at max is 1.00 XLA
+		const send = amount * destinations.length * 1.02; //We assume the fee is 2%
 		if(send > parseInt(wallet.unlock)) {
 			ctx.reply(`Insufficient fund to ${destinations.length} total required ${this.Coin.format(send)}`);
 			return ctx.telegram.sendMessage(ctx.from.id,`Insufficient fund to ${destinations.length} total required ${this.Coin.format(send)}`);
@@ -110,7 +110,10 @@ class TransferCommand extends Command {
 			if('error' in trx) {
 				return ctx.reply("RPC Error: " + trx.error);
 			}
-			const balance = parseInt(wallet.balance) - parseInt(trx.amount) - parseInt(trx.fee);
+			const trx_fee = trx.fee_list.reduce((a, b) => a + b, 0);
+			const trx_amount = trx.amount_list.reduce((a, b) => a + b, 0);
+			const tx_hash = trx.tx_hash_list.join("\n* ");
+			const balance = parseInt(wallet.balance) - parseInt(trx_amount) - parseInt(trx_fee);
 	
 			ctx.telegram.sendMessage(ctx.from.id,`
 ** Transaction Details **
@@ -121,9 +124,10 @@ From:
 To: 
 * ${userNames.join("\n*")}
 
-Amount : ${this.Coin.format(trx.amount)}
-Fee : ${this.Coin.format(trx.fee)}
-Trx Hash: ${trx.tx_hash}
+Amount : ${this.Coin.format(trx_amount)}
+Fee : ${this.Coin.format(trx_fee)}
+Trx Hash: 
+* ${tx_hash}
 Current Balance : ${this.Coin.format(balance)}
 			`);
 
@@ -135,15 +139,16 @@ From:
 @${sender.username}
 
 To: 
-* ${userNames.join("\n*")}
+${userNames.join("\n*")}
 
-Amount : ${this.Coin.format(trx.amount)}
-Fee : ${this.Coin.format(trx.fee)}
-Trx Hash: ${trx.tx_hash}
+Amount : ${this.Coin.format(trx_amount)}
+Fee : ${this.Coin.format(trx_fee)}
+Trx Hashes (${trx.tx_key_list.length} Transactions): 
+* ${tx_hash}
 			`);
 
 			}
-			const total = this.Coin.format(trx.amount + trx.fee);
+			const total = this.Coin.format(trx_amount + trx_fee);
 			ctx.reply("Airdrops to last " + userNames.length + " active members total of " + total + "\n" + userNames.join("\n*"));
 		} else {
 
@@ -155,8 +160,11 @@ Trx Hash: ${trx.tx_hash}
 			if('error' in trx) {
 				return ctx.reply("RPC Error: " + trx.error);
 			}
-
-			const uuid = await Meta.getId(ctx.from.id, trx.tx_metadata);
+			const trx_fee = trx.fee_list.reduce((a, b) => a + b, 0);
+			const trx_amount = trx.amount_list.reduce((a, b) => a + b, 0);
+			const tx_hash = trx.tx_hash_list.join("\n * ");
+			const balance = parseInt(wallet.balance) - parseInt(trx_amount) - parseInt(trx_fee);
+			const uuid = await Meta.getId(ctx.from.id, trx.tx_metadata_list.join(':'));
 
 			return ctx.telegram.sendMessage(ctx.from.id,`
 ** Transaction Details **
@@ -165,14 +173,14 @@ From:
 @${sender.username}
 
 To: 
-* ${userNames.join("\n*")}
+${userNames.join("\n")}
 				
-Amount : ${this.Coin.format(trx.amount)}
-Fee : ${this.Coin.format(trx.fee)}
+Amount : ${this.Coin.format(trx_amount)}
+Fee : ${this.Coin.format(trx_fee)}
 Trx Meta ID: ${uuid}
 Trx Expiry: ${global.config.rpc.metaTTL} seconds
 Current Unlock Balance : ${this.Coin.format(wallet.balance)}
-
+Number of transactions : ${trx.tx_hash_list.length}
 To proceed with transaction run
 /submit ${uuid} 
 			`);

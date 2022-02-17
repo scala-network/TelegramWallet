@@ -8,7 +8,7 @@ const StartCommand = require('./startCommand');
 class CreateCommand extends StartCommand {
 
 
-    enabled = true;
+    enabled =false;
 
     get description() {
         let o = "Creates a wallet";

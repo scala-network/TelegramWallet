@@ -40,7 +40,7 @@ class WithdrawCommand extends Command {
 			case false:
 				return ctx.reply("Address is not valid");
 			case true:
-				let wallet = await Wallet.findAllById(ctx.from.id);
+				let wallet = await Wallet.findByUserId(ctx.from.id);
 
 				if(!wallet) {
 					return ctx.reply('No wallet avaliable');
@@ -53,7 +53,7 @@ class WithdrawCommand extends Command {
 					return ctx.reply('Insufficient fund');	
 				}
 
-				const trx = await this.Coin.transfer(ctx.from.id, wallet.id, address, amount, true);
+				const trx = await this.Coin.transfer(ctx.from.id, wallet.wallet_id, address, amount, true);
 
 				if('error' in trx) {
 					return ctx.reply(trx.error);

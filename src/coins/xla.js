@@ -139,7 +139,34 @@ class xla {
 	}
 
 	async transfer(id, idx, address, amount, do_not_relay) {
-		return await this.transferMany(id, idx, [{address, amount}], do_not_relay);
+		if(!idx) {
+			return { error: "Missing wallet index" };
+		}
+		do_not_relay = do_not_relay || false;
+
+		const { host,port } = this.server;
+		const response = await request.fetch(host,port,id,"transfer",{
+			destinations:[{
+				address, amount
+			}],
+			ring_size: 11,
+			mixin:11,
+			priority:3,
+			do_not_relay,
+			get_tx_metadata: do_not_relay,
+			get_tx_keys: !do_not_relay,
+			account_index:parseInt(idx)
+		});
+
+		if(!response) {
+			return { error: "Unable to get a response from RPC" };
+		}
+
+		if('error' in response) {
+			return { error: response.error.message };
+		}
+
+		return response.result;
 	}
 
 	async relay(id, meta) {
@@ -166,11 +193,11 @@ class xla {
 		do_not_relay = do_not_relay || false;
 
 		const { host,port } = this.server;
-		const response = await request.fetch(host,port,id,"transfer",{
+		const response = await request.fetch(host,port,id,"transfer_split",{
 			destinations,
-			ring_size: 6,
-			mixin:0,
-			priority:0,
+			ring_size: 11,
+			mixin:11,
+			priority:3,
 			do_not_relay,
 			get_tx_metadata: do_not_relay,
 			get_tx_keys: !do_not_relay,

@@ -30,23 +30,30 @@ class SubmitCommand extends Command {
 		
 		const Meta = this.loadModel('Meta');
 
-		const meta = await Meta.findById(ctx.appRequest.args[0], ctx.from.id);
+		const metas = await Meta.findById(ctx.appRequest.args[0], ctx.from.id);
 
-		if(!meta) {
+		if(!metas) {
 			return ctx.reply("Invalid or expired meta id");
 		}
+		const explorer = [];
+		const tx_hashes = [];
+		for(let meta of metas.split(':')) {
+			const tx = await this.Coin.relay(ctx.from.id, meta);
+			if('error' in tx) {
+				return ctx.reply(tx.error);
+			}
 
-		const tx = await this.Coin.relay(ctx.from.id, meta);
-		if('error' in tx) {
-			return ctx.reply(tx.error);
+			const tx_hash = tx.tx_hash;
+			explorer.push(this.Coin.explorerLink(tx_hash));
+			tx_hashes.push(tx_hash);
 		}
-
-		const tx_hash = tx.tx_hash;
-
 		return ctx.reply(`
 			** Transaction completed **
-			Trx Hash : ${tx_hash}
-			Explorer : ${this.Coin.explorerLink(tx_hash)}
+			Number of transactions: ${metas.length}
+			Trx Hashes : 
+			* ${tx_hashes.join("\n *")}
+			Explorer : 
+			* ${explorer.join("\n * ")}
 		`);
 
 	}
