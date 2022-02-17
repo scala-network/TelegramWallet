@@ -151,7 +151,7 @@ class xla {
 			}],
 			ring_size: 11,
 			mixin:11,
-			priority:3,
+			priority:1,
 			do_not_relay,
 			get_tx_metadata: do_not_relay,
 			get_tx_keys: !do_not_relay,

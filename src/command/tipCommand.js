@@ -62,12 +62,12 @@ class TransferCommand extends Command {
 			tipAmount = await Setting.findByFieldAndUserId('tip', ctx.from.id);
 			
 		}
-
-		const amount = Setting.validateValue('tip', tipAmount) * 1.01;//Assuming 2% XLA transaction fee
+		const amount = Setting.validateValue('tip', tipAmount);//Assuming 2% XLA transaction fee
+		const estimate = amount * 1.01;//Assuming 1% XLA transaction fee
 
 		
-		if(amount > parseFloat(wallet.unlock)) {
-			return ctx.telegram.sendMessage(ctx.from.id,'Insufficient fund estimate require ' + this.Coin.format(amount));	
+		if(estimate > parseFloat(wallet.unlock)) {
+			return ctx.telegram.sendMessage(ctx.from.id,'Insufficient fund estimate require ' + this.Coin.format(estimate));	
 		}
 
 		if(sender.tip_submit !== 'enable') {

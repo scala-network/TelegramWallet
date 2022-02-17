@@ -96,10 +96,10 @@ class TransferCommand extends Command {
 		if(destinations.length <= 0) {
 			return ctx.reply("No member with an account");
 		}
-		const send = amount * destinations.length * 1.02; //We assume the fee is 2%
-		if(send > parseInt(wallet.unlock)) {
+		const estimate = amount * destinations.length * 1.02; //We assume the fee is 2%
+		if(estimate > parseInt(wallet.unlock)) {
 			ctx.reply(`Insufficient fund to ${destinations.length} total required ${this.Coin.format(send)}`);
-			return ctx.telegram.sendMessage(ctx.from.id,`Insufficient fund to ${destinations.length} total required ${this.Coin.format(send)}`);
+			return ctx.telegram.sendMessage(ctx.from.id,`Insufficient fund to ${destinations.length} total required ${this.Coin.format(estimate)}`);
 		}
 
 		if(sender.rain_submit === 'enable') {
@@ -122,7 +122,7 @@ From:
 @${sender.username}
 
 To: 
-* ${userNames.join("\n*")}
+${userNames.join("\n*")}
 
 Amount : ${this.Coin.format(trx_amount)}
 Fee : ${this.Coin.format(trx_fee)}
@@ -149,7 +149,7 @@ Trx Hashes (${trx.tx_key_list.length} Transactions):
 
 			}
 			const total = this.Coin.format(trx_amount + trx_fee);
-			ctx.reply("Airdrops to last " + userNames.length + " active members total of " + total + "\n" + userNames.join("\n*"));
+			ctx.reply("Airdrops to last " + userNames.length + " active members total of " + total + "\n" + userNames.join("\n"));
 		} else {
 
 
