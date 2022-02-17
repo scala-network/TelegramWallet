@@ -55,7 +55,7 @@ class TransferCommand extends Command {
 		}
 		let rain_value = sender.rain;
 		if(!rain_value) {
-			rain_value = await Settings.findByFieldAndUserId('rain', ctx.from.id);
+			rain_value = await Setting.findByFieldAndUserId('rain', ctx.from.id);
 		}
 		
 		const amount = Setting.validateValue('rain', rain_value);
@@ -98,7 +98,7 @@ class TransferCommand extends Command {
 		}
 		const estimate = amount * destinations.length * 1.02; //We assume the fee is 2%
 		if(estimate > parseInt(wallet.unlock)) {
-			ctx.reply(`Insufficient fund to ${destinations.length} total required ${this.Coin.format(send)}`);
+			ctx.reply(`Insufficient fund to ${destinations.length} total required ${this.Coin.format(estimate)}`);
 			return ctx.telegram.sendMessage(ctx.from.id,`Insufficient fund to ${destinations.length} total required ${this.Coin.format(estimate)}`);
 		}
 
