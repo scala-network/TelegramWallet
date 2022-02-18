@@ -4,6 +4,8 @@
 
 STW is a designed telegram wallet which is easily customize by coin developers to be executed via Telegram.
 
+You can try to add the scala bot https://t.me/scalawalletbot or join our Telegram community to experience it https://t.me/scalaofficial
+
 # Table of Contents
 * [Usages](#usages)
 * [Command](#commands)
@@ -238,4 +240,3 @@ All rpc requests is base on coin class located at /src/coins. Currently we have 
 
 To call coin spesific methods or properties use this.Coin inside command
 
-You can try to add the scala bot https://t.me/scalawalletbot or join our Telegram community to experience it https://t.me/scalaofficial
