@@ -24,9 +24,9 @@ TimeAgo.addDefaultLocale(require('javascript-time-ago/locale/en'));
 const Telegraf = require('telegraf');
 const logSystem = "app";
 const bot = new Telegraf.Telegraf(global.config.bot.token);
-try{
         // We can get bot nickname from bot informations. This is particularly useful for groups.
-    bot.telegram.getMe().then(bot_informations => {
+bot.telegram.getMe().then(bot_informations => {
+    try{
         bot.options.username = bot_informations.username;
         global.config.bot.name = "@" + bot_informations.username;
         global.log('info', logSystem, "Server initialized");
@@ -34,14 +34,14 @@ try{
         global.log('info', logSystem, "Loading Registries");
         require('./src/registries/middleware')(bot);
         require('./src/registries/command')(bot);
-    });
+    } catch(e) {
+        global.log('error', e.getMessage());
+        global.log('error', e);
+    }
+});
 
 
-    bot.launch()
-} catch(e) {
-    global.log('error', e.getMessage());
-    global.log('error', e);
-}
+bot.launch()
 
 
 // // Enable graceful stop

@@ -135,8 +135,11 @@ Trx Hash:
 Current Balance : ${this.Coin.format(balance)}
 			`);
 
-			for(let smi of sentMemberIds) {
-				ctx.telegram.sendMessage(smi,`
+			for(let i in sentMemberIds) {
+				let smi = sentMemberIds[i];
+				//We send to all members using timeout due to complain from tg about so many requests
+				setTimeout(() => {
+					ctx.telegram.sendMessage(smi,`
 ** Transaction Details **
 
 From: 
@@ -149,7 +152,9 @@ Amount : ${this.Coin.format(trx_amount)}
 Fee : ${this.Coin.format(trx_fee)}
 Trx Hashes (${trx.amount_list.length} Transactions): 
 * ${tx_hash}
-			`);
+								`);
+				},100 * i);
+				
 
 			}
 			const total = this.Coin.format(trx_amount + trx_fee);
