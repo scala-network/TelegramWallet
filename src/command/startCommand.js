@@ -36,22 +36,33 @@ class StartCommand extends Command {
         }
 
         const user = await User.add(id, username);
-
+        
         let wallet;
         switch (user) {
             case STATUS.ERROR_ACCOUNT_EXISTS:
-                wallet = await Wallet.findByUserId(user.user_id);
                 return ctx.reply(`Hello ${username}. Welcome back!`);
             case STATUS.ERROR_CREATE_ACCOUNT:
-                return ctx.reply("Account create failed");
+                await User.remove(id, username);
+                return ctx.reply("Error creating account");
             default:
-                wallet = await Wallet.findByUserId(user.user_id);
+                if(user && parseInt(user.user_id) !== id) {
+                    await User.remove(id, username);
+                    return ctx.reply("Account created failed");
+                }
+                if(!user.wallet) {
+                    wallet = await Wallet.findByUserId(user.user_id);    
+                } else {
+                    wallet = user.wallet;
+                }
+                
                 
                 let address;
                 let wallet_id;
                 if(wallet) {
                     address = wallet.address;
                     wallet_id = wallet.wallet_id;
+                } else {
+                    wallet_id = user.wallet_id;
                 }
 
                 let result;
@@ -66,7 +77,7 @@ class StartCommand extends Command {
                     }
 
                     if ('error' in result) {
-                        return ctx.reply(result.error.message);
+                        return ctx.reply(result.error);
                     }
 
                     wallet_id = result.account_index;
@@ -101,7 +112,7 @@ class StartCommand extends Command {
                     }
                 }
 
-                if (!wallet || user.status === STATUS.WALLET_REQUIRED) {
+                if (user.status === STATUS.WALLET_REQUIRED && address && wallet_id) {
                     const Network = this.loadModel('Network');
 
                     const network = Network.lastHeight(this.Coin);
@@ -115,14 +126,14 @@ class StartCommand extends Command {
                     (!wallet_id && wallet.wallet_id !== wallet_id) || 
                     (!address && wallet.address !== address)
                 ) {
-                    wallet = await Wallet.update(wallet);                    
+                    wallet = await Wallet.update(user_id, wallet);                    
                 }
 
 
                 if (wallet) {
                     return ctx.reply("Account created successfully");
                 }
-                await User.remove(id);
+                await User.remove(id, username);
 
                 return ctx.reply("Account creation failed");
 

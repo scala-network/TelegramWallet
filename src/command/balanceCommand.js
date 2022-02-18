@@ -29,11 +29,19 @@ class BalanceCommand extends Command {
 		
 		const Wallet = this.loadModel("Wallet");
 
-		let wallet = await Wallet.findByUserId(ctx.from.id);
+		let old_wallet = await Wallet.findByUserId(ctx.from.id);
 		let output = "*** Wallet Information ***\n";
 
-		if(wallet) {
-			wallet = await Wallet.syncBalance(ctx, wallet, this.Coin);
+		if(old_wallet) {
+			
+			let wallet;
+
+			const sync_wallet = await Wallet.syncBalance(ctx.from.id, old_wallet, this.Coin);
+			if(sync_wallet && 'error' in sync_wallet) {
+				wallet = old_wallet;
+			} else {
+				wallet = sync_wallet;
+			}
 			output +=`Coin ID: ${wallet.coin_id}\n`;
 			output +=`Balance: ${utils.formatNumber(this.Coin.format(wallet.balance || 0))}\n`;
 			output +=`Unlocked Balance: ${utils.formatNumber(this.Coin.format(wallet.unlock || 0))}\n`;

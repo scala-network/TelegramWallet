@@ -49,7 +49,7 @@ class SubmitCommand extends Command {
 		}
 		return ctx.reply(`
 			** Transaction completed **
-			Number of transactions: ${metas.length}
+			Number of transactions: ${tx_hashes.length}
 			Trx Hashes : 
 			* ${tx_hashes.join("\n *")}
 			Explorer : 

@@ -151,7 +151,7 @@ class xla {
 			}],
 			ring_size: 11,
 			mixin:11,
-			priority:1,
+			priority:2,
 			do_not_relay,
 			get_tx_metadata: do_not_relay,
 			get_tx_keys: !do_not_relay,
@@ -186,7 +186,45 @@ class xla {
 		return response.result;
 	}
 
-	async transferMany(id, idx, destinations, do_not_relay) {
+	async transferMany(id, idx, destinations, do_not_relay, split = false) {
+		 return (split) ? this.transferSplit(id, idx, destinations, do_not_relay) : this.transfers(id, idx, destinations, do_not_relay);
+	}
+
+	async transfers(id, idx, destinations, do_not_relay) {
+		if(!idx) {
+			return { error: "Missing wallet index" };
+		}
+		do_not_relay = do_not_relay || false;
+
+		const { host,port } = this.server;
+		const response = await request.fetch(host,port,id,"transfer",{
+			destinations,
+			ring_size: 11,
+			mixin:11,
+			priority:2,
+			do_not_relay,
+			get_tx_metadata: do_not_relay,
+			get_tx_keys: !do_not_relay,
+			account_index:parseInt(idx)
+		});
+
+		if(!response) {
+			return { error: "Unable to get a response from RPC" };
+		}
+
+		if('error' in response) {
+			return { error: response.error.message };
+		}
+		const trx = {
+			fee_list:[response.result.fee],
+			amount_list:[response.result.amount],
+			tx_hash_list:[response.result.tx_hash],
+			tx_metadata_list:[response.result.tx_metadata]
+		};
+		return trx;
+	}
+
+	async transferSplit(id, idx, destinations, do_not_relay) {
 		if(!idx) {
 			return { error: "Missing wallet index" };
 		}
@@ -197,7 +235,7 @@ class xla {
 			destinations,
 			ring_size: 11,
 			mixin:11,
-			priority:3,
+			priority:1,
 			do_not_relay,
 			get_tx_metadata: do_not_relay,
 			get_tx_keys: !do_not_relay,

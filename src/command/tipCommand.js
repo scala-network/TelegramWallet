@@ -20,7 +20,7 @@ class TransferCommand extends Command {
 	}
 
 	auth(ctx) {
-		return ctx.appRequest.is.group;
+		return true;
 	}
 
 	async run(ctx) {
@@ -43,7 +43,10 @@ class TransferCommand extends Command {
 			return ctx.telegram.sendMessage(ctx.from.id,`No wallet avaliable`);
 		}
 
-		let wallet = await Wallet.syncBalance(ctx, sender.wallet, this.Coin);
+		let wallet = await Wallet.syncBalance(ctx.from.id, sender.wallet, this.Coin);
+		if(wallet && 'error' in wallet) {
+			return ctx.sendMessage(ctx.from.id, wallet.error);
+		}
 		let username = ctx.appRequest.args[0].trim();
 		if(username.startsWith("@")) {
 			username = username.substr(1);

@@ -32,21 +32,21 @@ class Wallet extends Model
 		return this.Query(options).updateByUserId(user_id);
 	}
 
-	update(wallet, options) {
-		return this.Query(options).update(wallet);
+	update(user_id, wallet, options) {
+		return this.Query(options).update(user_id, wallet);
 	}
 
-	async syncBalance(ctx, wallet, coin) {
+	async syncBalance(user_id, wallet, coin) {
 		let now = Date.now();
 		const Network = Model.LoadRegistry('Network');
 		const step = now - (global.config.rpc.interval * 1000);
 		if(parseInt(wallet.updated) <= step) {
-			const result = await coin.getBalance(wallet.user_id, wallet.wallet_id);
+			const result = await coin.getBalance(user_id, wallet.wallet_id);
 			if(!result) {
-				return ctx.reply("Unable to connect with rpc. Please try again later");
+				return {error : "Unable to connect with rpc. Please try again later"};
 			}
 			if('error' in result) {
-				return ctx.reply(result.error);
+				return result;
 			}
 			const {height} = await Network.lastHeight(coin);
 			wallet.balance = result.balance;
@@ -54,7 +54,7 @@ class Wallet extends Model
 			wallet.height = height;
 			wallet.pending = parseInt(result.blocks_to_unlock);
 			wallet.balance === wallet.unlock;
-			wallet = await this.update(wallet);
+			wallet = await this.update(user_id, wallet);
 		}
 
 		return wallet;

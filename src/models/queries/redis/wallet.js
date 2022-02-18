@@ -14,7 +14,6 @@ class Wallet  extends Query
 	 * */
 	async addByUser(user, address, wallet_id, height) {
 		const ukey = [global.config.coin, 'Users' , user.user_id].join(':');
-        const wKey = [global.config.coin, "AddressAlias"].join(':');
 
 		const wallet = {
 			address,
@@ -27,42 +26,22 @@ class Wallet  extends Query
 			wallet_id,
 			height: height
 		};
-		const hmset = [
-			"status",  STATUS.WALLET_READY,
-			"wallet",  JSON.stringify(wallet),
-			"wallet_id", wallet_id
-		];
-		const result = await global.redisClient
-		.multi()
-		.hmset(ukey, hmset)
-		.hset(wKey, 
-			user.username,
-			address
-		)
-		.exec();
-		return wallet;
 
+		const result = await global.redisClient
+		.hmset(ukey ,['wallet',JSON.stringify(wallet), "status", user.status,"wallet_id", wallet_id]);
+		return wallet;
 	}
 
-	async update(wallet) {
-		const ukey = [global.config.coin, 'Users' , wallet.user_id].join(':');
+	async update(user_id, wallet) {
+		const ukey = [global.config.coin, 'Users' , user_id].join(':');
 
-		wallet = Object.assign(wallet, {
-			user_id: wallet.user_id,
-			updated:Date.now(),
-			status:STATUS.WALLET_READY
-		});
-		const result = await global.redisClient
-		.multi()
-		.hmset(ukey, ["status",  STATUS.WALLET_READY])
-		.hmset(ukey, ["wallet",  JSON.stringify(wallet)])
-		.hmget(ukey,"wallet")
-		.exec();
-		try{
-			wallet = JSON.parse(result[2][1][0]);
-		}catch{
-
-		}
+		wallet.user_id = user_id;
+		wallet.updated = Date.now();
+		wallet.status = STATUS.WALLET_READY;
+	
+		await global.redisClient
+		.hmset(ukey, ["status",  STATUS.WALLET_READY,"wallet",  JSON.stringify(wallet), 'wallet_id', wallet.wallet_id]);
+		
 		return wallet;
 
 	}

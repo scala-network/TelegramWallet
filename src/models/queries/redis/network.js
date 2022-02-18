@@ -22,11 +22,11 @@ class Network  extends Query
 
 	async addHeight(height) {
 		const key = [global.config.coin, 'network'].join(':');
-
-		return await global.redisClient.hmset(key,[
-			'height', height,
-			'updated',  Date.now()
-		]);
+		const updated = Date.now();
+		return await global.redisClient.hmset(key,{
+			height,
+			updated
+		});
 
 	} 
 }

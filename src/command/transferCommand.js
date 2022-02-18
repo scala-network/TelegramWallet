@@ -51,8 +51,10 @@ class TransferCommand extends Command {
 			}
 		}
 		
-		let wallet  = await Wallet.syncBalance(ctx, user.wallet, this.Coin);
-
+		let wallet  = await Wallet.syncBalance(ctx.from.id, user.wallet, this.Coin);
+		if(wallet && 'error' in wallet) {
+			return ctx.sendMessage(ctx.from.id, wallet.error);
+		}
 		const amount = this.Coin.parse(ctx.appRequest.args[1]);
 		if(amount > parseFloat(wallet.unlock)) {
 			return ctx.reply('Insufficient fund');	

@@ -20,7 +20,8 @@ class HelpCommand extends Command {
 
 	async run(ctx) {
 		if(ctx.test)  return;
-
+		if(ctx.appRequest.is.bot) return;
+		
 		let output = "";
 		let cmd;
 		if(ctx.appRequest.args.length > 0) {

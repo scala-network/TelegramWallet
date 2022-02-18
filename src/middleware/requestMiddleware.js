@@ -33,7 +33,8 @@ class RequestMiddleware extends Middleware {
             admin : global.config.admins.indexOf(ctx.from.id) >= 0,
             group : is_group,
             user : !is_group && ctx.message.chat.type != "channel" || ctx.message.chat.type === 'private',
-            action: isAnAction
+            action: isAnAction,
+            bot: ctx.message.from.is_bot
         };
         let args = [];
         let query = null;
@@ -48,7 +49,9 @@ class RequestMiddleware extends Middleware {
         } else {
             action = null;
         }
-        
+        // if(isAnAction && is_group && data.status == "administrator") {
+        //     setTimeout(() => ctx.telegram.deleteMessage(ctx.message.chat.id, ctx.message.message_id), 1000);
+        // }
         ctx.sendToAdmin = msg => {
             console.log("We have an error");
             console.log(appRequest);
@@ -56,6 +59,12 @@ class RequestMiddleware extends Middleware {
         };
 
         ctx.appRequest =  {is,action,query,args};
+        // ctx.reply = function(message) {
+        //     return ctx.telegram.sendMessage(ctx.from.id, message
+        //         .replaceAll(".","\\.")
+        //         .replaceAll("]","\\]")
+        //         , { parse_mode: 'MarkdownV2' });
+        // }
         if(next) {
             return next(ctx);    
         }

@@ -6,7 +6,8 @@
  */
 const Command = require('../base/command');
 const utils = require('../utils');
-
+const TimeAgo = require('javascript-time-ago');
+const timeAgo = new TimeAgo('en-US')
 class InfoCommand extends Command {
 	get name() {
 		return "info";
@@ -67,7 +68,7 @@ class InfoCommand extends Command {
 			output += `[${field}] : ${out}\n`;
 		}
 
-		output += '\n** WalletInformation **\n';
+		output += '\n** Wallet Information **\n';
 
 		const wallet = result.wallet ? result.wallet : await Wallet.findByUserId(ctx.from.id);
 
@@ -76,6 +77,7 @@ class InfoCommand extends Command {
 			output += `Balance : ${utils.formatNumber(this.Coin.format(wallet.balance || 0))}\n`;
 			output += `Unlock : ${utils.formatNumber(this.Coin.format(wallet.unlock || 0))}\n`;
 			output += `Height : ${utils.formatNumber(wallet.height || 0)}\n`;
+			output += `Last Sync: ${timeAgo.format(parseInt(wallet.updated || 0),'round')}\n`;
 		} else {
 			output += 'No wallet avaliable\n';
 		}

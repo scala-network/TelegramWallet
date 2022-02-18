@@ -39,7 +39,6 @@ class User  extends Query
 		if(!results) {
         	return null;
 		} 
-
 		if(results.wallet) {
 			try{
 				results.wallet = JSON.parse(results.wallet);
@@ -74,27 +73,32 @@ class User  extends Query
         const uKey = [global.config.coin, "Users" ,user_id].join(':');
         const aKey = [global.config.coin, "Alias"].join(':');
 
-        const exists = await this.exists(user_id);
-		if(exists) {
-			return STATUS.ERROR_ACCOUNT_EXISTS;
+        let user = await this.findById(user_id);
+                
+		if(user && parseInt(user.user_id) === user_id) {
+			
+			if(user.wallet) {
+				return  STATUS.ERROR_ACCOUNT_EXISTS;
+	        }
+	        user.status = STATUS.WALLET_REQUIRED;
+			return  user;
         }
-        const insert = [
-        	'user_id',user_id,
-        	'username', username,
-        	'status' , STATUS.WALLET_REQUIRED
-        ];
-
-
+        const status = STATUS.WALLET_REQUIRED;
+        user = {
+        	user_id,
+        	username,
+        	status
+        }
+        	
     	let result = await global.redisClient.multi()
-        .hmset(uKey, insert)
-        .hset(aKey,[username, user_id])
-        .hgetall(uKey)
+        .hmset(uKey, ["user_id",user_id,
+        	"username",username,
+        	"status",username])
+        .hset(aKey, username, user_id)
         .exec();
-        if(!result[2]) {
-        	global.log("error",logSystem, "Error %j => %j",[result, insert]);
-        	return STATUS.ERROR_CREATE_ACCOUNT;
-        }
-        return result[2][1];
+
+       
+        return user;
 	}
 }
 

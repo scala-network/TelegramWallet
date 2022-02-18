@@ -49,7 +49,11 @@ class TransferCommand extends Command {
 			}
 		}
 
-		let wallet =await Wallet.syncBalance(ctx, sender.wallet, this.Coin);
+		let wallet =await Wallet.syncBalance(ctx.from.id, sender.wallet, this.Coin);
+
+		if(wallet && 'error' in wallet) {
+			return ctx.telegram.sendMessage(ctx.from.id, wallet.error);
+		}
 		if(!wallet) {
 			return ctx.telegram.sendMessage(ctx.from.id,`Wallet not avaliable please /create`);
 		}
@@ -122,7 +126,7 @@ From:
 @${sender.username}
 
 To: 
-${userNames.join("\n*")}
+${userNames.join("\n")}
 
 Amount : ${this.Coin.format(trx_amount)}
 Fee : ${this.Coin.format(trx_fee)}
@@ -139,11 +143,11 @@ From:
 @${sender.username}
 
 To: 
-${userNames.join("\n*")}
+${userNames.join("\n")}
 
 Amount : ${this.Coin.format(trx_amount)}
 Fee : ${this.Coin.format(trx_fee)}
-Trx Hashes (${trx.tx_key_list.length} Transactions): 
+Trx Hashes (${trx.amount_list.length} Transactions): 
 * ${tx_hash}
 			`);
 
@@ -160,6 +164,10 @@ Trx Hashes (${trx.tx_key_list.length} Transactions):
 			if('error' in trx) {
 				return ctx.reply("RPC Error: " + trx.error);
 			}
+
+			ctx.reply("Airdrop confirmation require to " + userNames.length + " active members total. To skip confirmation set rain_submit enable");
+
+
 			const trx_fee = trx.fee_list.reduce((a, b) => a + b, 0);
 			const trx_amount = trx.amount_list.reduce((a, b) => a + b, 0);
 			const tx_hash = trx.tx_hash_list.join("\n * ");

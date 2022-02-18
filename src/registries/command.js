@@ -30,7 +30,7 @@ class CommandManager extends Registeries {
 			const User = Model.LoadRegistry('User');
 			const exists = await User.exists(ctx.from.id);
 			if(ctx.appRequest.is.group && !exists) {
-				ctx.reply("Please create a wallet https://t.me/" + global.config.bot.username);
+				ctx.telegram.sendMessage(ctx.message.chat.id,"Please create a wallet https://t.me/" + global.config.bot.username);
 				return;
 			}
 			reg.exec(ctx);
