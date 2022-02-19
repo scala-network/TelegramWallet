@@ -8,7 +8,8 @@ class Setting extends Model
 			"rain",
 			"tip",
 			"tip_submit",
-			"rain_submit"
+			"rain_submit",
+			"rain_max",
 		];
 	} 
 	
@@ -43,11 +44,22 @@ class Setting extends Model
 				break;
 			case 'tip':
 			case 'rain':
-			case 'rain_max':
 				value = parseInt(value) || 0;
 				const tip = parseInt(global.config.commands[field] ? global.config.commands[field] : value);
 				if(value < tip) {
 					return tip;
+				}
+				break;
+			case 'rain_max':
+				value = parseInt(value) || 0;
+				const _max = parseInt(global.config.commands.rain_max ? global.config.commands.rain_max : 20);
+				if(value > _max) {
+					return _max;
+				}
+
+				const _min = parseInt(global.config.commands.rain_min ? global.config.commands.rain_min : 1);
+				if(value < _min) {
+					return _max;
 				}
 				break;
 			default:

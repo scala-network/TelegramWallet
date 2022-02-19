@@ -25,7 +25,7 @@ class WithdrawCommand extends Command {
 		if(ctx.test)  return;
 		
 		if(ctx.appRequest.args.length <= 1) {
-            return ctx.reply(`Missing arguments\n${this.description}`);
+            return ctx.appResponse.reply(`Missing arguments\n${this.description}`);
         }
 
 		const Wallet = this.loadModel("Wallet");
@@ -36,14 +36,14 @@ class WithdrawCommand extends Command {
 
 		switch(valid) {
 			case null:
-				return ctx.reply("Unable to validate address");
+				return ctx.appResponse.reply("Unable to validate address");
 			case false:
-				return ctx.reply("Address is not valid");
+				return ctx.appResponse.reply("Address is not valid");
 			case true:
 				let wallet = await Wallet.findByUserId(ctx.from.id);
 
 				if(!wallet) {
-					return ctx.reply('No wallet avaliable');
+					return ctx.appResponse.reply('No wallet avaliable');
 				}
 
 				wallet  = await Wallet.syncBalance(ctx.from.id, wallet, this.Coin);
@@ -52,18 +52,18 @@ class WithdrawCommand extends Command {
 				}
 				const amount = this.Coin.parse(ctx.appRequest.args[1]);
 				if(amount > parseFloat(wallet.unlock)) {
-					return ctx.reply('Insufficient fund');	
+					return ctx.appResponse.reply('Insufficient fund');	
 				}
 
 				const trx = await this.Coin.transfer(ctx.from.id, wallet.wallet_id, address, amount, true);
 
 				if('error' in trx) {
-					return ctx.reply(trx.error);
+					return ctx.appResponse.reply(trx.error);
 				}
 
 				const uuid = await Meta.getId(ctx.from.id, trx.tx_metadata);
 
-				return ctx.telegram.sendMessage(
+				return ctx.appResponse.sendMessage(
 					ctx.from.id,
 					`
 ** Transaction Details **
@@ -86,9 +86,9 @@ To proceed with transaction run
 				);
 			default:
 				try{
-					return ctx.reply(valid);
+					return ctx.appResponse.reply(valid);
 				} catch (e) {
-					return ctx.reply("Unable to withdraw coin");
+					return ctx.appResponse.reply("Unable to withdraw coin");
 				}
 				break;
 		}

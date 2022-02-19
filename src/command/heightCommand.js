@@ -45,7 +45,7 @@ class HeightCommand extends Command {
 			}
         }
         
-      	ctx.reply(output);
+      	ctx.appResponse.reply(output);
 		
 	}
 

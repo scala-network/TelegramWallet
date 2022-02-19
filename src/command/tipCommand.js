@@ -27,7 +27,7 @@ class TransferCommand extends Command {
 		if(ctx.test)  return;
 		
 		if(ctx.appRequest.args.length <= 0) {
-            return ctx.reply(`Missing arguments\n${this.description}`);
+            return ctx.appResponse.reply(`Missing arguments\n${this.description}`);
         }
 
 		const Wallet = this.loadModel("Wallet");
@@ -36,11 +36,11 @@ class TransferCommand extends Command {
 		const Setting = this.loadModel('Setting');
 		const sender = await User.findById(ctx.from.id);
 		if(!sender || sender === STATUS.ERROR_ACCOUNT_NOT_EXISTS){
-			return ctx.reply("User account not avaliable. Please create a wallet https://t.me/" + global.config.bot.username);
+			return ctx.appResponse.reply("User account not avaliable. Please create a wallet https://t.me/" + global.config.bot.username);
 		}
 		
 		if(!('wallet' in sender) || sender === STATUS.ERROR_WALLET_NOT_AVALIABLE) {
-			return ctx.telegram.sendMessage(ctx.from.id,`No wallet avaliable`);
+			return ctx.appResponse.sendMessage(ctx.from.id,`No wallet avaliable`);
 		}
 
 		let wallet = await Wallet.syncBalance(ctx.from.id, sender.wallet, this.Coin);
@@ -53,10 +53,10 @@ class TransferCommand extends Command {
 		}
 		const user = await User.findByUsername(username);
 		if(!user || user === STATUS.ERROR_ACCOUNT_NOT_EXISTS) {
-			return ctx.reply("User account not avaliable. Please create a wallet " +ctx.appRequest.args[0]+ " https://t.me/" + global.config.bot.username);
+			return ctx.appResponse.reply("User account not avaliable. Please create a wallet " +ctx.appRequest.args[0]+ " https://t.me/" + global.config.bot.username);
 		}
 		if(!user || !('wallet' in user) || user === STATUS.ERROR_WALLET_NOT_AVALIABLE) {
-			return ctx.reply("User wallet is not avaliable");
+			return ctx.appResponse.reply("User wallet is not avaliable");
 		}
 		let tipAmount;
 		if(ctx.appRequest.args.length > 1) {
@@ -70,22 +70,22 @@ class TransferCommand extends Command {
 
 		
 		if(estimate > parseFloat(wallet.unlock)) {
-			return ctx.telegram.sendMessage(ctx.from.id,'Insufficient fund estimate require ' + this.Coin.format(estimate));	
+			return ctx.appResponse.sendMessage(ctx.from.id,'Insufficient fund estimate require ' + this.Coin.format(estimate));	
 		}
 
 		if(sender.tip_submit !== 'enable') {
 
 			const trx = await this.Coin.transfer(ctx.from.id, wallet.wallet_id, user.wallet.address, amount, true);
 			if(!trx) {
-				return ctx.reply("No response from  RPC");
+				return ctx.appResponse.reply("No response from  RPC");
 			}
 			if('error' in trx) {
-				return ctx.reply(trx.error);
+				return ctx.appResponse.reply(trx.error);
 			}
 
 			const uuid = await Meta.getId(ctx.from.id, trx.tx_metadata);
 
-			return ctx.telegram.sendMessage(ctx.from.id,`
+			return ctx.appResponse.sendMessage(ctx.from.id,`
 				** Transaction Details **
 
 				From: 
@@ -107,12 +107,12 @@ class TransferCommand extends Command {
 		} else {
 			const trx = await this.Coin.transfer(ctx.from.id, wallet.wallet_id, user.wallet.address, amount, false);
 			if('error' in trx) {
-				return ctx.reply(trx.error);
+				return ctx.appResponse.reply(trx.error);
 			}
 
 			const balance = parseInt(wallet.balance) - parseInt(trx.amount) - parseInt(trx.fee);
 
-			ctx.telegram.sendMessage(ctx.from.id,`
+			ctx.appResponse.sendMessage(ctx.from.id,`
 				** Transaction Details **
 
 				From: 
@@ -126,7 +126,7 @@ class TransferCommand extends Command {
 				Trx Hash: ${trx.tx_hash}
 				Current Balance : ${this.Coin.format(balance)}
 			`);
-			ctx.telegram.sendMessage(user.user_id,`
+			ctx.appResponse.sendMessage(user.user_id,`
 				** Transaction Details **
 
 				From: 

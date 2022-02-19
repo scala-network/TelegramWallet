@@ -35,7 +35,7 @@ class TransferCommand extends Command {
 		const sender = await User.findById(ctx.from.id);
 
 		if(!sender) {
-			return ctx.reply("User account not avaliable. Please create a wallet https://t.me/" + global.config.bot.username);
+			return ctx.appResponse.reply("User account not avaliable. Please create a wallet https://t.me/" + global.config.bot.username);
 		}
 		
 		if(!sender.wallet) {
@@ -43,18 +43,18 @@ class TransferCommand extends Command {
 			sender.wallet = Wallet.findByUserId(sender.user_id);
 			
 			if(!sender.wallet) {
-				ctx.reply(`No wallet avaliable`);
-				return ctx.telegram.sendMessage(ctx.from.id,`No wallet avaliable`);
+				ctx.appResponse.reply(`No wallet avaliable`);
+				return ctx.appResponse.sendMessage(ctx.from.id,`No wallet avaliable`);
 			}
 		}
 
 		let wallet =await Wallet.syncBalance(ctx.from.id, sender.wallet, this.Coin);
 
 		if(wallet && 'error' in wallet) {
-			return ctx.telegram.sendMessage(ctx.from.id, wallet.error);
+			return ctx.appResponse.sendMessage(ctx.from.id, wallet.error);
 		}
 		if(!wallet) {
-			return ctx.telegram.sendMessage(ctx.from.id,`Wallet not avaliable please /create`);
+			return ctx.appResponse.sendMessage(ctx.from.id,`Wallet not avaliable please /create`);
 		}
 		let rain_value = sender.rain;
 		if(!rain_value) {
@@ -75,7 +75,7 @@ class TransferCommand extends Command {
 		let userNames = [];
 
 		if(members.length <= 0) {
-			return ctx.reply("No members avaliable");
+			return ctx.appResponse.reply("No members avaliable");
 		}
 
 		let more = 0;
@@ -103,29 +103,29 @@ class TransferCommand extends Command {
 		}
 
 		if(destinations.length <= 0) {
-			return ctx.reply("No member with an account");
+			return ctx.appResponse.reply("No member with an account");
 		}
 		const estimate = amount * destinations.length * 1.02; //We assume the fee is 2%
 		if(estimate > parseInt(wallet.unlock)) {
-			ctx.reply(`Insufficient fund to ${destinations.length} total required ${this.Coin.format(estimate)}`);
-			return ctx.telegram.sendMessage(ctx.from.id,`Insufficient fund to ${destinations.length} total required ${this.Coin.format(estimate)}`);
+			ctx.appResponse.reply(`Insufficient fund to ${destinations.length} total required ${this.Coin.format(estimate)}`);
+			return ctx.appResponse.sendMessage(ctx.from.id,`Insufficient fund to ${destinations.length} total required ${this.Coin.format(estimate)}`);
 		}
 
 		if(sender.rain_submit === 'enable') {
 			const trx = await this.Coin.transferMany(ctx.from.id, wallet.wallet_id, destinations, false);
 			if(!trx) {
-				return ctx.reply('Unable to connect with rpc. Please try again later');
+				return ctx.appResponse.reply('Unable to connect with rpc. Please try again later');
 			}
 			if('error' in trx) {
-				return ctx.reply("RPC Error: " + trx.error);
+				return ctx.appResponse.reply("RPC Error: " + trx.error);
 			}
 			const trx_fee = trx.fee_list.reduce((a, b) => a + b, 0);
 			const trx_amount = trx.amount_list.reduce((a, b) => a + b, 0);
 			const tx_hash = trx.tx_hash_list.join("\n* ");
 			const balance = parseInt(wallet.balance) - parseInt(trx_amount) - parseInt(trx_fee);
 			const total = this.Coin.format(trx_amount + trx_fee);
-			await ctx.reply("Airdrops to last " + userNames.length + " active members total of " + total + "\n" + userNames.join("\n"));
-			await ctx.telegram.sendMessage(ctx.from.id,`
+			await ctx.appResponse.reply("Airdrops to last " + userNames.length + " active members total of " + total + "\n" + userNames.join("\n"));
+			await ctx.appResponse.sendMessage(ctx.from.id,`
 ** Transaction Details **
 
 From: 
@@ -144,7 +144,7 @@ Current Balance : ${this.Coin.format(balance)}
 			for(let i in sentMemberIds) {
 				let smi = sentMemberIds[i];
 				//We send to all members using timeout due to complain from tg about so many requests
-				await ctx.telegram.sendMessage(smi,`
+				await ctx.appResponse.sendMessage(smi,`
 ** Transaction Details **
 
 From: 
@@ -166,13 +166,13 @@ Trx Hashes (${trx.amount_list.length} Transactions):
 
 			const trx = await this.Coin.transferMany(ctx.from.id, wallet.wallet_id, destinations, true);
 			if(!trx) {
-				return ctx.reply('Unable to connect with rpc. Please try again later');
+				return ctx.appResponse.reply('Unable to connect with rpc. Please try again later');
 			}
 			if('error' in trx) {
-				return ctx.reply("RPC Error: " + trx.error);
+				return ctx.appResponse.reply("RPC Error: " + trx.error);
 			}
 
-			ctx.reply("Airdrop confirmation require to " + userNames.length + " active members total. To skip confirmation set rain_submit enable");
+			ctx.appResponse.reply("Airdrop confirmation require to " + userNames.length + " active members total. To skip confirmation set rain_submit enable");
 
 
 			const trx_fee = trx.fee_list.reduce((a, b) => a + b, 0);
@@ -181,7 +181,7 @@ Trx Hashes (${trx.amount_list.length} Transactions):
 			const balance = parseInt(wallet.balance) - parseInt(trx_amount) - parseInt(trx_fee);
 			const uuid = await Meta.getId(ctx.from.id, trx.tx_metadata_list.join(':'));
 
-			return ctx.telegram.sendMessage(ctx.from.id,`
+			return ctx.appResponse.sendMessage(ctx.from.id,`
 ** Transaction Details **
 
 From: 

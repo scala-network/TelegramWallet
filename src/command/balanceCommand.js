@@ -56,7 +56,7 @@ class BalanceCommand extends Command {
 			output +='No wallet avaliable';
 		}
 
-		ctx.reply(output);
+		ctx.appResponse.reply(output);
 
 	}
 }

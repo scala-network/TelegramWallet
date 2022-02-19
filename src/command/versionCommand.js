@@ -22,10 +22,10 @@ class VersionCommand extends Command {
 		try {
 
 		    const rfs = fs.readFileSync(pjson);
-      		ctx.reply(`Version : ${JSON.parse(rfs).version}`);
+      		ctx.appResponse.reply(`Version : ${JSON.parse(rfs).version}`);
 
 		} catch(e){
-		    ctx.reply("Unable to display version");
+		    ctx.appResponse.reply("Unable to display version");
 		}
         
 		

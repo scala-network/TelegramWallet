@@ -45,7 +45,7 @@ class HelpCommand extends Command {
 			}	
 		}
 		
-		ctx.reply(output);
+		ctx.appResponse.reply(output);
 
 	}
 }

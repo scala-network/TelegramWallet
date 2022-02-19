@@ -53,23 +53,32 @@ class RequestMiddleware extends Middleware {
         //     setTimeout(() => ctx.telegram.deleteMessage(ctx.message.chat.id, ctx.message.message_id), 1000);
         // }
 
-        let snm = ctx.telegram,sendMessage;
+        // const snm = ctx.telegram.sendMessage;
 
-        ctx.telegram.sendMessage  = async function(a,b,c,d) {
-            return await snm(a,b,c,d).catch(e => global.log('error', logSystem, e));
-        }
+        // ctx.telegram.sendMessage  = async function(a,b,c,d) {
+        //     return await snm(a,b,c,d).catch(e => global.log('error', logSystem, e));
+        // }
 
-        ctx.reply  = async function(a,b,c,d) {
-            return await sendMessage(appRequest.is.group ? ctx.message.chat.id : ctx.message.from.id,a,b,c,d).catch(e => global.log('error', logSystem, e));
-        }
+        // ctx.reply  = async function(a,b,c,d) {
+        //     return await snm(is.group ? ctx.message.chat.id : ctx.message.from.id,a,b,c,d).catch(e => global.log('error', logSystem, e));
+        // }
 
-        ctx.sendToAdmin = msg => {
-            console.log("We have an error");
-            console.log(appRequest);
-            console.error(msg);
-        };
+        ctx;
 
         ctx.appRequest =  {is,action,query,args};
+        ctx.appResponse = {
+            sendMessage: async function(a,b,c,d) {
+                return await ctx.telegram.sendMessage(a,b,c,d).catch(e => global.log('error', logSystem, e));
+            },
+            reply: async function(a,b,c,d) {
+                return await ctx.reply(a,b,c,d).catch(e => global.log('error', logSystem, e));
+            },
+            sendToAdmin : msg => {
+                console.log("We have an error");
+                console.log(ctx.appRequest);
+                console.error(msg);
+            }
+        };
       
         if(next) {
             return next(ctx);    

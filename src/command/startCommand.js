@@ -40,14 +40,14 @@ class StartCommand extends Command {
         let wallet;
         switch (user) {
             case STATUS.ERROR_ACCOUNT_EXISTS:
-                return ctx.reply(`Hello ${username}. Welcome back!`);
+                return ctx.appResponse.reply(`Hello ${username}. Welcome back!`);
             case STATUS.ERROR_CREATE_ACCOUNT:
                 await User.remove(id, username);
-                return ctx.reply("Error creating account");
+                return ctx.appResponse.reply("Error creating account");
             default:
                 if(user && parseInt(user.user_id) !== id) {
                     await User.remove(id, username);
-                    return ctx.reply("Account created failed");
+                    return ctx.appResponse.reply("Account created failed");
                 }
                 if(!user.wallet) {
                     wallet = await Wallet.findByUserId(user.user_id);    
@@ -73,11 +73,11 @@ class StartCommand extends Command {
 
                     if (!result) {
                         // await User.remove(id);
-                        return ctx.reply("Unable to create address for wallet");
+                        return ctx.appResponse.reply("Unable to create address for wallet");
                     }
 
                     if ('error' in result) {
-                        return ctx.reply(result.error);
+                        return ctx.appResponse.reply(result.error);
                     }
 
                     wallet_id = result.account_index;
@@ -98,7 +98,7 @@ class StartCommand extends Command {
                                 `${user.user_id}@${username}`, wallet_id, result.error.message
                             ]);
 
-                            return ctx.reply(result.error.message);
+                            return ctx.appResponse.reply(result.error.message);
                         }
 
                         if (result.addresses.length > 0) {
@@ -131,11 +131,11 @@ class StartCommand extends Command {
 
 
                 if (wallet) {
-                    return ctx.reply("Account created successfully");
+                    return ctx.appResponse.reply("Account created successfully");
                 }
                 await User.remove(id, username);
 
-                return ctx.reply("Account creation failed");
+                return ctx.appResponse.reply("Account creation failed");
 
         }
     }

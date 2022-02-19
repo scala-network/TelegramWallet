@@ -27,13 +27,13 @@ class RemoveCommand extends Command {
         const User = this.loadModel('User');
 
         if(!(await User.exists(ctx.from.id))) {
-            return ctx.reply(`Account not avaliable`);    
+            return ctx.appResponse.reply(`Account not avaliable`);    
         }
         await User.remove(ctx.from.id, ctx.from.username);
         /**
          * @@TODO : Delete wallet file for swm = false
          **/
-        ctx.reply("Account deleted");
+        ctx.appResponse.reply("Account deleted");
     }
 	
 }
