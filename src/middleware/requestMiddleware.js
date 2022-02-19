@@ -63,15 +63,21 @@ class RequestMiddleware extends Middleware {
         //     return await snm(is.group ? ctx.message.chat.id : ctx.message.from.id,a,b,c,d).catch(e => global.log('error', logSystem, e));
         // }
 
-        ctx;
 
         ctx.appRequest =  {is,action,query,args};
         ctx.appResponse = {
             sendMessage: async function(a,b,c,d) {
-                return await ctx.telegram.sendMessage(a,b,c,d).catch(e => global.log('error', logSystem, e));
+                return await ctx.telegram.sendMessage(a,b,c,d).catch(function(e) {
+                global.log('error', logSystem, "Error sending to id : " + a);
+                global.log('error', logSystem, e);
+            });
+
             },
             reply: async function(a,b,c,d) {
-                return await ctx.reply(a,b,c,d).catch(e => global.log('error', logSystem, e));
+                return await ctx.reply(a,b,c,d).catch(function(e) {
+                    global.log('error', logSystem, "Error sending to id : " + is.group ? ctx.message.chat.id : ctx.message.from.id);
+                    global.log('error', logSystem, e);
+                });
             },
             sendToAdmin : msg => {
                 console.log("We have an error");
