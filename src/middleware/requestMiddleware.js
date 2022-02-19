@@ -26,9 +26,8 @@ class RequestMiddleware extends Middleware {
         if(action.endsWith(global.config.bot.name)) {
             action = action.replace(global.config.bot.name,'').trim();
         }
-
         const is_group = ctx.message.chat.type == "group" ||  ctx.message.chat.type == "supergroup";
-        const isAnAction = action.startsWith("/");
+        const isAnAction =action.startsWith('/') && global.config.commands.allowed.indexOf(action.replace('/','')) >= 0;
         const is = {
             admin : global.config.admins.indexOf(ctx.from.id) >= 0,
             group : is_group,
@@ -46,6 +45,7 @@ class RequestMiddleware extends Middleware {
                 args = _query.split(' ');
                 query = _query;
             }
+            // action = action.replace()
         } else {
             action = null;
         }
@@ -62,7 +62,6 @@ class RequestMiddleware extends Middleware {
         // ctx.reply  = async function(a,b,c,d) {
         //     return await snm(is.group ? ctx.message.chat.id : ctx.message.from.id,a,b,c,d).catch(e => global.log('error', logSystem, e));
         // }
-
 
         ctx.appRequest =  {is,action,query,args};
         ctx.appResponse = {

@@ -16,11 +16,13 @@ class CommandManager extends Registeries {
 		const exec = async ctx => {
 			if(!ctx.from.username) {
 				ctx.reply("Unable to process request for users without username");
+				global.log("warn",logSystem, "No username defined for ID : " + ctx.from.id);
 				return;
 			}
 
 			if(!ctx.from.id) {
 				ctx.reply("Unable to process request for users without id");
+				global.log("warn",logSystem, "No ID defined for username : " + ctx.from.username);
 				return;
 			}
 

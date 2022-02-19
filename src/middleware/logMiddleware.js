@@ -11,7 +11,7 @@ class LogMiddleware extends Middleware {
     async run(ctx, next) {
         if(ctx.test)  return;
 
-        if(!ctx || !ctx.appRequest || !ctx.appRequest.is.action){
+        if(!ctx || !ctx.appRequest || !ctx.appRequest.is.action || !ctx.from.username){
             return next(ctx);
         }
 
