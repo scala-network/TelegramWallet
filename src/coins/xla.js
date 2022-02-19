@@ -186,7 +186,7 @@ class xla {
 		return response.result;
 	}
 
-	async transferMany(id, idx, destinations, do_not_relay, split = false) {
+	async transferMany(id, idx, destinations, do_not_relay, split = true) {
 		 return (split) ? this.transferSplit(id, idx, destinations, do_not_relay) : this.transfers(id, idx, destinations, do_not_relay);
 	}
 
@@ -235,7 +235,7 @@ class xla {
 			destinations,
 			ring_size: 11,
 			mixin:11,
-			priority:1,
+			priority:2,
 			do_not_relay,
 			get_tx_metadata: do_not_relay,
 			get_tx_keys: !do_not_relay,

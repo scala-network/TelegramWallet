@@ -36,7 +36,7 @@ class TransferCommand extends Command {
 		const Setting = this.loadModel('Setting');
 		const sender = await User.findById(ctx.from.id);
 		if(!sender || sender === STATUS.ERROR_ACCOUNT_NOT_EXISTS){
-			return ctx.telegram.sendMessage(ctx.from.id,`User not avaliable please /create`);
+			return ctx.reply("User account not avaliable. Please create a wallet https://t.me/" + global.config.bot.username);
 		}
 		
 		if(!('wallet' in sender) || sender === STATUS.ERROR_WALLET_NOT_AVALIABLE) {
@@ -53,7 +53,7 @@ class TransferCommand extends Command {
 		}
 		const user = await User.findByUsername(username);
 		if(!user || user === STATUS.ERROR_ACCOUNT_NOT_EXISTS) {
-			return ctx.reply("User account is not avaliable " + ctx.appRequest.args[0] + " /create to create an account");
+			return ctx.reply("User account not avaliable. Please create a wallet " +ctx.appRequest.args[0]+ " https://t.me/" + global.config.bot.username);
 		}
 		if(!user || !('wallet' in user) || user === STATUS.ERROR_WALLET_NOT_AVALIABLE) {
 			return ctx.reply("User wallet is not avaliable");

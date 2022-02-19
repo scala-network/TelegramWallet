@@ -52,6 +52,17 @@ class RequestMiddleware extends Middleware {
         // if(isAnAction && is_group && data.status == "administrator") {
         //     setTimeout(() => ctx.telegram.deleteMessage(ctx.message.chat.id, ctx.message.message_id), 1000);
         // }
+
+        let snm = ctx.telegram,sendMessage;
+
+        ctx.telegram.sendMessage  = async function(a,b,c,d) {
+            return await snm(a,b,c,d).catch(e => global.log('error', logSystem, e));
+        }
+
+        ctx.reply  = async function(a,b,c,d) {
+            return await sendMessage(appRequest.is.group ? ctx.message.chat.id : ctx.message.from.id,a,b,c,d).catch(e => global.log('error', logSystem, e));
+        }
+
         ctx.sendToAdmin = msg => {
             console.log("We have an error");
             console.log(appRequest);
@@ -59,12 +70,7 @@ class RequestMiddleware extends Middleware {
         };
 
         ctx.appRequest =  {is,action,query,args};
-        // ctx.reply = function(message) {
-        //     return ctx.telegram.sendMessage(ctx.from.id, message
-        //         .replaceAll(".","\\.")
-        //         .replaceAll("]","\\]")
-        //         , { parse_mode: 'MarkdownV2' });
-        // }
+      
         if(next) {
             return next(ctx);    
         }

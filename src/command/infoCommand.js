@@ -34,7 +34,7 @@ class InfoCommand extends Command {
 		let result = await User.findById(ctx.from.id);
 		
 		if (!result) {
-			return ctx.reply("User and wallet not avaliable please /create");
+			return ctx.reply("User account not avaliable. Please create a wallet https://t.me/" + global.config.bot.username);
 		}
 
 		let totalBalance = 0;

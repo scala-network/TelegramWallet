@@ -11,12 +11,15 @@ class LogMiddleware extends Middleware {
     async run(ctx, next) {
         if(ctx.test)  return;
 
-        if('update' in ctx && 'my_chat_member' in ctx.update ||  !ctx.appRequest || !ctx.appRequest.is.action){
+        if(!ctx || !ctx.appRequest || !ctx.appRequest.is.action){
             return next(ctx);
         }
 
-
-        const start = new Date()
+        
+        const start = new Date();
+        if(next) {
+           await next(ctx);
+        }
         const ms = new Date() - start;
         const chatID = ('chat' in ctx) && ('id' in ctx.chat) ? ctx.chat.id : 'private';
 
@@ -28,9 +31,7 @@ class LogMiddleware extends Middleware {
             ms
         ]);
 
-        if(next) {
-            return next(ctx);
-        }
+       
     }
 
 }

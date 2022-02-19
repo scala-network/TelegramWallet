@@ -35,8 +35,7 @@ class TransferCommand extends Command {
 		const sender = await User.findById(ctx.from.id);
 
 		if(!sender) {
-			ctx.reply(`Please create an account before sending an raindrops`);
-			return ctx.telegram.sendMessage(ctx.from.id,`User not avaliable please /create`);
+			return ctx.reply("User account not avaliable. Please create a wallet https://t.me/" + global.config.bot.username);
 		}
 		
 		if(!sender.wallet) {
@@ -61,11 +60,17 @@ class TransferCommand extends Command {
 		if(!rain_value) {
 			rain_value = await Setting.findByFieldAndUserId('rain', ctx.from.id);
 		}
-		
+		let rain_max = sender.rain_max;
+		if(!rain_max) {
+			rain_max = await Setting.findByFieldAndUserId('rain_max', ctx.from.id);
+		}
 		const amount = Setting.validateValue('rain', rain_value);
+		rain_max = Setting.validateValue('rain_max', rain_max);
 
 		const members = await Member.findByLast10(ctx.chat.id);
-		
+		if(rain_max <= 0) {
+			rain_max = members.length;
+		}
 		const destinations = [];
 		let userNames = [];
 
@@ -92,7 +97,7 @@ class TransferCommand extends Command {
 				address:user.wallet.address,
 				amount
 			});
-			if(userNames.length === 10) {
+			if(userNames.length === rain_max) {
 				break;
 			}
 		}
@@ -118,8 +123,9 @@ class TransferCommand extends Command {
 			const trx_amount = trx.amount_list.reduce((a, b) => a + b, 0);
 			const tx_hash = trx.tx_hash_list.join("\n* ");
 			const balance = parseInt(wallet.balance) - parseInt(trx_amount) - parseInt(trx_fee);
-	
-			ctx.telegram.sendMessage(ctx.from.id,`
+			const total = this.Coin.format(trx_amount + trx_fee);
+			await ctx.reply("Airdrops to last " + userNames.length + " active members total of " + total + "\n" + userNames.join("\n"));
+			await ctx.telegram.sendMessage(ctx.from.id,`
 ** Transaction Details **
 
 From: 
@@ -138,8 +144,7 @@ Current Balance : ${this.Coin.format(balance)}
 			for(let i in sentMemberIds) {
 				let smi = sentMemberIds[i];
 				//We send to all members using timeout due to complain from tg about so many requests
-				setTimeout(() => {
-					ctx.telegram.sendMessage(smi,`
+				await ctx.telegram.sendMessage(smi,`
 ** Transaction Details **
 
 From: 
@@ -153,12 +158,9 @@ Fee : ${this.Coin.format(trx_fee)}
 Trx Hashes (${trx.amount_list.length} Transactions): 
 * ${tx_hash}
 								`);
-				},100 * i);
-				
 
 			}
-			const total = this.Coin.format(trx_amount + trx_fee);
-			ctx.reply("Airdrops to last " + userNames.length + " active members total of " + total + "\n" + userNames.join("\n"));
+
 		} else {
 
 

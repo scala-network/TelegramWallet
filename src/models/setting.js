@@ -42,17 +42,12 @@ class Setting extends Model
 				}
 				break;
 			case 'tip':
+			case 'rain':
+			case 'rain_max':
 				value = parseInt(value) || 0;
-				const tip = parseInt(global.config.commands.tip ? global.config.commands.tip : value);
+				const tip = parseInt(global.config.commands[field] ? global.config.commands[field] : value);
 				if(value < tip) {
 					return tip;
-				}
-				break;
-			case 'rain':
-				value = parseInt(value) || 0;
-				const rain = parseInt(global.config.commands.rain ?global.config.commands.rain :value);
-				if(value < rain) {
-					return rain;
 				}
 				break;
 			default:

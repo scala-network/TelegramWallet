@@ -17,12 +17,14 @@ class MemberMiddleware extends Middleware {
             if (next) {
                 return next();
             }
+            return;
         }
         
         if (!await Model.LoadRegistry("User").exists(ctx.from.id)){
             if (next) {
                 return next();
             }
+            return;
         }
         await Model.LoadRegistry("Member").addMember(ctx.chat.id, ctx.from.id);
         // global.log("info",logSystem,"Chat id %d updated for member id %d" , [ctx.chat.id, ctx.from.id]);
