@@ -37,6 +37,7 @@ class Member  extends Query
 		const ckey2 = [global.config.coin,"GroupWettest:" + dateKey, chatID].join(":");		
 
 		const results = await redisClient
+		.multi()
 		.zrevrange(ckey1,0,-1, "WITHSCORES")
 		.zrevrange(ckey2,0,-1, "WITHSCORES")
 		.exec();
@@ -98,6 +99,7 @@ class Member  extends Query
 		const ckey1 = [global.config.coin,"GroupWettest:overall", chatID].join(":");
 		const ckey2 = [global.config.coin,"GroupWettest:" + dateKey, chatID].join(":");		
 		const result = await redisClient
+		.multi()
 		.zincrby(ckey1, amount, memberID)
 		.zincrby(ckey2, amount, memberID)
 		.exec();
