@@ -66,7 +66,7 @@ class Member  extends Query
 			}	
 		}
 		if(results[1][1] && results[1][1].length > 0) {
-			for(let wetToday of results[0][1]){
+			for(let wetToday of results[1][1]){
 				const user_id = wetToday[0];
 				let username;
 				if("" + user_id in cacheUsername) {
