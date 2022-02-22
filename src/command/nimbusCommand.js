@@ -1,6 +1,6 @@
 'use strict'
 /**
- * A Telegram Command. Display rank on most earn by rain 
+ * A Telegram Command. Display rank on most rain maker 
  * 
  * @module Commands/address
  */
@@ -10,11 +10,11 @@ class NimbusCommand extends Command {
 	enabled = true;
 
 	get name() {
-        return "wet";
+        return "nimbus";
     }
 	
 	get description() {
-		return "Who gets the most rain";
+		return "Who makes the most rain";
 	}
 
 	auth(ctx) {
@@ -30,14 +30,14 @@ class NimbusCommand extends Command {
 			return ctx.appResponse.reply("It haven't been raining");
 		}
 
-		let template = `** Wettest Today **`;
+		let template = `** Nimbus Rain Today **`;
 
 		for(let i =0;i< results.today.length;i++) {
 			const member = results.today[i];
 			template+="\n" + member.username + "    " + this.Coin.format(member.amount);
 		}
 
-		template += `\n\n\n** Wettest All Time **`;
+		template += `\n\n\n** Nimbus Rain All Time **`;
 
 		for(let i =0;i< results.overall.length;i++) {
 			const member = results.overall[i];
