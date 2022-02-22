@@ -24,6 +24,15 @@ class Member extends Model {
             return this.Query(option).findByLast10(chatID);
         }
 
+        async findWet(chatID, option) {
+            return await this.Query(option).findWet(chatID);
+        }
+
+       async addWet(chatID, memberID, amount, option) {
+            return await this.Query(option).addWet(chatID, memberID, amount);
+       }
+
+
 }
 
 module.exports = Member;

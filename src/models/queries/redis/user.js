@@ -31,6 +31,17 @@ class User  extends Query
         return await this.findById(user_id);
 	}
 
+	async getUsernameById(user_id) {
+		const ukey = [global.config.coin, 'Users' , user_id].join(':');
+
+		const result = await global.redisClient.hget(ukey,'username');
+		if(!result) {
+        	return null;
+		} 
+		
+		return result;
+	}
+
 	async findById(user_id) {
 		
 		const ukey = [global.config.coin, 'Users' , user_id].join(':');
