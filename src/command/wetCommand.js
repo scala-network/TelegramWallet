@@ -34,14 +34,14 @@ class WetCommand extends Command {
 
 		for(let i =0;i< results.today.length;i++) {
 			const member = results.today[i];
-			template+"\n@" + results.member.username + "    " + this.Coin.format(member.amount);
+			template+"\n@" + member.username + "    " + this.Coin.format(member.amount);
 		}
 
 		template = `\n** Wettest All Time **`;
 
 		for(let i =0;i< results.overall.length;i++) {
 			const member = results.overall[i];
-			template+"\n@" + results.member.username + "    " + this.Coin.format(member.amount);
+			template+"\n@" + member.username + "    " + this.Coin.format(member.amount);
 		}
 
 		await ctx.appResponse.sendMessage(ctx.chat.id, template);
