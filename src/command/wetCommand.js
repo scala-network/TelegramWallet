@@ -23,7 +23,7 @@ class WetCommand extends Command {
 
 	async run(ctx) {
 		if(ctx.test)  return;
-		
+		const Member = this.loadModel('Member');
 		const results = await Member.findWet(ctx.chat.id);
 
 		if(results.overall.length <= 0) {
