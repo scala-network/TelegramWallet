@@ -37,7 +37,7 @@ class WetCommand extends Command {
 			template+="\n" + member.username + "    " + this.Coin.format(member.amount);
 		}
 
-		template += `\n** Wettest All Time **`;
+		template += `\n\n\n** Wettest All Time **`;
 
 		for(let i =0;i< results.overall.length;i++) {
 			const member = results.overall[i];
