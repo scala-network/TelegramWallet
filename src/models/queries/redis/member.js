@@ -43,18 +43,17 @@ class Member  extends Query
 		.exec();
 		const overall = [];
 		const today = [];
-		const User = Model.LoadRegistry("User");
 		if(results[0][1] && results[0][1].length > 0) {
 			for(let i =0;i< results[0][1].length;i+=2) {
 				const username = results[0][1][i];
 				const amount = results[0][1][i+1];
 				
-				today.push({
+				overall.push({
 					amount,
 					username
 				});
 
-				if(today.length > 10) {
+				if(overall.length > 10) {
 					break;
 				}
 			}	
