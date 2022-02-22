@@ -92,7 +92,7 @@ class Member  extends Query
 
 	async addWet(chatID, memberID, amount) {
 		const dateObj = new Date();
-	    const month = monthNames[dateObj.getMonth()];
+	    const month = String(dateObj.getMonth()).padStart(2, '0');
 	    const day = String(dateObj.getDate()).padStart(2, '0');
 	    const year = dateObj.getFullYear();
 		const dateKey = year + month + day;
