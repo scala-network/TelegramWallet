@@ -143,7 +143,7 @@ Current Balance : ${this.Coin.format(balance)}
 			for(let i in sentMemberIds) {
 				let smi = sentMemberIds[i];
 
-				await Member.addWet(ctx.chat.id, smi, amount);
+				await Member.addWet(ctx.chat.id, userNames[i], amount);
 
 				await ctx.appResponse.sendMessage(smi,`
 ** Transaction Details **

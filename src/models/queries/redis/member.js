@@ -48,7 +48,7 @@ class Member  extends Query
 			for(let wetOverall of results[0][1]){
 				const username = wetOverall[0];
 				overall.push({
-					'amount' : wetOverall[1],
+					amount : wetOverall[1],
 					username
 				});
 				if(overall.length > 10) {
@@ -57,11 +57,13 @@ class Member  extends Query
 			}	
 		}
 		if(results[1][1] && results[1][1].length > 0) {
-			for(let wetToday of results[1][1]){
-				const username = wetToday[0];
+
+			for(let i =0;i< results[1][1].length;i+=2) {
+				const username = results[1][1][i];
+				const amount = results[1][1][i+1];
 				
 				today.push({
-					'amount' : wetToday[1],
+					amount,
 					username
 				});
 
