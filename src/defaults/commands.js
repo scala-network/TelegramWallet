@@ -9,6 +9,7 @@ module.exports = {
         'remove',
         'tip',
         'rain',
+        'nimbus',
         'set',
         'withdraw',
         'submit',

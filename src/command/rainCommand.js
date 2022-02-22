@@ -122,8 +122,9 @@ class TransferCommand extends Command {
 			const trx_amount = trx.amount_list.reduce((a, b) => a + b, 0);
 			const tx_hash = trx.tx_hash_list.join("\n* ");
 			const balance = parseInt(wallet.balance) - parseInt(trx_amount) - parseInt(trx_fee);
-			const total = this.Coin.format(trx_amount + trx_fee);
-			await ctx.appResponse.reply("Airdrops to last " + userNames.length + " active members total of " + total + "\n" + userNames.join("\n"));
+			const total = trx_amount + trx_fee;
+			const total_xla = this.Coin.format(total);
+			await ctx.appResponse.reply("Airdrops to last " + userNames.length + " active members total of " + total_xla + "\n" + userNames.join("\n"));
 			await ctx.appResponse.sendMessage(ctx.from.id,`
 ** Transaction Details **
 
@@ -139,6 +140,7 @@ Trx Hash:
 * ${tx_hash}
 Current Balance : ${this.Coin.format(balance)}
 			`);
+			await Member.addNimbus(ctx.chat.id, "@" + sender.username, total);
 
 			for(let i in sentMemberIds) {
 				let smi = sentMemberIds[i];
