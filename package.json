@@ -18,6 +18,7 @@
     "ioredis": "^4.28.5",
     "javascript-time-ago": "^2.3.8",
     "telegraf": "^4.4.1",
-    "uuid": "^8.3.2"
+    "uuid": "^8.3.2",
+    "git-rev-sync": "^3.0.2"
   }
 }
