@@ -25,7 +25,7 @@ class WetCommand extends Command {
 		if(ctx.test)  return;
 		const Member = this.loadModel('Member');
 		const results = await Member.findWet(ctx.chat.id);
-		
+
 		if(results.overall.length <= 0) {
 			return ctx.appResponse.reply("It haven't been raining");
 		}
@@ -37,7 +37,7 @@ class WetCommand extends Command {
 			template+="\n" + member.username + "    " + this.Coin.format(member.amount);
 		}
 
-		template = `\n** Wettest All Time **`;
+		template += `\n** Wettest All Time **`;
 
 		for(let i =0;i< results.overall.length;i++) {
 			const member = results.overall[i];
