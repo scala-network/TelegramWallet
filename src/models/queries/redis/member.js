@@ -53,7 +53,7 @@ class Member  extends Query
 					username
 				});
 
-				if(overall.length > 10) {
+				if(overall.length >= 10) {
 					break;
 				}
 			}	
@@ -69,7 +69,7 @@ class Member  extends Query
 					username
 				});
 
-				if(today.length > 10) {
+				if(today.length >= 10) {
 					break;
 				}
 			}	
