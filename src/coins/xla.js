@@ -21,7 +21,7 @@ class xla {
 	}
 
 	format(coin) {
-		return (parseInt(coin) / this.atomicUnits).toFixed(this.fractionDigits) + " " + this.symbol;
+		return (parseInt(coin) / this.atomicUnits).toFixed(this.fractionDigits).replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " " + this.symbol;
 	}
 
 	explorerLink(hash) {
