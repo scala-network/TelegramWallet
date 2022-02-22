@@ -38,8 +38,8 @@ class Member  extends Query
 
 		const results = await redisClient
 		.multi()
-		.zrange(ckey1,"+inf","-inf", "WITHSCORES","REV","LIMIT 0 10")
-		.zrange(ckey2,"+inf","-inf", "WITHSCORES","REV","LIMIT 0 10")
+        .zrevrangebyscore(ckey1,"(+inf","(-inf", "WITHSCORES","LIMIT", 0, 10)
+        .zrevrangebyscore(ckey2,"(+inf","(-inf", "WITHSCORES","LIMIT", 0, 10)
 		.exec();
 		const overall = [];
 		const today = [];
