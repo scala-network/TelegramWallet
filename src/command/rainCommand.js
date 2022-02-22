@@ -142,8 +142,8 @@ Current Balance : ${this.Coin.format(balance)}
 
 			for(let i in sentMemberIds) {
 				let smi = sentMemberIds[i];
-				//We send to all members using timeout due to complain from tg about so many requests
-				Member.addWet(smi, amount);
+
+				await Member.addWet(ctx.chat.id smi, amount);
 
 				await ctx.appResponse.sendMessage(smi,`
 ** Transaction Details **
@@ -173,7 +173,7 @@ Trx Hashes (${trx.amount_list.length} Transactions):
 				return ctx.appResponse.reply("RPC Error: " + trx.error);
 			}
 
-			ctx.appResponse.reply("Airdrop confirmation require to " + userNames.length + " active members total. To skip confirmation set rain_submit enable");
+			ctx.appResponse.reply("Airdrop confirmation require to " + userNames.length + " active members total. To skip confirmation set rain_submit enable. Users don't get wet if have confirmation");
 
 
 			const trx_fee = trx.fee_list.reduce((a, b) => a + b, 0);
