@@ -6,6 +6,7 @@ const fs = require('fs');
 
 class VersionCommand extends Command {
 	enabled = true;
+	static CurrentVersion = null;
 
 	get description() {
 		return "Returns server's version";
@@ -17,18 +18,20 @@ class VersionCommand extends Command {
 
 	async run(ctx) {
         if(ctx.test)  return;
-        const pjson = path.join(process.cwd(),'package.json');
-
-		try {
-
-		    const rfs = fs.readFileSync(pjson);
-      		ctx.appResponse.reply(`Version : ${JSON.parse(rfs).version}`);
-
-		} catch(e){
-		    ctx.appResponse.reply("Unable to display version");
-		}
+        if(!VersionCommand.CurrentVersion) {
+        	const git = require('git-rev-sync');
+			const short = git.short();
+			try{
+				const pjson = path.join(process.cwd(),'package.json');
+				const rfs = fs.readFileSync(pjson);
+      			VersionCommand.CurrentVersion = `Version : ${JSON.parse(rfs).version}-${short}`;
+			} catch(e){
+			    return await ctx.appResponse.reply("Unable to display version");
+			}
+        }
         
-		
+		ctx.appResponse.reply(VersionCommand.CurrentVersion);
+
 	}
 
 }
