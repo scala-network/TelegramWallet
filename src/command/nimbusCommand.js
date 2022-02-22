@@ -24,7 +24,7 @@ class NimbusCommand extends Command {
 	async run(ctx) {
 		if(ctx.test)  return;
 		const Member = this.loadModel('Member');
-		const results = await Member.findWet(ctx.chat.id);
+		const results = await Member.findNimbus(ctx.chat.id);
 
 		if(results.overall.length <= 0) {
 			return ctx.appResponse.reply("It haven't been raining");

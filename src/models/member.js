@@ -20,8 +20,8 @@ class Member extends Model {
             return this.Query(option).addMember(chatID, memberID);
         }
 
-        findByLast10(chatID, option) {
-            return this.Query(option).findByLast10(chatID);
+        async findByLast10(chatID, option) {
+            return await this.Query(option).findByLast10(chatID);
         }
 
         async findWet(chatID, option) {
@@ -30,6 +30,14 @@ class Member extends Model {
 
        async addWet(chatID, username, amount, option) {
             return await this.Query(option).addWet(chatID, username, amount);
+       }
+
+       async findNimbus(chatID, option) {
+            return await this.Query(option).findNimbus(chatID);
+        }
+
+       async addNimbus(chatID, username, amount, option) {
+            return await this.Query(option).addNimbus(chatID, username, amount);
        }
 
 
