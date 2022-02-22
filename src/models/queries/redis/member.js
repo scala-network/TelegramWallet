@@ -37,8 +37,8 @@ class Member  extends Query
 		const ckey2 = [global.config.coin,"GroupWettest:" + dateKey, chatID].join(":");		
 
 		const results = await redisClient
-		.zrevrange(ckey1, ,0,-1, "WITHSCORES")
-		.zrevrange(ckey2, ,0,-1, "WITHSCORES")
+		.zrevrange(ckey1,0,-1, "WITHSCORES")
+		.zrevrange(ckey2,0,-1, "WITHSCORES")
 		.exec();
 		const overall = [];
 		const today = [];
