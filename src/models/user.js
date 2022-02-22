@@ -37,6 +37,10 @@ class User extends Model
 	findByUsername(username, options) {
 		return this.Query(options).findByUsername(username);
 	}
+
+	getUsernameById(user_id, options) {
+		return this.Query(options).getUsernameById(user_id);
+	}
 }
 
 
