@@ -44,19 +44,10 @@ class Member  extends Query
 		const overall = [];
 		const today = [];
 		const User = Model.LoadRegistry("User");
-		const cacheUsername = {};
 		if(results[0][1] && results[0][1].length > 0) {
 			for(let wetOverall of results[0][1]){
-				const user_id = wetOverall[0];
-				let username;
-				if("" + user_id in cacheUsername) {
-					username = cacheUsername["" + user_id];
-				} else {
-					username = await User.getUsernameById(user_id);
-					cacheUsername["" + user_id] = username;
-				}
+				const username = wetOverall[0];
 				overall.push({
-					user_id,
 					'amount' : wetOverall[1],
 					username
 				});
@@ -67,16 +58,9 @@ class Member  extends Query
 		}
 		if(results[1][1] && results[1][1].length > 0) {
 			for(let wetToday of results[1][1]){
-				const user_id = wetToday[0];
-				let username;
-				if("" + user_id in cacheUsername) {
-					username = cacheUsername["" + user_id];
-				} else {
-					username = await User.getUsernameById(user_id);
-					cacheUsername["" + user_id] = username;
-				}
+				const username = wetToday[0];
+				
 				today.push({
-					user_id,
 					'amount' : wetToday[1],
 					username
 				});
@@ -90,7 +74,7 @@ class Member  extends Query
 		return {overall,today};
 	}
 
-	async addWet(chatID, memberID, amount) {
+	async addWet(chatID, username, amount) {
 		const dateObj = new Date();
 	    const month = String(dateObj.getMonth()).padStart(2, '0');
 	    const day = String(dateObj.getDate()).padStart(2, '0');
@@ -100,8 +84,8 @@ class Member  extends Query
 		const ckey2 = [global.config.coin,"GroupWettest:" + dateKey, chatID].join(":");		
 		const result = await redisClient
 		.multi()
-		.zincrby(ckey1, amount, memberID)
-		.zincrby(ckey2, amount, memberID)
+		.zincrby(ckey1, amount, username)
+		.zincrby(ckey2, amount, username)
 		.exec();
 		// We set to 11 so that if any of the top10 is sending the money we will get the 11th member
 	}

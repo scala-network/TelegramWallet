@@ -28,8 +28,8 @@ class Member extends Model {
             return await this.Query(option).findWet(chatID);
         }
 
-       async addWet(chatID, memberID, amount, option) {
-            return await this.Query(option).addWet(chatID, memberID, amount);
+       async addWet(chatID, username, amount, option) {
+            return await this.Query(option).addWet(chatID, username, amount);
        }
 
 
