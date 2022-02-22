@@ -90,7 +90,6 @@ class TransferCommand extends Command {
 			if(!user || !user.wallet) {
 				continue;
 			}
-
 			userNames.push("@"+user.username);
 			sentMemberIds.push(user_id);
 			destinations.push({
@@ -144,6 +143,8 @@ Current Balance : ${this.Coin.format(balance)}
 			for(let i in sentMemberIds) {
 				let smi = sentMemberIds[i];
 				//We send to all members using timeout due to complain from tg about so many requests
+				Member.addWet(smi, amount);
+
 				await ctx.appResponse.sendMessage(smi,`
 ** Transaction Details **
 
