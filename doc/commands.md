@@ -19,3 +19,5 @@ Each commands can be set as authorized for either in group only, user action onl
     * rain - Set tip amount
     * rain_submit - Disable or enable sent confirmation for rain
 * /rain - Airdrop coin to users in group who have registered with the coin bot
+* /nimbus - Show lists of top airdroppers
+* /wet - Show lists of top air drop receivers
