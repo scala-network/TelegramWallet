@@ -79,6 +79,19 @@ class User  extends Query
 
         return STATUS.OK;
 	}
+	
+	async updateUsername(user_id, username) {
+		const uKey = [global.config.coin, "Users" ,user_id].join(':');
+        const aKey = [global.config.coin, "Alias"].join(':');
+
+        let oldUsername = await global.redisClient.hget(uKey, username);
+
+        return await global.redisClient.hset(ukey, 'username', username)
+        .hdel(aKey, username)
+        .hset(aKey, username, user_id)
+        .exec();
+	}
+
 
 	async add(user_id, username) {
         const uKey = [global.config.coin, "Users" ,user_id].join(':');

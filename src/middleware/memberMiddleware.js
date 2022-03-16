@@ -19,14 +19,21 @@ class MemberMiddleware extends Middleware {
             }
             return;
         }
-        
-        if (!await Model.LoadRegistry("User").exists(ctx.from.id)){
+        const User = Model.LoadRegistry("User");
+        const userId = ctx.from.id;
+        if (!await User.exists(userId)){
+            
             if (next) {
                 return next();
             }
             return;
         }
-        await Model.LoadRegistry("Member").addMember(ctx.chat.id, ctx.from.id);
+        const username = await User.getUsernameById(userId);
+        if(username !== ctx.from.username) {
+            await User.updateUsername(userId, ctx.from.username);
+        }
+        
+        await Model.LoadRegistry("Member").addMember(ctx.chat.id, userId);
         // global.log("info",logSystem,"Chat id %d updated for member id %d" , [ctx.chat.id, ctx.from.id]);
         if (next) {
             return next();

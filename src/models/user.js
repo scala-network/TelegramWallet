@@ -21,7 +21,6 @@ class User extends Model
 		return this.Query(options).findById(id);
 	}
 
-
 	exists(id, options) {
 		return this.Query(options).exists(id);
 	}
@@ -32,6 +31,10 @@ class User extends Model
 
 	add(id,username, options) {
 		return this.Query(options).add(id, username);
+	}
+
+	updateUsername(id,username, options) {
+		return this.Query(options).updateUsername(id, username);
 	}
 
 	findByUsername(username, options) {
