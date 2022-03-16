@@ -7,9 +7,9 @@ STW is a designed telegram wallet which is easily customize by coin developers t
 You can try to add the scala bot https://t.me/scalawalletbot or join our Telegram community to experience it https://t.me/scalaofficial
 
 # Table of Contents
-* [Usages](doc/usages)
-* [Commands](doc/commands)
-* [Development](doc/development)
+* [Usages](doc/usages.md)
+* [Commands](doc/commands.md)
+* [Development](doc/development.md)
 
 
 
