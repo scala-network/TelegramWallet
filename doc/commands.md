@@ -13,11 +13,12 @@ Each commands can be set as authorized for either in group only, user action onl
 * /submit - Once withdraw and transfer is done you need to reply submit with id to confirm payment
 * /version - Display current server's version
 * /height - Display wallet's height
-* /set - Configure settings. Amongst settings avaliable
+* /set - Configure settings. Amongst settings avaliable:
     * tip - Set tip amount
     * tip_submit - Disable or enable sent confirmation for tip
     * rain - Set tip amount
     * rain_submit - Disable or enable sent confirmation for rain
+    * rain_max - Number of latest members to recieve rain
 * /rain - Airdrop coin to users in group who have registered with the coin bot
 * /nimbus - Show lists of top airdroppers
 * /wet - Show lists of top air drop receivers
