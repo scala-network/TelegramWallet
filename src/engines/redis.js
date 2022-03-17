@@ -48,7 +48,7 @@ module.exports = config => {
             return process.exit();
         }
     });
-
+    if(cluster.isWorker) return;
     (async () => {
         const info = await client.info();
 
@@ -85,7 +85,7 @@ module.exports = config => {
             return process.exit();
         }
         global.log('info', `Datasource/Redis`, `Version checked ${version}`);
-        // client.disconnect();
+        client.disconnect();
     })();
 
     return client;

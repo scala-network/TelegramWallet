@@ -8,7 +8,6 @@ const STATUS = require('../status');
 const Telegraf = require('telegraf');
 
 class TransferCommand extends Command {
-	enabled = true;
 
 	get name() {
         return "rain";

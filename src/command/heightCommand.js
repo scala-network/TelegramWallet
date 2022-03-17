@@ -11,7 +11,6 @@ const logSystem = "command/height";
 const utils = require('../utils');
 
 class HeightCommand extends Command {
-	enabled = true;
 
 	get description() {
 		return "Returns wallet and daemon height";

@@ -3,8 +3,6 @@ const STATUS = require('../status');
 
 class RemoveCommand extends Command {
 
-    enabled = true;
-
     get description() {
         let o = "Deletes your account";
         if(!global.config.swm) {

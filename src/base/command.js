@@ -3,7 +3,10 @@ const logSystem = 'base/Command';
 const Model = require('./model');
 
 class Command {
-	enabled = false;
+	get enabled() {
+		return true;
+	}
+	
 	#_coin;
 	get Coin() {
 		return this.#_coin;

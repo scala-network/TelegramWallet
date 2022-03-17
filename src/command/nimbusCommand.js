@@ -7,7 +7,6 @@
 const Command = require('../base/command');
 
 class NimbusCommand extends Command {
-	enabled = true;
 
 	get name() {
         return "nimbus";

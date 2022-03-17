@@ -8,7 +8,6 @@
 const Command = require('../base/command');
 
 class AddressCommand extends Command {
-	enabled = true;
 
 	get name() {
         return "address";

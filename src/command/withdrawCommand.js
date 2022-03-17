@@ -7,7 +7,6 @@ const Command = require('../base/command');
 const STATUS = require('../status');
 
 class WithdrawCommand extends Command {
-	enabled = true;
 
 	get name() {
         return "withdraw";

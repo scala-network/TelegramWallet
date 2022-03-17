@@ -5,6 +5,7 @@ module.exports = {
 	 *  Account create will be
 	 *  a subaddress
 	 **/
+	"coin" : "xla",
 	"swm":true, 
 	"log": {
         "files": {

@@ -9,7 +9,6 @@ const Command = require('../base/command');
 const STATUS = require('../status');
 
 class SetCommand extends Command {
-	enabled = true;
 
 	get name() {
 		return "set";

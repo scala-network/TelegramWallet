@@ -1,8 +1,9 @@
 {
 	"bot": {
 		"token":"TELEGRAM:TOKEN",
-		"username" : "extc_bot"
+		"username" : "BotUsername"
 	},
+	"coin" : "xla",
 	"admins":[],
 	"rpc" : {
 		"interval" : 1,
@@ -11,10 +12,5 @@
 			"address":"127.0.0.1",
 			"port":"11812"
 		}
-	},
-	"daemon" : {
-		"timeout" : 500,
-		"host":"127.0.0.1",
-		"port":"8081"
 	}
 }

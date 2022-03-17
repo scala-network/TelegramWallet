@@ -7,8 +7,6 @@ const logSystem = "command/start";
 
 class StartCommand extends Command {
 
-    enabled = true;
-
     get description() {
         let o = "Function on start";
         if (!global.config.swm) {

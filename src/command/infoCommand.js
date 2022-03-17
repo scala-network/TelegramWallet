@@ -9,6 +9,7 @@ const utils = require('../utils');
 const TimeAgo = require('javascript-time-ago');
 const timeAgo = new TimeAgo('en-US')
 class InfoCommand extends Command {
+	
 	get name() {
 		return "info";
 	}
@@ -26,7 +27,7 @@ class InfoCommand extends Command {
 	async run(ctx, callback) {
 		if (ctx.test) return;
 
-		const User = this.loadModel("user");
+		const User = this.loadModel("User");
 		const Wallet = this.loadModel("Wallet");
 		const Settings = this.loadModel("Setting");
 

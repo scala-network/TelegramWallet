@@ -22,8 +22,6 @@ class BalanceCommand extends Command {
 		return !ctx.appRequest.is.group;
 	}
     
-    enabled = true;
-
 	async run(ctx){
 		if(ctx.test)  return;
 		

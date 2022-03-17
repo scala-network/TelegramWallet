@@ -14,7 +14,8 @@ module.exports = {
         'withdraw',
         'submit',
         'version',
-        'wet'
+        'wet',
+        "price"
     ],
     "tip" : 1000, // equals to 10.00 XLA
     "rain" : 100, // equals to 1.00 XLA

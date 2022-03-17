@@ -3,6 +3,9 @@ class xla {
 	get server() {
 		return global.config.rpc.server;
 	}
+	get fullname() {
+		return "Scala";
+	}
 
 	get symbol() {
 		return "XLA";

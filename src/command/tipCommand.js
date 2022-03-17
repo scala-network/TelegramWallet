@@ -9,7 +9,6 @@ const Telegraf = require('telegraf');
 const { STATUS_CODES } = require('http');
 
 class TransferCommand extends Command {
-	enabled = true;
 
 	get name() {
         return "tip";

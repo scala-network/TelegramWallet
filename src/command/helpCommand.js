@@ -10,10 +10,11 @@
 const Command = require('../base/command');
 
 class HelpCommand extends Command {
-	enabled = true;
+
 	get description() {
 		return "shows all commands avaliable";
 	}
+	
 	get name() {
 		return "help";
 	}

@@ -82,8 +82,8 @@ global.log = function(severity, system, text, data){
 
     if (logConsole){
         if (global.config.log.console.colors){
-        	if(process.env.workerType){
-        		system+=' (' + process.env.workerType + ':'+process.env.forkId+')';	
+        	if(process.env.forkId >= 0){
+        		system+=' (' + process.env.forkId+')';	
         	}
             console.log(severityMap[severity](time) + clc.white.bold(' [' + system + '] ') + formattedMessage);
         }else{

@@ -5,7 +5,6 @@ const path = require('path');
 const fs = require('fs');
 
 class VersionCommand extends Command {
-	enabled = true;
 	static CurrentVersion = null;
 
 	get description() {
