@@ -38,12 +38,12 @@ class CoinMarketCap {
 		}
 		this.config = cfg;
 		this.apiKey = 'apiKey' in cfg ? cfg.apiKey : 'b54bcf4d-1bca-4e8e-9a24-22ff2c3d462c';
-		let	isSandBox = (this.apiKey === 'b54bcf4d-1bca-4e8e-9a24-22ff2c3d462c');
+		let isSandBox = (this.apiKey === 'b54bcf4d-1bca-4e8e-9a24-22ff2c3d462c');
 
 		this.cmcId = 'cmcId' in cfg ? cfg.cmcId : '2629';
 		this.cmcEndPoint = isSandBox ? 'sandbox-api.coinmarketcap.com' : 'pro-api.coinmarketcap.com';
 		this.tickers = tickers;
-		this.fetchInterval = Math.ceil(this.tickers.length * 96 / 333) * 60000;
+		this.fetchInterval = Math.ceil(tickers.length * 96 / 333) * 60000;
 	}
 
 	async getQuotes (ticker) {
@@ -106,9 +106,8 @@ class CoinMarketCap {
 		const symbol = global.config.coin;
 		const lastUpdated = await Market.getLastUpdated(global.config.coin)
 			.catch(e => global.log('error', 'Error : ' + e.message));
-
-		if (lastUpdated && ((now - lastUpdated) < this.fetchInterval /1000)) return;
-		
+		if (lastUpdated && ((now - lastUpdated) < this.fetchInterval)) return console.log("Skip");
+		return console.log("Update");
 		for (const ticker of this.tickers) {
 			const data = await this.getQuotes(ticker)
 				.catch(e => global.log('error',logSystem, 'Error RPC : ' + e.message));

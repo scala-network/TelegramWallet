@@ -34,7 +34,7 @@ class InfoCommand extends Command {
 		if(ctx.appRequest.args.length >= 1) {
 			const exchange = ctx.appRequest.args[0];
 			if(global.config.market.tickers.indexOf(exchange.toUpperCase()) >= 0) {
-				const marketExchange = await Market.getMarketExchange(this.Coin.symbol, exchange);
+				const marketExchange = await Market.getMarketExchange(this.Coin.symbol.toLowerCase(), exchange);
 			
 				output += "*** " + exchange.toUpperCase() + " Market ***\n"
 				for(let [key, value] of Object.entries(marketExchange)) {
@@ -45,20 +45,21 @@ class InfoCommand extends Command {
 			}
 			
 		} else {
-			const priceLists = await Market.getPrice(this.Coin.symbol);
+			const priceLists = await Market.getPrice(this.Coin.symbol.toLowerCase());
 
-			if(priceLists.length > 0) {
+			if(priceLists) {
 				output += "*** Price Lists ***\n"
 				for(let [key, value] of Object.entries(priceLists)) {
 					const priceTicker = key.toUpperCase();
-					output += priceTicker + " : " + value + priceTicker + "\n";
+					output += priceTicker + " : " + value +' '+ priceTicker + "\n";
 				}	
 			}
 		}
 		if(!output) {
 			output+= "We have no response for market price";	
+		} else {
+			output += "\n Price exchanges are from https://coinmarketcap.com/currencies/" +this.Coin.fullname;
 		}
-		output += "\n Price exchanges are from https://coinmarketcap.com/currencies/" +this.Coin.fullname;
 		ctx.appResponse.reply(output);
 
 	}

@@ -9,7 +9,6 @@
   },
   "author": "",
   "dependencies": {
-    "better-sqlite3": "^7.4.5",
     "cli-color": "^1.4.0",
     "cli-progress": "^3.9.1",
     "dateformat": "^3.0.3",
