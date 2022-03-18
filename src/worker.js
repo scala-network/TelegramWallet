@@ -106,8 +106,7 @@ class CoinMarketCap {
 		const symbol = global.config.coin;
 		const lastUpdated = await Market.getLastUpdated(global.config.coin)
 			.catch(e => global.log('error', 'Error : ' + e.message));
-		if (lastUpdated && ((now - lastUpdated) < this.fetchInterval)) return console.log("Skip");
-		return console.log("Update");
+		if (lastUpdated && ((now - lastUpdated) < this.fetchInterval)) return;
 		for (const ticker of this.tickers) {
 			const data = await this.getQuotes(ticker)
 				.catch(e => global.log('error',logSystem, 'Error RPC : ' + e.message));
@@ -127,7 +126,7 @@ if('market' in global.config && 'tickers' in global.config.market) {
 	const cmc = new CoinMarketCap(global.config.market);
 	(async() => {
 		await cmc.fetch();
-		await sleep(cmc.fetchInterval);
+		await sleep(360);//update every hour
 	})();
 } else {
 	global.log('warn',logSystem, "Market disabled");
