@@ -22,3 +22,4 @@ Each commands can be set as authorized for either in group only, user action onl
 * /rain - Airdrop coin to users in group who have registered with the coin bot
 * /nimbus - Show lists of top airdroppers
 * /wet - Show lists of top air drop receivers
+* /price - Display current market price. With additional argument as ticker will send price changes for that ticker. Avaliable ticker btc, ltc, usd and euro.
