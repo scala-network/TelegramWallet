@@ -61,6 +61,8 @@ class InfoCommand extends Command {
 			output+= "We have no response for market price";	
 		}
 
+		ctx.appResponse.reply(output);
+
 	}
 }
 
