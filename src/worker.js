@@ -128,7 +128,7 @@ if('market' in global.config && 'tickers' in global.config.market) {
 	const cmc = new CoinMarketCap(global.config.market);
 	(async() => {
 		await cmc.fetch();
-		await sleep(cmc.fetchInterval/1000);
+		await sleep(cmc.fetchInterval);
 	})();
 } else {
 	global.log('warn',logSystem, "Market disabled");

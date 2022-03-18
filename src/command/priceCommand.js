@@ -48,19 +48,18 @@ class InfoCommand extends Command {
 		} else {
 			const priceLists = await Market.getPrice(this.Coin.symbol);
 
-			
-			output += "*** Price Lists ***\n"
-			for(let [key, value] of Object.entries(priceLists)) {
-				const priceTicker = key.toUpperCase();
-				output += priceTicker + " : " + value + priceTicker + "\n";
+			if(priceLists.length > 0) {
+				output += "*** Price Lists ***\n"
+				for(let [key, value] of Object.entries(priceLists)) {
+					const priceTicker = key.toUpperCase();
+					output += priceTicker + " : " + value + priceTicker + "\n";
+				}	
 			}
-			output += "\n Price exchanges are from https://coinmarketcap.com/currencies/" +this.Coin.fullname;
-
 		}
 		if(!output) {
 			output+= "We have no response for market price";	
 		}
-
+		output += "\n Price exchanges are from https://coinmarketcap.com/currencies/" +this.Coin.fullname;
 		ctx.appResponse.reply(output);
 
 	}
