@@ -18,7 +18,7 @@ class Market  extends Query
 		return await global.redisClient
 		.multi()
 		.hmset(key, ticker, JSON.stringify(market))
-		.hmset(key, ticker+'_price', market.price)
+		.hmset(key, ticker.toLowerCase()+'_price', market.price)
 		.hset(key, 'last_updated', Date.now())
 		.exec();
 		
@@ -54,7 +54,7 @@ class Market  extends Query
 		const result = {};
 		for(const ticker of tickers) {
 			const price = await global.redisClient
-			.hget(key, ticker+"_price");
+			.hget(key, ticker.toLowerCase()+"_price");
 			if(price) {
 				result[ticker] = price;
 			}

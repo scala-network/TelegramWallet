@@ -32,7 +32,7 @@ class InfoCommand extends Command {
 		let output = "";
 
 		if(ctx.appRequest.args.length > 0) {
-			const exchange = ctx.appRequest.args[0];
+			const exchange = ctx.appRequest.args[1];
 			if(global.config.market.tickers.indexOf(exchange.toLowerCase()) >= 0) {
 				const marketExchange = await Market.getMarketExchange(this.Coin.symbol, exchange);
 			
