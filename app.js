@@ -20,7 +20,7 @@ if(!cluster.isWorker) {
         });
     }
     spawn(0);// For worker
-    //spawn(1);// For application
+    spawn(1);// For application
     return;
 }
 const logSystem = "app";
