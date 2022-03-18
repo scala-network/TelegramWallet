@@ -24,20 +24,24 @@ class Market extends Model {
 	}
 	
 	async getLastUpdated(coin, options) {
-		return await this.Query(option).getLastUpdated(coin);
+		return await this.Query(options).getLastUpdated(coin);
+	}
+
+	async updateTicker(coin, ticker, market, options) {
+		return await this.Query(options).updateTicker(coin, ticker, market);
 	}
 
 	async update(coin, dataStored, options) {
-		return await this.Query(option).update(coin);
+		return await this.Query(options).update(coin);
 
 	}
 
 	async getMarketExchange(coin, ticker, options) {
-		return await this.Query(option).getMarketExchange(coin, ticker);
+		return await this.Query(options).getMarketExchange(coin, ticker);
 	}
 
 	async getPrice(coin, options) {
-		return await this.Query(option).getPrice(coin);
+		return await this.Query(options).getPrice(coin);
 	}
 
 }

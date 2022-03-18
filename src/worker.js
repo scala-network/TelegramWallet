@@ -37,9 +37,9 @@ class CoinMarketCap {
 			return;
 		}
 		this.config = cfg;
-		let isSandBox = 'isSandBox' in cfg ? cfg.isSandBox : false;
-		this.apiKey = 'apiKey' in cfg && !isSandBox ? cfg.apiKey : 'b54bcf4d-1bca-4e8e-9a24-22ff2c3d462c';
-		if (this.apiKey === 'b54bcf4d-1bca-4e8e-9a24-22ff2c3d462c')  isSandBox = true;
+		this.apiKey = 'apiKey' in cfg ? cfg.apiKey : 'b54bcf4d-1bca-4e8e-9a24-22ff2c3d462c';
+		let	isSandBox = (this.apiKey === 'b54bcf4d-1bca-4e8e-9a24-22ff2c3d462c');
+
 		this.cmcId = 'cmcId' in cfg ? cfg.cmcId : '2629';
 		this.cmcEndPoint = isSandBox ? 'sandbox-api.coinmarketcap.com' : 'pro-api.coinmarketcap.com';
 		this.tickers = tickers;
@@ -47,12 +47,12 @@ class CoinMarketCap {
 	}
 
 	async getQuotes (ticker) {
-		const cmcId  = this.cmcId;
+		const cmcId  = ''+this.cmcId;
 		return await new Promise((resolve, reject) => {
 			const options = {
 				hostname: this.cmcEndPoint,
 				port: 443,
-				path: '/v2/cryptocurrency/quotes/latest?id=' + cmcId,
+				path: '/v2/cryptocurrency/quotes/latest?id=' + cmcId + '&convert=' + ticker,
 				method: 'GET',
 				headers: {
 					'X-CMC_PRO_API_KEY': this.apiKey
@@ -60,25 +60,34 @@ class CoinMarketCap {
 			};
 
 			const req = https.request(options, res => {
+				let chunk = "";
 				res.on('data', d => {
+					chunk += d;
+				});
+
+				res.on('end', () => {
 					let dbuff;
-					if (typeof d === 'string') {
-						dbuff = d;
+					if (typeof chunk === 'string') {
+						dbuff = chunk;
 					} else {
-						dbuff = Buffer.from(d).toString();
+						dbuff = Buffer.from(chunk).toString();
 					}
 					let response;
 					try {
 						response = JSON.parse(dbuff);
 					} catch (e) {
-						return reject(new Error(e.message));
+						console.log(dbuff);
+						return reject(new Error("(" + ticker + ") " + e.message));
 					}
 					if (!response) return reject(new Error('No response'));
 					if (response.status && response.status.error_message) return reject(new Error(response.status.error_message));
 					const json = response.data;
 					if (!(cmcId in json)) return reject(new Error('Unable to get base on cmc id ' + cmcId));
 					if (!('quote' in json[cmcId])) return reject(new Error('Unable to get quote for cmc id ' + cmcId));
-					if (!(ticker in json[cmcId].quote)) return reject(new Error('Unable to get ticker ' + ticker + ' for cmc id ' + cmcId));
+					if (!(ticker in json[cmcId].quote)) {
+						console.log(json[cmcId].quote);
+						return reject(new Error('Unable to get ticker ' + ticker + ' for cmc id ' + cmcId));
+					}
 					const data = json[cmcId].quote[ticker];
 					if (!data) return reject(new Error('No data for cmc id ' + cmcId));
 					resolve(data);
@@ -100,16 +109,18 @@ class CoinMarketCap {
 
 		if (lastUpdated && ((now - lastUpdated) < this.fetchInterval)) return;
 		
-		const dataStored = {};
 		for (const ticker of this.tickers) {
 			const data = await this.getQuotes(ticker)
+				.catch(e => global.log('error',logSystem, 'Error RPC : ' + e.message));
+			if (data) {
+				await Market.updateTicker(symbol, ticker.toUpperCase(), data)
+				.then(() => {
+					global.log('info', logSystem, "Data stored for ticker " + ticker);	
+				})
 				.catch(e => global.log('error',logSystem, 'Error : ' + e.message));
-			if (data) dataStored[ticker] = data;
+			}
 			await sleep();
 		}
-		if (Object.keys(dataStored).length <= 0) return;
-		await await Market.update(symbol, dataStored)
-			.catch(e => global.log('error',logSystem, 'Error : ' + e.message));
 	}
 }
 /** Store data from CMC **/
@@ -119,7 +130,8 @@ if('market' in global.config && 'tickers' in global.config.market) {
 		await cmc.fetch();
 		await sleep(cmc.fetchInterval/1000);
 	})();
-
+} else {
+	global.log('warn',logSystem, "Market disabled");
 }
 
 const clearOldStats = async () => {
@@ -145,7 +157,6 @@ const clearOldStats = async () => {
 		cursor = parseInt(groupNimbuses[0]);
 		sleep(0.5);
 	}
-
 
 	cursor = false;
 	while(cursor !== 0){

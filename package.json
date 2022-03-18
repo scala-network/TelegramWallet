@@ -13,12 +13,13 @@
     "cli-color": "^1.4.0",
     "cli-progress": "^3.9.1",
     "dateformat": "^3.0.3",
+    "git-rev-sync": "^3.0.2",
     "http": "0.0.0",
     "https": "^1.0.0",
     "ioredis": "^4.28.5",
     "javascript-time-ago": "^2.3.8",
+    "lodash": "^4.17.21",
     "telegraf": "^4.4.1",
-    "uuid": "^8.3.2",
-    "git-rev-sync": "^3.0.2"
+    "uuid": "^8.3.2"
   }
 }

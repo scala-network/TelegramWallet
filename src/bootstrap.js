@@ -1,7 +1,7 @@
 const path = require('path');
 const fs = require('fs');
 const logSystem = 'bootstrap';
-
+const _ = require('lodash');
 let config = {};
 
 const configFile =  path.join(process.cwd(),'config.json');
@@ -11,9 +11,9 @@ try {
     const rfs = fs.readFileSync(configFile);
     const rawJson = JSON.parse(rfs);
     let defJson = require('./defaults/config');
-	let defConfig = Object.assign(defJson, rawJson);
+	let defConfig = _.merge(defJson, rawJson);
     let marConfig = require('./defaults/market');
-    global.config = Object.assign(defConfig, {market : marConfig});
+    global.config = _.merge({market : marConfig}, defConfig);
 
 } catch(e){
     console.error('Failed to read config file ' + configFile + '\n\n' + e);
@@ -23,11 +23,11 @@ require('./log');
 /* ENGINES DEFAULT */
 const rawDBJson = require('./defaults/engine');
 
-global.config['datasource'] = Object.assign(rawDBJson, global.config.datasource);
+global.config['datasource'] =  _.merge(rawDBJson, global.config.datasource);
 /* COMMANDS SETUP DEFAULT */
 const rawCommandJson = require('./defaults/commands');
 
-global.config['commands'] = Object.assign(rawCommandJson, global.config.commands);
+global.config['commands'] = _.merge(rawCommandJson, global.config.commands);
 
 
 switch(global.config.datasource.engine) {
