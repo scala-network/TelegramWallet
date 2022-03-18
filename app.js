@@ -15,20 +15,19 @@ if(!cluster.isWorker) {
         worker.forkId = forkId;
         worker.on('exit', function (code, signal) {
             setTimeout(function () {
-               spawn({
-                    forkId
-               });
+               spawn(forkId);
             }, 500);
         });
     }
     spawn(0);// For worker
-    spawn(1);// For application
+    //spawn(1);// For application
     return;
 }
 const logSystem = "app";
 const TimeAgo = require('javascript-time-ago');
 TimeAgo.addDefaultLocale(require('javascript-time-ago/locale/en'));
-if(process.env.forkId === 0) {
+
+if(parseInt(process.env.forkId) === 0) {
     return require('./src/worker.js');
 }
 

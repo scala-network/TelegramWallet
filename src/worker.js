@@ -29,17 +29,21 @@ class CoinMarketCap {
 	// If we take 18 minutes as expected interval (1080 seconds)
 	// 333 >= 320
 	constructor (cfg = {}) {
-		let tickers = global.config.market.tickers;
+		let tickers = cfg.tickers;
 		tickers = Array.isArray(tickers) ? tickers : [tickers];
-		if (coinLists.length < 0) throw new Error('No tickets avaliable');
-		this.cmcId = 'cmcId' in cfg ? cfg.cmcId : throw new Error('No cmcId set via config');
+		if (tickers.length < 0) {
+			global.log('error', 'No tickets avaliable')
+			process.exit();
+			return;
+		}
 		this.config = cfg;
 		let isSandBox = 'isSandBox' in cfg ? cfg.isSandBox : false;
 		this.apiKey = 'apiKey' in cfg && !isSandBox ? cfg.apiKey : 'b54bcf4d-1bca-4e8e-9a24-22ff2c3d462c';
 		if (this.apiKey === 'b54bcf4d-1bca-4e8e-9a24-22ff2c3d462c')  isSandBox = true;
+		this.cmcId = 'cmcId' in cfg ? cfg.cmcId : '2629';
 		this.cmcEndPoint = isSandBox ? 'sandbox-api.coinmarketcap.com' : 'pro-api.coinmarketcap.com';
 		this.tickers = tickers;
-		this.fetchInterval = Math.ceil(coinLists.length * this.tickers.length * 96 / 333) * 60000;
+		this.fetchInterval = Math.ceil(this.tickers.length * 96 / 333) * 60000;
 	}
 
 	async getQuotes (ticker) {
@@ -95,10 +99,10 @@ class CoinMarketCap {
 	async fetch () {
 		const now = Date.now();
 		const symbol = global.config.coin;
-		const lastUpdated = await await market.getLastUpdated(global.config.coin)
+		const lastUpdated = await Market.getLastUpdated(global.config.coin)
 			.catch(e => global.log('error', 'Error : ' + e.message));
 
-		if (lastUpdated && ((now - lastUpdated) < this.fetchInterval)) continue;
+		if (lastUpdated && ((now - lastUpdated) < this.fetchInterval)) return;
 		
 		const dataStored = {};
 		for (const ticker of this.tickers) {
@@ -107,64 +111,75 @@ class CoinMarketCap {
 			if (data) dataStored[ticker] = data;
 			await sleep();
 		}
-		if (Object.keys(dataStored).length <= 0) continue;
+		if (Object.keys(dataStored).length <= 0) return;
 		await await market.update(symbol, dataStored)
 			.catch(e => global.log('error',logSystem, 'Error : ' + e.message));
 	}
 }
 /** Store data from CMC **/
-if('market' in global.config) {
-	const cmc = new CommandManager(global.config.market);
-	setInterval(async () => {
+console.log(global.config);
+if('market' in global.config && 'tickers' in global.config.market) {
+	const cmc = new CoinMarketCap(global.config.market);
+	(async() => {
 		await cmc.fetch();
-	}, cmc.fetchInterval);
+		await sleep(cmc.fetchInterval/1000);
+	})();
+
 }
 
-
-/** Clear previous wet and nimbus **/
-setInterval(async () => {
+const clearOldStats = async () => {
 	const dateObj = new Date();
-	const yesterdayDateKey = year + month + day;
 	dateObj.setDate(dateObj.getDate() - 1);
     const month = String(dateObj.getMonth()).padStart(2, '0');
     const day = String(dateObj.getDate()).padStart(2, '0');
     const year = dateObj.getFullYear();
 	const ydk = parseInt(year + month + day);
 	let cursor = false;
-	global.log('info', logSystem, "Clearing old stats");
 	const todelete = [];
 	while(cursor !== 0){
-		let groupNimbuses = await global.redisClient.scan(cursor !== false ? cursor : 0,'match',global.config.coin + ':GroupNimbus:*', 'count', 1000);
-		for(let groupNimbus of groupNimbuses) {
+		let groupNimbuses = await global.redisClient.scan(cursor !== false ? cursor : 0,'match',global.config.coin + ':GroupNimbus:*', 'count', 100);
+		for(let groupNimbus of groupNimbuses[1]) {
+			if(!groupNimbus) continue;
 			const parts = groupNimbus.split(':');
-			const nimbus = parts[parts.length -1];
+			const nimbus = parts[parts.length -2];
 			if(nimbus === 'overall') continue;
 			const inum = parseInt(nimbus);
-			if(inum < ydk) continue;
-			console.log(nimbus);
-			todelete.push(nimbus);
+			if(inum > ydk) continue;
+			todelete.push(groupNimbus);
 		}
-		cursor = count[0];
+		cursor = parseInt(groupNimbuses[0]);
 		sleep(0.5);
 	}
 
 
 	cursor = false;
 	while(cursor !== 0){
-		let groupWet = await global.redisClient.scan(cursor !== false ? cursor : 0,'match',global.config.coin + ':GroupWettest:*', 'count', 1000);
-		for(let groupWet of groupWettest) {
+		let groupWettest = await global.redisClient.scan(cursor !== false ? cursor : 0,'match',global.config.coin + ':GroupWettest:*', 'count', 100);
+		for(let groupWet of groupWettest[1]) {
+			if(!groupWet) continue;
 			const parts = groupWet.split(':');
-			const wet = parts[parts.length -1];
+			const wet = parts[parts.length -2];
 			if(wet === 'overall') continue;
 			const inum = parseInt(wet);
-			if(inum < ydk) continue;
-			console.log(groupWet);
-			todelete.push(nimbus);
+			if(inum > ydk) continue;
+			todelete.push(groupWet);
 
 		}
 				
-		cursor = count[0];
+		cursor = parseInt(groupWettest[0]);
 		sleep(0.5);
 	}
-	// if(todelete.length > 0) await global.redisClient.del(todelete);
-},86400000);
+	if(todelete.length > 0){
+		global.log('info', logSystem, "Clearing old stats %d", [todelete.length]);
+		await global.redisClient.del(todelete);
+	} else {
+		global.log('info', logSystem, "No stats to be deleted");
+	}
+};
+/** Clear previous wet and nimbus **/
+(async() => {
+	while(true) {
+		await clearOldStats().catch(e => global.log('error', e.message));
+		await sleep(86400);
+	}
+})();

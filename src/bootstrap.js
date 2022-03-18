@@ -10,8 +10,10 @@ try {
 
     const rfs = fs.readFileSync(configFile);
     const rawJson = JSON.parse(rfs);
-    const defJson = require('./defaults/config');
-	global.config = Object.assign(defJson, rawJson);
+    let defJson = require('./defaults/config');
+	let defConfig = Object.assign(defJson, rawJson);
+    let marConfig = require('./defaults/market');
+    global.config = Object.assign(defConfig, {market : marConfig});
 
 } catch(e){
     console.error('Failed to read config file ' + configFile + '\n\n' + e);

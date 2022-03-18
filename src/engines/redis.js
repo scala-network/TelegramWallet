@@ -48,7 +48,7 @@ module.exports = config => {
             return process.exit();
         }
     });
-    if(cluster.isWorker) return;
+    if(cluster.isWorker) return client;
     (async () => {
         const info = await client.info();
 
