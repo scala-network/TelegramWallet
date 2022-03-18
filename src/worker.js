@@ -102,7 +102,7 @@ class CoinMarketCap {
 
 
 	async fetch () {
-		const now = Date.now();
+		const now = Date.now() * 1000;
 		const symbol = global.config.coin;
 		const lastUpdated = await Market.getLastUpdated(global.config.coin)
 			.catch(e => global.log('error', 'Error : ' + e.message));
