@@ -117,7 +117,6 @@ class CoinMarketCap {
 	}
 }
 /** Store data from CMC **/
-console.log(global.config);
 if('market' in global.config && 'tickers' in global.config.market) {
 	const cmc = new CoinMarketCap(global.config.market);
 	(async() => {
