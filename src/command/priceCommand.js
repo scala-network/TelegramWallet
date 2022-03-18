@@ -31,16 +31,15 @@ class InfoCommand extends Command {
 		const Market = this.loadModel("Market");
 		let output = "";
 
-		if(ctx.appRequest.args.length > 0) {
-			const exchange = ctx.appRequest.args[1];
-			if(global.config.market.tickers.indexOf(exchange.toLowerCase()) >= 0) {
+		if(ctx.appRequest.args.length >= 1) {
+			const exchange = ctx.appRequest.args[0];
+			if(global.config.market.tickers.indexOf(exchange.toUpperCase()) >= 0) {
 				const marketExchange = await Market.getMarketExchange(this.Coin.symbol, exchange);
 			
 				output += "*** " + exchange.toUpperCase() + " Market ***\n"
 				for(let [key, value] of Object.entries(marketExchange)) {
 					output += key + " : " + value + exchange.toUpperCase() + "\n";
 				}
-				output += "\n Price exchanges are from https://coinmarketcap.com/currencies/" +this.Coin.fullname;
 			} else {
 				output = "Invalid exchange ticker. Only " + global.config.market.tickers.join(",") + " are avaliable";
 			}
