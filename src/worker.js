@@ -102,12 +102,12 @@ class CoinMarketCap {
 
 
 	async fetch () {
-		const now = Date.now() * 1000;
+		const now = Date.now();
 		const symbol = global.config.coin;
 		const lastUpdated = await Market.getLastUpdated(global.config.coin)
 			.catch(e => global.log('error', 'Error : ' + e.message));
 
-		if (lastUpdated && ((now - lastUpdated) < this.fetchInterval)) return;
+		if (lastUpdated && ((now - lastUpdated) < this.fetchInterval /1000)) return;
 		
 		for (const ticker of this.tickers) {
 			const data = await this.getQuotes(ticker)
