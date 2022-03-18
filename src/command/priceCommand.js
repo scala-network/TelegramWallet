@@ -41,12 +41,18 @@ class InfoCommand extends Command {
 					output += key + " : ";
 					if([
 						"price"
-					].indexOf(key)) {
-						ooutput+=value;
+					].indexOf(key) < 0) {
+						output+=value;
 					} else {
 						output+= utils.fromExp(value);
 					}
-					output +=' '+ exchange.toUpperCase() + "\n";
+					if(["price"].indexOf(key) >= 0) {
+						output +=' '+ exchange.toUpperCase() + "\n";
+					} else if(key.startsWith("percent_")) {
+						output += " %\n";
+					} else {
+						output += "\n";
+					}
 				}
 			} else {
 				output = "Invalid exchange ticker. Only " + global.config.market.tickers.join(",") + " are avaliable";
