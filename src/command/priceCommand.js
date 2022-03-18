@@ -19,7 +19,7 @@ class InfoCommand extends Command {
 	}
 
 	get description() {
-		return "Returns market price";
+		return "Display current market price. With additional argument as ticker will send price changes for that ticker. Avaliable ticker btc, ltc, usd and euro. ";
 	}
 
 	auth(ctx) {
