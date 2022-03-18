@@ -38,7 +38,15 @@ class InfoCommand extends Command {
 			
 				output += "*** " + exchange.toUpperCase() + " Market ***\n"
 				for(let [key, value] of Object.entries(marketExchange)) {
-					output += key + " : " + value + exchange.toUpperCase() + "\n";
+					output += key + " : ";
+					if([
+						"price"
+					].indexOf(key)) {
+						ooutput+=value;
+					} else {
+						output+= utils.fromExp(value);
+					}
+					output +=' '+ exchange.toUpperCase() + "\n";
 				}
 			} else {
 				output = "Invalid exchange ticker. Only " + global.config.market.tickers.join(",") + " are avaliable";
