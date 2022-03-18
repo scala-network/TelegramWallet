@@ -1,3 +1,4 @@
+'use strict';
 const STATUS = require('../../../status');
 
 const logSystem = "model/redis/user";

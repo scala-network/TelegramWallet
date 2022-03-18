@@ -1,3 +1,4 @@
+'use strict';
 const Query = require('../../../base/query');
 const Model = require('../../../base/model');
 class Network  extends Query

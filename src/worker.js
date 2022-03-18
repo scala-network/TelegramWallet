@@ -92,10 +92,6 @@ class CoinMarketCap {
 	}
 
 
-	async store (dataStored) {
-		return ;
-	}
-
 	async fetch () {
 		const now = Date.now();
 		const symbol = global.config.coin;
@@ -112,7 +108,7 @@ class CoinMarketCap {
 			await sleep();
 		}
 		if (Object.keys(dataStored).length <= 0) return;
-		await await market.update(symbol, dataStored)
+		await await Market.update(symbol, dataStored)
 			.catch(e => global.log('error',logSystem, 'Error : ' + e.message));
 	}
 }

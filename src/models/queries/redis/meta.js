@@ -1,3 +1,4 @@
+'use strict';
 const { v4: UUID } = require('uuid');
 const STATUS = require('../../../status');
 const Query = require('../../../base/query');
