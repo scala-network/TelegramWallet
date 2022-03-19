@@ -84,10 +84,7 @@ class CoinMarketCap {
 					const json = response.data;
 					if (!(cmcId in json)) return reject(new Error('Unable to get base on cmc id ' + cmcId));
 					if (!('quote' in json[cmcId])) return reject(new Error('Unable to get quote for cmc id ' + cmcId));
-					if (!(ticker in json[cmcId].quote)) {
-						console.log(json[cmcId].quote);
-						return reject(new Error('Unable to get ticker ' + ticker + ' for cmc id ' + cmcId));
-					}
+					if (!(ticker in json[cmcId].quote)) return reject(new Error('Unable to get ticker ' + ticker + ' for cmc id ' + cmcId));
 					const data = json[cmcId].quote[ticker];
 					if (!data) return reject(new Error('No data for cmc id ' + cmcId));
 					resolve(data);
@@ -104,14 +101,12 @@ class CoinMarketCap {
 	async fetch () {
 		const now = Date.now();
 		const symbol = global.config.coin;
-		const lastUpdated = await Market.getLastUpdated(global.config.coin)
-			.catch(e => global.log('error', 'Error : ' + e.message));
-		if (lastUpdated && ((now - lastUpdated) < this.fetchInterval)) return;
+		
 		for (const ticker of this.tickers) {
 			const data = await this.getQuotes(ticker)
 				.catch(e => global.log('error',logSystem, 'Error RPC : ' + e.message));
 			if (data) {
-				await Market.updateTicker(symbol, ticker.toUpperCase(), data)
+				await Market.updateTicker(symbol, ticker, data)
 				.then(() => {
 					global.log('info', logSystem, "Data stored for ticker " + ticker);	
 				})
@@ -123,8 +118,8 @@ class CoinMarketCap {
 }
 /** Store data from CMC **/
 if('market' in global.config && 'tickers' in global.config.market) {
-	const cmc = new CoinMarketCap(global.config.market);
 	(async() => {
+		const cmc = new CoinMarketCap(global.config.market);
 		await cmc.fetch();
 		await sleep(3600);//update every hour
 	})();
