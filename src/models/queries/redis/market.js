@@ -19,8 +19,8 @@ class Market  extends Query
 		const key = [coin,'price'].join(':');
 		return await global.redisClient
 		.multi()
-		.hmset(key, tick, JSON.stringify(market))
-		.hmset(key, tick +'_price', market.price)
+		.hset(key, tick, JSON.stringify(market))
+		.hset(key, tick +'_price', market.price)
 		.hset(key, 'last_updated', Date.now())
 		.exec();
 		
@@ -33,8 +33,8 @@ class Market  extends Query
 			const tick = ticker.toLowerCase();
 			await global.redisClient
 			.multi()
-			.hmset(key, tick, JSON.stringify(market))
-			.hmset(key, tick+'_price', market.price)
+			.hset(key, tick, JSON.stringify(market))
+			.hset(key, tick+'_price', market.price)
 			.exec();
 		}
 		await global.redisClient.hset(key, 'last_updated', Date.now());
