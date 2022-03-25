@@ -85,7 +85,7 @@ class TransferCommand extends Command {
 				return ctx.appResponse.reply(trx.error);
 			}
 
-			const uuid = await Meta.getId(ctx.from.id, trx.tx_metadata);
+			const uuid = await Meta.getId(ctx.from.id, trx.tx_metadata_list.join(':'));
 			const ftrx_amount = trx.amount_list.reduce((a, b) => a + b, 0);
 			const ftrx_fee = trx.fee_list.reduce((a, b) => a + b, 0);
 			return ctx.appResponse.sendMessage(ctx.from.id,`
@@ -115,8 +115,8 @@ To proceed with transaction run
 			}
 			const trx_amount = trx.amount_list.reduce((a, b) => a + b, 0);
 			const tx_hash = trx.tx_hash_list.join("\n * ");
-			const balance = parseInt(wallet.balance) - parseInt(trx_amount) - parseInt(trx_fee);
 			const trx_fee = trx.fee_list.reduce((a, b) => a + b, 0);
+			const balance = parseInt(wallet.balance) - parseInt(trx_amount) - parseInt(trx_fee);
 
 			await ctx.appResponse.sendMessage(ctx.from.id,`
 ** Transaction Details **
