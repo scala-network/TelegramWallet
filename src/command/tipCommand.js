@@ -117,7 +117,6 @@ To proceed with transaction run
 			const tx_hash = trx.tx_hash_list.join("\n * ");
 			const balance = parseInt(wallet.balance) - parseInt(trx_amount) - parseInt(trx_fee);
 			const trx_fee = trx.fee_list.reduce((a, b) => a + b, 0);
-			const balance = parseInt(wallet.balance) - parseInt(trx.amount) - parseInt(trx.fee);
 
 			await ctx.appResponse.sendMessage(ctx.from.id,`
 ** Transaction Details **
