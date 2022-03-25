@@ -86,10 +86,8 @@ class TransferCommand extends Command {
 			}
 
 			const uuid = await Meta.getId(ctx.from.id, trx.tx_metadata);
-			const trx_amount = trx.amount_list.reduce((a, b) => a + b, 0);
-			const tx_hash = trx.tx_hash_list.join("\n * ");
-			const balance = parseInt(wallet.balance) - parseInt(trx_amount) - parseInt(trx_fee);
-			const trx_fee = trx.fee_list.reduce((a, b) => a + b, 0);
+			const ftrx_amount = trx.amount_list.reduce((a, b) => a + b, 0);
+			const ftrx_fee = trx.fee_list.reduce((a, b) => a + b, 0);
 			return ctx.appResponse.sendMessage(ctx.from.id,`
 ** Transaction Details **
 
@@ -99,8 +97,8 @@ From:
 To: 
 @${user.username}
 
-Amount : ${this.Coin.format(trx_amount)}
-Fee : ${this.Coin.format(trx_fee)}
+Amount : ${this.Coin.format(ftrx_amount)}
+Fee : ${this.Coin.format(ftrx_fee)}
 Trx Meta ID: ${uuid}
 Trx Expiry: ${global.config.rpc.metaTTL} seconds
 Current Unlock Balance : ${this.Coin.format(wallet.balance)}
@@ -121,7 +119,7 @@ To proceed with transaction run
 			const trx_fee = trx.fee_list.reduce((a, b) => a + b, 0);
 			const balance = parseInt(wallet.balance) - parseInt(trx.amount) - parseInt(trx.fee);
 
-			ctx.appResponse.sendMessage(ctx.from.id,`
+			await ctx.appResponse.sendMessage(ctx.from.id,`
 ** Transaction Details **
 
 From: 
@@ -136,7 +134,7 @@ Current Unlock Balance : ${this.Coin.format(wallet.balance)}
 Number of transactions : ${trx.tx_hash_list.length}
 			`);
 
-			ctx.appResponse.sendMessage(user.user_id,`
+			await ctx.appResponse.sendMessage(user.user_id,`
 ** Transaction Details **
 
 From: 
@@ -145,12 +143,12 @@ From:
 To: 
 @${user.username}
 
-Amount : ${this.Coin.format(trx.amount)}
-Fee : ${this.Coin.format(trx.fee)}
+Amount : ${this.Coin.format(trx_amount)}
+Fee : ${this.Coin.format(trx_fee)}
 Number of transactions : ${trx.tx_hash_list.length}
 Trx Hashes (${trx.amount_list.length} Transactions): 
 * ${tx_hash}
-			
+
 			`);
 			return;
 		}
