@@ -18,27 +18,10 @@ class Market  extends Query
 		const tick = ticker.toLowerCase();
 		const key = [coin,'price'].join(':');
 		return await global.redisClient
-		.multi()
-		.hset(key, tick, JSON.stringify(market))
-		.hset(key, tick +'_price', market.price)
-		.hset(key, 'last_updated', Date.now())
-		.exec();
+		.hmset(key, 
+			[tick, JSON.stringify(market)], [tick +'_price', market.price], ['last_updated', Date.now()]
+		);
 		
-	}
-
-	async update(coin, dataStored) {
-		const key = [coin,'price'].join(':');
-
-		for(const[ticker, market] of Object.entries(dataStored)) {
-			const tick = ticker.toLowerCase();
-			await global.redisClient
-			.multi()
-			.hset(key, tick, JSON.stringify(market))
-			.hset(key, tick+'_price', market.price)
-			.exec();
-		}
-		await global.redisClient.hset(key, 'last_updated', Date.now());
-		return;
 	}
 
 	async getMarketExchange(coin, ticker) {

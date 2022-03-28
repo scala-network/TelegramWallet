@@ -76,7 +76,6 @@ class CoinMarketCap {
 					try {
 						response = JSON.parse(dbuff);
 					} catch (e) {
-						console.log(dbuff);
 						return reject(new Error("(" + ticker + ") " + e.message));
 					}
 					if (!response) return reject(new Error('No response'));
@@ -115,16 +114,6 @@ class CoinMarketCap {
 			await sleep();
 		}
 	}
-}
-/** Store data from CMC **/
-if('market' in global.config && 'tickers' in global.config.market) {
-	(async() => {
-		const cmc = new CoinMarketCap(global.config.market);
-		await cmc.fetch();
-		await sleep(3600);//update every hour
-	})();
-} else {
-	global.log('warn',logSystem, "Market disabled");
 }
 
 const clearOldStats = async () => {
@@ -176,9 +165,38 @@ const clearOldStats = async () => {
 	}
 };
 /** Clear previous wet and nimbus **/
+let daily = 0;
+let connect = true;
 (async() => {
 	while(true) {
-		await clearOldStats().catch(e => global.log('error', e.message));
-		await sleep(86400);
+		
+		/** Store data from CMC **/
+		if('market' in global.config && 'tickers' in global.config.market) {
+			if(!connect) {
+				await global.redisClient.connect().catch(()=>{});
+				connect = true;
+			}
+			const cmc = new CoinMarketCap(global.config.market);
+			await cmc.fetch();
+		} 
+		if(daily > 24) {
+			if(!connect) {
+				await global.redisClient.connect().catch(()=>{});
+				connect = true;
+			}
+			await clearOldStats().catch(e => global.log('error', e.message));
+			daily = 0;
+		} else {
+			daily++;
+		}
+		if(connect) {
+			await global.redisClient.save();
+			global.redisClient.disconnect();
+			connect = false;
+		}
+
+		await sleep(3600);//update every hour
+
+
 	}
 })();
