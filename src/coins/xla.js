@@ -20,7 +20,7 @@ class xla {
 	}
 	
 	parse(amount) {
-		return parseFloat(`${amount}`) * this.atomicUnits;
+		return parseFloat(`${amount}`.replace(',','')) * this.atomicUnits;
 	}
 
 	format(coin) {
