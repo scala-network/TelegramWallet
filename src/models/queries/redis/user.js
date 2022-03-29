@@ -85,7 +85,7 @@ class User  extends Query
 		const uKey = [global.config.coin, "Users" ,user_id].join(':');
 		const aKey = [global.config.coin, "Alias"].join(':');
 
-		let oldUsername = await global.redisClient.hget(uKey, username);
+		let oldUsername = await global.redisClient.hget(uKey, "username");
 
 		return await global.redisClient
 			.hset(uKey, 'username', username)
