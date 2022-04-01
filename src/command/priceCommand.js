@@ -72,7 +72,7 @@ class InfoCommand extends Command {
 		if(!output) {
 			output+= "We have no response for market price";	
 		} else {
-			output += "\n Price exchanges are from https://coinmarketcap.com/currencies/" +this.Coin.fullname;
+			output += "\n Price exchanges are from https://coinmarketcap.com/currencies/" +this.Coin.fullname.toLowerCase();
 		}
 		ctx.appResponse.reply(output);
 
