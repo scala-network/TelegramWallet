@@ -5,8 +5,8 @@
  */
 const Command = require('../base/command');
 const STATUS = require('../status');
-const Telegraf = require('telegraf');
 const { STATUS_CODES } = require('http');
+const { Telegraf, Markup } = require('telegraf')
 
 class TransferCommand extends Command {
 
@@ -19,7 +19,7 @@ class TransferCommand extends Command {
 	}
 
 	auth(ctx) {
-		return true;
+		return !ctx.appRequest.is.group;
 	}
 
 	async run(ctx) {
@@ -103,10 +103,7 @@ Trx Meta ID: ${uuid}
 Trx Expiry: ${global.config.rpc.metaTTL} seconds
 Current Unlock Balance : ${this.Coin.format(wallet.balance)}
 Number of transactions : ${trx.tx_hash_list.length}
-
-To proceed with transaction run
-/submit ${uuid} 
-			`);
+`,Markup.inlineKeyboard([Markup.button.callback('Confirm Submit?', 'submit', uuid]));
 
 		} else {
 			const trx = await this.Coin.transferSplit(ctx.from.id, wallet.wallet_id, user.wallet.address, amount, false);

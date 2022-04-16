@@ -69,26 +69,24 @@ class WithdrawCommand extends Command {
 				return ctx.appResponse.sendMessage(
 					ctx.from.id,
 					`
-** Transaction Details **
+<b><u>Transaction Details</u></b>
 
-From: 
+<b>From:</b>
 ${wallet.address}
 
-To: 
+<b>To:</b>
 ${address}
 			
-Amount : ${this.Coin.format(trx_amount)}
-Fee : ${this.Coin.format(trx_fee)}
-Trx Meta ID: ${uuid}
-Trx Expiry: ${global.config.rpc.metaTTL} seconds
-Current Unlock Balance : ${this.Coin.format(wallet.balance)}
-Number of transactions : ${trx.tx_hash_list.length}
-To proceed with transaction run
-/submit ${uuid} 
-
-
-				`
-				);
+<b>Amount :</b> ${this.Coin.format(trx_amount)}
+<b>Fee :</b> ${this.Coin.format(trx_fee)}
+<b>Trx Meta ID :</b> ${uuid}
+<b>Trx Expiry :</b> ${global.config.rpc.metaTTL} seconds
+<b>Current Unlock Balance :</b> ${this.Coin.format(wallet.balance)}
+<b>Number of transactions :</b> ${trx.tx_hash_list.length}`,
+{
+    parse_mode: 'HTML',
+    ...Markup.inlineKeyboard([Markup.button.callback('Confirm Submit?', 'submit', uuid])
+});
 			default:
 				try{
 					return ctx.appResponse.reply(valid);

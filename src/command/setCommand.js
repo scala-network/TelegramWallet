@@ -33,6 +33,8 @@ rain_max - Number of latest members to recieve rain (default: 20) (max : 20 | mi
 		if (ctx.test) return;
 
 		if (ctx.appRequest.args.length <= 1) {
+			
+			// return ctx.appResponse.reply(`Missing arguments\n${this.description}`);
 			return ctx.appResponse.reply(`Missing arguments\n${this.description}`);
 		}
 
