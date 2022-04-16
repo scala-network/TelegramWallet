@@ -30,14 +30,14 @@ class NimbusCommand extends Command {
 			return ctx.appResponse.reply("It haven't been raining");
 		}
 
-		let template = `<b><i>Nimbus Rain Today</u></b>`;
+		let template = `<b><u>Nimbus Rain Today</u></b>`;
 
 		for(let i =0;i< results.today.length;i++) {
 			const member = results.today[i];
 			template+="\n" + member.username + "    " + this.Coin.format(member.amount);
 		}
 
-		template += `\n\n\n<b><i>Nimbus Rain All Time</u></b>`;
+		template += `\n\n\n<b><u>Nimbus Rain All Time</u></b>`;
 
 		for(let i =0;i< results.overall.length;i++) {
 			const member = results.overall[i];
