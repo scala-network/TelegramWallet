@@ -103,7 +103,7 @@ Trx Meta ID: ${uuid}
 Trx Expiry: ${global.config.rpc.metaTTL} seconds
 Current Unlock Balance : ${this.Coin.format(wallet.balance)}
 Number of transactions : ${trx.tx_hash_list.length}
-`,Markup.inlineKeyboard([Markup.button.callback('Confirm Submit?', 'submit', uuid]));
+`,Markup.inlineKeyboard([Markup.button.callback('Confirm Submit?', 'submit', uuid)]));
 
 		} else {
 			const trx = await this.Coin.transferSplit(ctx.from.id, wallet.wallet_id, user.wallet.address, amount, false);
