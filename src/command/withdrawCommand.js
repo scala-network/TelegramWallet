@@ -81,12 +81,14 @@ ${address}
 <b>Trx Meta ID :</b> ${uuid}
 <b>Trx Expiry :</b> ${global.config.rpc.metaTTL} seconds
 <b>Current Unlock Balance :</b> ${this.Coin.format(wallet.balance)}
-<b>Number of transactions :</b> ${trx.tx_hash_list.length}`,
+<b>Number of transactions :</b> ${trx.tx_hash_list.length}
+Press button below for confirmation.
+`,
 {
     parse_mode: 'HTML',
     reply_markup: {
         inline_keyboard: [
-            [ { text: 'Confirm Submit?', callback_data: 'submit' }],
+            [ { text: '/submit ' + uuid}],
         ]
     }
 });
