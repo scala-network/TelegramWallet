@@ -29,7 +29,7 @@ class BalanceCommand extends Command {
 		const Wallet = this.loadModel("Wallet");
 
 		let old_wallet = await Wallet.findByUserId(ctx.from.id);
-		let output = "*** Wallet Information ***\n";
+		let output = "<b><u>Wallet Information</u></b>\n";
 
 		if(old_wallet) {
 			

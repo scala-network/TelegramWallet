@@ -38,7 +38,7 @@ class InfoCommand extends Command {
 			if(global.config.market.tickers.indexOf(exchange.toUpperCase()) >= 0) {
 				const marketExchange = await Market.getMarketExchange(this.Coin.symbol.toLowerCase(), exchange);
 			
-				output += "*** " + exchange.toUpperCase() + " Market ***\n"
+				output += "<b><u>" + exchange.toUpperCase() + " Market</u></b>\n"
 				for(let [key, value] of Object.entries(marketExchange)) {
 					output += key + " : ";
 					if([
@@ -64,7 +64,7 @@ class InfoCommand extends Command {
 			const priceLists = await Market.getPrice(this.Coin.symbol.toLowerCase());
 
 			if(priceLists) {
-				output += "*** Price Lists ***\n"
+				output += "<b><u>Price Lists</u></b>\n"
 				for(let [key, value] of Object.entries(priceLists)) {
 					const priceTicker = key.toUpperCase();
 					output += priceTicker + " : " + value +' '+ priceTicker + "\n";

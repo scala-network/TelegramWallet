@@ -47,7 +47,7 @@ class SubmitCommand extends Command {
 			tx_hashes.push(tx_hash);
 		}
 		return ctx.appResponse.reply(`
-			** Transaction completed **
+			<b><u>Transaction completed</u></b>
 			Number of transactions: ${tx_hashes.length}
 			Trx Hashes : 
 			* ${tx_hashes.join("\n *")}

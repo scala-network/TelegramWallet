@@ -89,21 +89,30 @@ class TransferCommand extends Command {
 			const ftrx_amount = trx.amount_list.reduce((a, b) => a + b, 0);
 			const ftrx_fee = trx.fee_list.reduce((a, b) => a + b, 0);
 			return ctx.appResponse.sendMessage(ctx.from.id,`
-** Transaction Details **
+<b><u>Transaction Details</u></b>
 
-From: 
+<b>From:</b> 
 @${sender.username}
 
-To: 
+<b>To:</b> 
 @${user.username}
 
-Amount : ${this.Coin.format(ftrx_amount)}
-Fee : ${this.Coin.format(ftrx_fee)}
-Trx Meta ID: ${uuid}
-Trx Expiry: ${global.config.rpc.metaTTL} seconds
-Current Unlock Balance : ${this.Coin.format(wallet.balance)}
-Number of transactions : ${trx.tx_hash_list.length}
-`,Markup.inlineKeyboard([Markup.button.callback('Confirm Submit?', 'submit', uuid)]));
+<b>Fee :</b>  ${this.Coin.format(ftrx_fee)}
+<b>Trx Meta ID :</b>  ${uuid}
+<b>Trx Expiry :</b>  ${global.config.rpc.metaTTL} seconds
+<b>Current Unlock Balance :</b>  ${this.Coin.format(wallet.balance)}
+<b>Number of transactions :</b>  ${trx.tx_hash_list.length}
+Press button below to confirm`,
+{
+    parse_mode: 'HTML',
+    reply_markup: {
+        keyboard: [
+            [ { text: '/submit ' + uuid }],
+        ],
+        resize_keyboard : true, 
+    	one_time_keyboard: true
+    }
+});
 
 		} else {
 			const trx = await this.Coin.transferSplit(ctx.from.id, wallet.wallet_id, user.wallet.address, amount, false);
@@ -116,7 +125,7 @@ Number of transactions : ${trx.tx_hash_list.length}
 			const balance = parseInt(wallet.balance) - parseInt(trx_amount) - parseInt(trx_fee);
 
 			await ctx.appResponse.sendMessage(ctx.from.id,`
-** Transaction Details **
+<b><u>Transaction Details</u></b>
 
 From: 
 @${sender.username}
@@ -131,7 +140,7 @@ Number of transactions : ${trx.tx_hash_list.length}
 			`);
 
 			await ctx.appResponse.sendMessage(user.user_id,`
-** Transaction Details **
+<b><u>Transaction Details</u></b>
 
 From: 
 @${sender.username}

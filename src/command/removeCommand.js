@@ -30,7 +30,7 @@ class RemoveCommand extends Command {
         await User.remove(ctx.from.id, ctx.from.username);
         /**
          * @@TODO : Delete wallet file for swm = false
-         **/
+        </u></b>/
         ctx.appResponse.reply("Account deleted");
     }
 	

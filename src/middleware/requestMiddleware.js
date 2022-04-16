@@ -66,6 +66,9 @@ class RequestMiddleware extends Middleware {
         ctx.appRequest =  {is,action,query,args};
         ctx.appResponse = {
             sendMessage: async function(a,b,c,d) {
+                c = Object.assign({
+                    parse_mode: 'HTML'
+                }, c);
                 return await ctx.telegram.sendMessage(a,b,c,d).catch(function(e) {
                 global.log('error', logSystem, "Error sending to id : " + a);
                 global.log('error', logSystem, e);
@@ -73,6 +76,9 @@ class RequestMiddleware extends Middleware {
 
             },
             reply: async function(a,b,c,d) {
+                b = Object.assign({
+                    parse_mode: 'HTML'
+                }, b);
                 return await ctx.reply(a,b,c,d).catch(function(e) {
                     global.log('error', logSystem, "Error sending to id : " + is.group ? ctx.message.chat.id : ctx.message.from.id);
                     global.log('error', logSystem, e);

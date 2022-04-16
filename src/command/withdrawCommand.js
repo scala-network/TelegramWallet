@@ -82,7 +82,7 @@ ${address}
 <b>Trx Expiry :</b> ${global.config.rpc.metaTTL} seconds
 <b>Current Unlock Balance :</b> ${this.Coin.format(wallet.balance)}
 <b>Number of transactions :</b> ${trx.tx_hash_list.length}
-Press button to confirm`,
+Press button below to confirm`,
 {
     parse_mode: 'HTML',
     reply_markup: {
