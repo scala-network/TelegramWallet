@@ -67,9 +67,7 @@ class WithdrawCommand extends Command {
 				const trx_fee = trx.fee_list.reduce((a, b) => a + b, 0);
 				const balance = parseInt(wallet.balance) - parseInt(trx_amount) - parseInt(trx_fee);
 
-				return ctx.appResponse.reply(
-					ctx.from.id,
-					`
+				return ctx.appResponse.reply(`
 <b><u>Transaction Details</u></b>
 
 <b>From:</b>
