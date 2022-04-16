@@ -88,6 +88,7 @@ class User  extends Query
 		let oldUsername = await global.redisClient.hget(uKey, "username");
 
 		return await global.redisClient
+			.multi()
 			.hset(uKey, 'username', username)
 			.hdel(aKey, oldUsername)
 			.hset(aKey, username, user_id)
