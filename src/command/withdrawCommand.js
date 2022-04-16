@@ -88,9 +88,9 @@ Press button to confirm`,
     reply_markup: {
         keyboard: [
             [ { text: '/submit ' + uuid }],
-            resize_keyboard : true, 
-    		one_time_keyboard: true
-        ]
+        ],
+        resize_keyboard : true, 
+    	one_time_keyboard: true
     }
 });
 			default:
