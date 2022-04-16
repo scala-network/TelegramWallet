@@ -84,7 +84,11 @@ ${address}
 <b>Number of transactions :</b> ${trx.tx_hash_list.length}`,
 {
     parse_mode: 'HTML',
-    ...Markup.inlineKeyboard([Markup.button.callback('Confirm Submit?', 'submit', uuid)])
+    reply_markup: {
+        inline_keyboard: [
+            [ { text: 'Confirm Submit?', callback_data: 'submit' }],
+        ]
+    }
 });
 			default:
 				try{
