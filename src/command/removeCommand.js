@@ -6,7 +6,7 @@ class RemoveCommand extends Command {
     get description() {
         let o = "Deletes your account";
         if(!global.config.swm) {
-            o+=' usages: /remove <password>';
+            o+=' usages: /remove password';
         }
         return o;
     }

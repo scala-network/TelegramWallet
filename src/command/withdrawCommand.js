@@ -14,7 +14,7 @@ class WithdrawCommand extends Command {
     }
 	
 	get description() {
-		return "Withdraw coins in wallet (usages : /withdraw <coin_address> <amount>)";
+		return "Withdraw coins in wallet (usages : /withdraw coin_address amount)";
 	}
 
 	auth(ctx) {

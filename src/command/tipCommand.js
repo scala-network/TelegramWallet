@@ -15,7 +15,7 @@ class TransferCommand extends Command {
     }
 	
 	get description() {
-		return "Tip coin to another user. To set default tip value go to /set tip <amount> (usages : /tip <username>) or you can custom tip /tip <username> <custom_amount>";
+		return "Tip coin to another user. To set default tip value go to /set tip amount (usages : /tip username) or you can custom tip /tip username custom_amount";
 	}
 
 	auth(ctx) {

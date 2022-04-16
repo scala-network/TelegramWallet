@@ -14,7 +14,7 @@ class TransferCommand extends Command {
     }
 	
 	get description() {
-		return "Send coins to latest active users. To set default rain value go to /set rain <amount>";
+		return "Send coins to latest active users. To set default rain value go to /set rain amount";
 	}
 
 	auth(ctx) {

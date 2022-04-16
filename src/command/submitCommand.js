@@ -13,7 +13,7 @@ class SubmitCommand extends Command {
     }
 	
 	get description() {
-		return "Submit confirms sending coin by keying key generated from transfer command (usage /submit <trx_key>)";
+		return "Submit confirms sending coin by keying key generated from transfer command (usage /submit trx_key)";
 	}
 
 	auth(ctx) {

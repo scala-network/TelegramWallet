@@ -17,7 +17,7 @@ class SetCommand extends Command {
 
 	get description() {
 		return `
-Set value for your config. usages: /set <config> <value>
+Set value for your config. usages: /set config value
 **Configs avaliable**
 rain - Set amount of coin to distribute per head (usages: /set rain 10)(min: 1)
 tip - Set default tip value (usages: /set tip 100)(default: 10)
