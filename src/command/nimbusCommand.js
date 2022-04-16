@@ -5,6 +5,7 @@
  * @module Commands/address
  */
 const Command = require('../base/command');
+const { Markup } = require('telegraf');
 
 class NimbusCommand extends Command {
 

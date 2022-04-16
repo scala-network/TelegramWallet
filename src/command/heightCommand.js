@@ -9,6 +9,7 @@ const TimeAgo = require('javascript-time-ago');
 const timeAgo = new TimeAgo('en-US')
 const logSystem = "command/height";
 const utils = require('../utils');
+const { Markup } = require('telegraf');
 
 class HeightCommand extends Command {
 

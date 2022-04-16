@@ -7,6 +7,7 @@
  */
 const Command = require('../base/command');
 const STATUS = require('../status');
+const { Markup } = require('telegraf');
 
 class SetCommand extends Command {
 

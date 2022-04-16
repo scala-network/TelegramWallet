@@ -6,7 +6,7 @@
 const Command = require('../base/command');
 const STATUS = require('../status');
 const { STATUS_CODES } = require('http');
-const { Telegraf, Markup } = require('telegraf')
+const { Markup } = require('telegraf');
 
 class TransferCommand extends Command {
 

@@ -8,6 +8,7 @@ const utils = require('../utils');
 const TimeAgo = require('javascript-time-ago');
 const timeAgo = new TimeAgo('en-US')
 const logSystem = "command/balance";
+const { Markup } = require('telegraf');
 
 class BalanceCommand extends Command {
 	get name () {
