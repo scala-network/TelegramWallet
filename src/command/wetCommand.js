@@ -29,14 +29,14 @@ class WetCommand extends Command {
 			return ctx.appResponse.reply("It haven't been raining");
 		}
 
-		let template = `<b><u>Wettest Today</u></b>`;
+		let template = `<u>Wettest Today</u>`;
 
 		for(let i =0;i< results.today.length;i++) {
 			const member = results.today[i];
 			template+="\n" + member.username + "    " + this.Coin.format(member.amount);
 		}
 
-		template += `\n\n\n<b><u>Wettest All Time</u></b>`;
+		template += `\n\n\n<u>Wettest All Time</u>`;
 
 		for(let i =0;i< results.overall.length;i++) {
 			const member = results.overall[i];

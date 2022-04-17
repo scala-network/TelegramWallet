@@ -89,7 +89,7 @@ class TransferCommand extends Command {
 			const ftrx_amount = trx.amount_list.reduce((a, b) => a + b, 0);
 			const ftrx_fee = trx.fee_list.reduce((a, b) => a + b, 0);
 			return ctx.appResponse.sendMessage(ctx.from.id,`
-<b><u>Transaction Details</u></b>
+<u>Transaction Details</u>
 
 <b>From:</b> 
 @${sender.username}
@@ -104,10 +104,9 @@ class TransferCommand extends Command {
 <b>Number of transactions :</b>  ${trx.tx_hash_list.length}
 Press button below to confirm`,
 {
-    parse_mode: 'HTML',
     reply_markup: {
-        keyboard: [
-            [ { text: '/submit ' + uuid }],
+        inline_keyboard: [
+            [ { text: 'Confirm?', callback_data : 'submit' }],
         ],
         resize_keyboard : true, 
     	one_time_keyboard: true
@@ -125,7 +124,7 @@ Press button below to confirm`,
 			const balance = parseInt(wallet.balance) - parseInt(trx_amount) - parseInt(trx_fee);
 
 			await ctx.appResponse.sendMessage(ctx.from.id,`
-<b><u>Transaction Details</u></b>
+<u>Transaction Details</u>
 
 From: 
 @${sender.username}
@@ -140,7 +139,7 @@ Number of transactions : ${trx.tx_hash_list.length}
 			`);
 
 			await ctx.appResponse.sendMessage(user.user_id,`
-<b><u>Transaction Details</u></b>
+<u>Transaction Details</u>
 
 From: 
 @${sender.username}

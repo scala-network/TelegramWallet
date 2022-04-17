@@ -125,7 +125,7 @@ class TransferCommand extends Command {
 			const total_xla = this.Coin.format(total);
 			await ctx.appResponse.reply("Airdrops to last " + userNames.length + " active members total of " + total_xla + "\n" + userNames.join("\n"));
 			await ctx.appResponse.sendMessage(ctx.from.id,`
-<b><u>Transaction Details</u></b>
+<u>Transaction Details</u>
 
 From: 
 @${sender.username}
@@ -147,7 +147,7 @@ Current Balance : ${this.Coin.format(balance)}
 				await Member.addWet(ctx.chat.id, userNames[i], amount);
 
 				await ctx.appResponse.sendMessage(smi,`
-<b><u>Transaction Details</u></b>
+<u>Transaction Details</u>
 
 From: 
 @${sender.username}
@@ -183,7 +183,7 @@ Trx Hashes (${trx.amount_list.length} Transactions):
 			const uuid = await Meta.getId(ctx.from.id, trx.tx_metadata_list.join(':'));
 
 			return ctx.appResponse.sendMessage(ctx.from.id,`
-<b><u>Transaction Details</u></b>
+<u>Transaction Details</u>
 
 From: 
 @${sender.username}
@@ -200,10 +200,9 @@ Number of transactions : ${trx.tx_hash_list.length}
 To proceed with transaction run
 Press button below to confirm`,
 {
-    parse_mode: 'HTML',
     reply_markup: {
-        keyboard: [
-            [ { text: '/submit ' + uuid }],
+        inline_keyboard: [
+            [ { text: 'Confirm?', callback_data : 'submit' }],
         ],
         resize_keyboard : true, 
     	one_time_keyboard: true

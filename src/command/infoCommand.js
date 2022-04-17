@@ -42,7 +42,7 @@ class InfoCommand extends Command {
 
 		let totalBalance = 0;
 		let output = "";
-		output += '<b><u>User Information</u></b>\n';
+		output += '<u>User Information</u>\n';
 		for (let field of User.fields) {
 			if (!!~['wallet_id', 'wallet', 'status', 'user_id', 'coin_id'].indexOf(field)) {
 				continue;
@@ -50,7 +50,7 @@ class InfoCommand extends Command {
 			output += `[${field}] : ${result[field]}\n`;
 		}
 
-		output += '\n<b><u>User Settings</u></b>\n';
+		output += '\n<u>User Settings</u>\n';
 		for (const i in Settings.fields) {
 			const field = Settings.fields[i];
 			
@@ -71,7 +71,7 @@ class InfoCommand extends Command {
 			output += `[${field}] : ${out}\n`;
 		}
 
-		output += '\n<b><u>Wallet Information</u></b>\n';
+		output += '\n<u>Wallet Information</u>\n';
 
 		const wallet = result.wallet ? result.wallet : await Wallet.findByUserId(ctx.from.id);
 

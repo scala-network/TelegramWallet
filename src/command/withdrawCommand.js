@@ -66,9 +66,9 @@ class WithdrawCommand extends Command {
 				const tx_hash = trx.tx_hash_list.join("\n * ");
 				const trx_fee = trx.fee_list.reduce((a, b) => a + b, 0);
 				const balance = parseInt(wallet.balance) - parseInt(trx_amount) - parseInt(trx_fee);
-
+				await Meta.setByUserId(ctx.from.id, uuid);
 				return ctx.appResponse.reply(`
-<b><u>Transaction Details</u></b>
+<u>Transaction Details</u>
 
 <b>From:</b>
 ${wallet.address}
@@ -84,10 +84,9 @@ ${address}
 <b>Number of transactions :</b> ${trx.tx_hash_list.length}
 Press button below to confirm`,
 {
-    parse_mode: 'HTML',
     reply_markup: {
-        keyboard: [
-            [ { text: '/submit ' + uuid }],
+        inline_keyboard: [
+            [ { text: 'Confirm?', callback_data : 'submit' }],
         ],
         resize_keyboard : true, 
     	one_time_keyboard: true
