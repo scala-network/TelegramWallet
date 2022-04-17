@@ -1,7 +1,7 @@
 'use strict';
 
 const Model = require('../base/model');
-const STATUS = require('../../status');
+const STATUS = require('../status');
 
 class Network extends Model {
 	get fields () {
