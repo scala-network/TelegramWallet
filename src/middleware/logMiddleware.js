@@ -21,7 +21,7 @@ class LogMiddleware extends Middleware {
 		}
 		const ms = new Date() - start;
 		const chatID = ('chat' in ctx) && ('id' in ctx.chat) ? ctx.chat.id : 'private';
-		if(ctx.appRequest.is.command) {
+		if (ctx.appRequest.is.command) {
 			const msg = (ctx.update && ctx.update.message) ? ctx.update.message.text : (('message' in ctx) ? ctx.message.text : '');
 			global.log('info', logSystem, 'Command: %s From: %s Request : %s [%sms]', [
 				chatID,
@@ -29,15 +29,14 @@ class LogMiddleware extends Middleware {
 				msg,
 				ms
 			]);
-		}else if(ctx.appRequest.is.action){
-			const action = (ctx.update && ctx.update.callback_query) ? ctx.update.callback_query.data :  '';
+		} else if (ctx.appRequest.is.action) {
+			const action = (ctx.update && ctx.update.callback_query) ? ctx.update.callback_query.data : '';
 			global.log('info', logSystem, 'Action: %s From: %s Request : %s [%sms]', [
 				chatID,
 				ctx.from.username,
 				action,
 				ms
 			]);
-
 		}
 	}
 }

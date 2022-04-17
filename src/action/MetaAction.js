@@ -8,8 +8,8 @@ class MetaAction extends Action {
 		return 'meta';
 	}
 
-	get description() {
-		return "Meta submit to relay transaction";
+	get description () {
+		return 'Meta submit to relay transaction';
 	}
 
 	async run (ctx) {

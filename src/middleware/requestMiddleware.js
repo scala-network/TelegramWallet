@@ -12,14 +12,14 @@ class RequestMiddleware extends Middleware {
 	async run (ctx, next) {
 		if (ctx.test) return;
 
-		if(!ctx || !ctx.update) {
+		if (!ctx || !ctx.update) {
 			if (next) {
 				await next(ctx);
 			}
 			return;
 		}
-		let appRequest = {
-			is : {
+		const appRequest = {
+			is: {
 				action: false,
 				command: false,
 				admin: false,
@@ -27,16 +27,16 @@ class RequestMiddleware extends Middleware {
 				user: false,
 				bot: false
 			},
-			args : [],
-			query : null,
-			command : null,
-			action : null,
-			from : {}
-		}
-		
-		if('message' in ctx.update && ctx.update.message.text) {
+			args: [],
+			query: null,
+			command: null,
+			action: null,
+			from: {}
+		};
+
+		if ('message' in ctx.update && ctx.update.message.text) {
 			const message = ctx.update.message;
-			let command = message.text.split(' ')[0];	
+			let command = message.text.split(' ')[0];
 			if (command.endsWith(global.config.bot.name)) {
 				command = command.replace(global.config.bot.name, '').trim();
 			}
@@ -65,7 +65,7 @@ class RequestMiddleware extends Middleware {
 			appRequest.args = args;
 			appRequest.query = query;
 			appRequest.from = message.from;
-		} else if('callback_query' in ctx.update) {
+		} else if ('callback_query' in ctx.update) {
 			const cb = ctx.update.callback_query;
 			appRequest.is.action = true;
 			appRequest.is.command = false;

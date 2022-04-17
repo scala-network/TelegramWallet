@@ -40,10 +40,7 @@ class Prompt {
 	async exec (ctx) {
 		if (!this.auth(ctx)) {
 			const toId = (!ctx.appRequest.is.group) ? ctx.appRequest.from.id : ctx.chat.id;
-			if(ctx.appRequest.is.action)
-			return await ctx.telegram.sendMessage(toId, `Authorization failed for \`${ctx.appRequest.action}\``);
-			else if(ctx.appRequest.is.command)
-			return await ctx.telegram.sendMessage(toId, `Authorization failed for \`${ctx.appRequest.command}\``);
+			if (ctx.appRequest.is.action) { return await ctx.telegram.sendMessage(toId, `Authorization failed for \`${ctx.appRequest.action}\``); } else if (ctx.appRequest.is.command) { return await ctx.telegram.sendMessage(toId, `Authorization failed for \`${ctx.appRequest.command}\``); }
 		}
 		await this.run(ctx);
 	}
