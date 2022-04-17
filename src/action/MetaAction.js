@@ -18,7 +18,7 @@ class MetaAction extends Action {
 
 		const metas = await Meta.getByUserId(ctx.appRequest.from.id);
 		if (!metas) return ctx.appResponse.reply('Invalid or expired meta id');
-		const response = await Meta.relay(this.Coin, metas);
+		const response = await Meta.relay(ctx.from.id, this.Coin, metas);
 		return await ctx.appResponse.reply(response);
 	}
 }

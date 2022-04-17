@@ -30,7 +30,7 @@ class SubmitCommand extends Command {
 		const metas = await Meta.findById(ctx.from.id, ctx.appRequest.args[0]);
 
 		if (!metas) return ctx.appResponse.reply('Invalid or expired meta id');
-		const response = await Meta.relay(this.Coin, metas);
+		const response = await Meta.relay(ctx.from.id, this.Coin, metas);
 		return await ctx.appResponse.reply(response);
 	}
 }
