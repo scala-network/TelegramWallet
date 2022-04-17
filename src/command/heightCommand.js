@@ -7,9 +7,7 @@
 const Command = require('../base/command');
 const TimeAgo = require('javascript-time-ago');
 const timeAgo = new TimeAgo('en-US');
-const logSystem = 'command/height';
 const utils = require('../utils');
-const { Markup } = require('telegraf');
 
 class HeightCommand extends Command {
 	get description () {
@@ -22,10 +20,6 @@ class HeightCommand extends Command {
 
 	async run (ctx) {
 		if (ctx.test) return;
-		const now = Date.now();
-		let timestamp;
-		const height = 0;
-		const step = now - (global.config.rpc.interval * 1000);
 		const Network = this.loadModel('Network');
 		const result = await Network.lastHeight(this.Coin);
 
@@ -35,7 +29,7 @@ class HeightCommand extends Command {
 		const { id } = ctx.from;
 
 		if (!ctx.appRequest.is.group) {
-        	const wallet = await this.loadModel('Wallet').findByUserId(id);
+			const wallet = await this.loadModel('Wallet').findByUserId(id);
 			if (wallet) {
 				output += 'Wallet height: ' + utils.formatNumber(wallet.height | 0) + ' \n';
 			} else {
@@ -43,7 +37,7 @@ class HeightCommand extends Command {
 			}
 		}
 
-      	ctx.appResponse.reply(output);
+		ctx.appResponse.reply(output);
 	}
 }
 

@@ -1,3 +1,4 @@
+'use strict';
 /**
  * A Telegram Command. Balance returns wallet balance.
  * @module Commands/balance
@@ -7,8 +8,6 @@ const Command = require('../base/command');
 const utils = require('../utils');
 const TimeAgo = require('javascript-time-ago');
 const timeAgo = new TimeAgo('en-US');
-const logSystem = 'command/balance';
-const { Markup } = require('telegraf');
 
 class BalanceCommand extends Command {
 	get name () {
@@ -28,17 +27,17 @@ class BalanceCommand extends Command {
 
 		const Wallet = this.loadModel('Wallet');
 
-		const old_wallet = await Wallet.findByUserId(ctx.from.id);
+		const oldWallet = await Wallet.findByUserId(ctx.from.id);
 		let output = '<u>Wallet Information</u>\n';
 
-		if (old_wallet) {
+		if (oldWallet) {
 			let wallet;
 
-			const sync_wallet = await Wallet.syncBalance(ctx.from.id, old_wallet, this.Coin);
-			if (sync_wallet && 'error' in sync_wallet) {
-				wallet = old_wallet;
+			const syncWallet = await Wallet.syncBalance(ctx.from.id, oldWallet, this.Coin);
+			if (syncWallet && 'error' in syncWallet) {
+				wallet = oldWallet;
 			} else {
-				wallet = sync_wallet;
+				wallet = syncWallet;
 			}
 			output += `Coin ID: ${wallet.coin_id}\n`;
 			output += `Balance: ${utils.formatNumber(this.Coin.format(wallet.balance || 0))}\n`;

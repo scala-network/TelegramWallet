@@ -8,7 +8,6 @@
  * @module Commands/help
  */
 const Command = require('../base/command');
-const { Markup } = require('telegraf');
 
 class HelpCommand extends Command {
 	get description () {

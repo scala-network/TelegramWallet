@@ -21,8 +21,8 @@ class Registeries {
 			if (c in this.#_registers) {
 				o = this.#_registers[c];
 			} else {
-				const cc = require(`../${this.registerName.toLowerCase()}/${c}${this.registerName}.js`);
-				o = new cc();
+				const Cc = require(`../${this.registerName.toLowerCase()}/${c}${this.registerName}.js`);
+				o = new Cc();
 			}
 			if (!o.enabled) {
 				continue;
@@ -49,7 +49,6 @@ class Registeries {
 
 	setBot (bot) {
 		const allowRegisteries = Object.keys(this.getRegisters());
-		const self = this;
 		const bar = new cliProgress.SingleBar({
 			format: `${this.registerName} | {bar} | {percentage}% | {value}/{total}`
 		}, cliProgress.Presets.shades_classic);

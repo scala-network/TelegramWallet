@@ -1,8 +1,7 @@
+'use strict';
 const path = require('path');
 const fs = require('fs');
-const logSystem = 'bootstrap';
 const _ = require('lodash');
-const config = {};
 
 const configFile = path.join(process.cwd(), 'config.json');
 

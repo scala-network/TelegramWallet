@@ -6,11 +6,8 @@
  */
 const Command = require('../base/command');
 const utils = require('../utils');
-const TimeAgo = require('javascript-time-ago');
-const timeAgo = new TimeAgo('en-US');
-const { Markup } = require('telegraf');
 
-class InfoCommand extends Command {
+class PriceCommand extends Command {
 	get enabled () {
 		return 'market' in global.config && 'tickers' in global.config.market && global.config.market.tickers.length > 0;
 	}
@@ -78,4 +75,4 @@ class InfoCommand extends Command {
 	}
 }
 
-module.exports = InfoCommand;
+module.exports = PriceCommand;

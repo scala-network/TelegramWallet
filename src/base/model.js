@@ -10,8 +10,8 @@ class Model {
 			return Model.Registries[registry];
 		}
 
-		const model = require(`../models/${registry}`);
-		const registerModel = new model();
+		const RegisterModel = require(`../models/${registry}`);
+		const registerModel = new RegisterModel();
 		Model.Registries[registry] = registerModel;
 		return registerModel;
 	}
@@ -46,8 +46,8 @@ class Model {
 		}
 
 		if (!(engine in this.#_qryObj)) {
-			const classObject = require(`../models/queries/${engine}/${this.className}`);
-			this.#_qryObj[engine] = new classObject(this.fields);
+			const ClassObject = require(`../models/queries/${engine}/${this.className}`);
+			this.#_qryObj[engine] = new ClassObject(this.fields);
 		}
 
 		return this.#_qryObj[engine];

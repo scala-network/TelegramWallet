@@ -1,4 +1,4 @@
-const logSystem = 'base/query';
+'use strict';
 
 class Query {
 	#_fields;

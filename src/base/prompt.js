@@ -1,5 +1,3 @@
-const logSystem = 'base/Prompt';
-
 'use strict';
 const Model = require('./model');
 const Coin = require('./coin');

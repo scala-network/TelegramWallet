@@ -1,12 +1,11 @@
 'use strict';
 /**
- * A Telegram Command. Transfer sends coin to username.
- * To return current wallets address do /tip <username>
- * @module Commands/tip
+ * A Telegram Command. Rain send coins to latest active users.
+  * @module Commands/rain
  */
 const Command = require('../base/command');
 
-class TransferCommand extends Command {
+class RainCommand extends Command {
 	get name () {
 		return 'rain';
 	}
@@ -111,13 +110,13 @@ class TransferCommand extends Command {
 			if ('error' in trx) {
 				return ctx.appResponse.reply('RPC Error: ' + trx.error);
 			}
-			const trx_fee = trx.fee_list.reduce((a, b) => a + b, 0);
-			const trx_amount = trx.amount_list.reduce((a, b) => a + b, 0);
-			const tx_hash = trx.tx_hash_list.join('\n* ');
-			const balance = parseInt(wallet.balance) - parseInt(trx_amount) - parseInt(trx_fee);
-			const total = trx_amount + trx_fee;
-			const total_xla = this.Coin.format(total);
-			await ctx.appResponse.reply('Airdrops to last ' + userNames.length + ' active members total of ' + total_xla + '\n' + userNames.join('\n'));
+			const trxFee = trx.fee_list.reduce((a, b) => a + b, 0);
+			const trxAmount = trx.amount_list.reduce((a, b) => a + b, 0);
+			const txHash = trx.tx_hash_list.join('\n* ');
+			const balance = parseInt(wallet.balance) - parseInt(trxAmount) - parseInt(trxFee);
+			const total = trxAmount + trxFee;
+			const totalXla = this.Coin.format(total);
+			await ctx.appResponse.reply('Airdrops to last ' + userNames.length + ' active members total of ' + totalXla + '\n' + userNames.join('\n'));
 			await ctx.appResponse.sendMessage(ctx.from.id, `
 <u>Transaction Details</u>
 
@@ -127,10 +126,10 @@ From:
 To: 
 ${userNames.join('\n')}
 
-Amount : ${this.Coin.format(trx_amount)}
-Fee : ${this.Coin.format(trx_fee)}
+Amount : ${this.Coin.format(trxAmount)}
+Fee : ${this.Coin.format(trxFee)}
 Trx Hash: 
-* ${tx_hash}
+* ${txHash}
 Current Balance : ${this.Coin.format(balance)}
 			`);
 			await Member.addNimbus(ctx.chat.id, '@' + sender.username, total);
@@ -149,10 +148,10 @@ From:
 To: 
 ${userNames.join('\n')}
 
-Amount : ${this.Coin.format(trx_amount)}
-Fee : ${this.Coin.format(trx_fee)}
+Amount : ${this.Coin.format(trxAmount)}
+Fee : ${this.Coin.format(trxFee)}
 Trx Hashes (${trx.amount_list.length} Transactions): 
-* ${tx_hash}`);
+* ${txHash}`);
 			}
 		} else {
 			const trx = await this.Coin.transferMany(ctx.from.id, wallet.wallet_id, destinations, true);
@@ -165,10 +164,10 @@ Trx Hashes (${trx.amount_list.length} Transactions):
 
 			ctx.appResponse.reply('Airdrop confirmation require to ' + userNames.length + " active members total. To skip confirmation set rain_submit enable. Users don't get wet if have confirmation");
 
-			const trx_fee = trx.fee_list.reduce((a, b) => a + b, 0);
-			const trx_amount = trx.amount_list.reduce((a, b) => a + b, 0);
-			const tx_hash = trx.tx_hash_list.join('\n * ');
-			const balance = parseInt(wallet.balance) - parseInt(trx_amount) - parseInt(trx_fee);
+			const trxFee = trx.fee_list.reduce((a, b) => a + b, 0);
+			const trxAmount = trx.amount_list.reduce((a, b) => a + b, 0);
+			// const txHash = trx.tx_hash_list.join('\n * ');
+			// const balance = parseInt(wallet.balance) - parseInt(trxAmount) - parseInt(trxFee);
 			const uuid = await Meta.getId(ctx.from.id, trx.tx_metadata_list.join(':'));
 
 			return ctx.appResponse.sendMessage(ctx.from.id, `
@@ -180,8 +179,8 @@ From:
 To: 
 ${userNames.join('\n')}
 				
-Amount : ${this.Coin.format(trx_amount)}
-Fee : ${this.Coin.format(trx_fee)}
+Amount : ${this.Coin.format(trxAmount)}
+Fee : ${this.Coin.format(trxFee)}
 Trx Meta ID: ${uuid}
 Trx Expiry: ${global.config.rpc.metaTTL} seconds
 Current Unlock Balance : ${this.Coin.format(wallet.balance)}
@@ -194,10 +193,10 @@ Press button below to confirm`,
 						[{ text: 'Confirm?', callback_data: 'meta' }]
 					],
 					resize_keyboard: true,
-    	one_time_keyboard: true
+					one_time_keyboard: true
 				}
 			});
 		}
 	}
 }
-module.exports = TransferCommand;
+module.exports = RainCommand;

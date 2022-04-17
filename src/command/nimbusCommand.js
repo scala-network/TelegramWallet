@@ -5,7 +5,6 @@
  * @module Commands/address
  */
 const Command = require('../base/command');
-const { Markup } = require('telegraf');
 
 class NimbusCommand extends Command {
 	get name () {
@@ -42,7 +41,7 @@ class NimbusCommand extends Command {
 			const member = results.overall[i];
 			template += '\n' + member.username + '    ' + this.Coin.format(member.amount);
 		}
-		await ctx.appResponse.sendMessage(ctx.chat.id, template, { parse_mode: 'HTML' });
+		await ctx.appResponse.sendMessage(ctx.chat.id, template);
 	}
 }
 module.exports = NimbusCommand;

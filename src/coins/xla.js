@@ -85,10 +85,10 @@ class xla {
 		return response.result;
 	}
 
-	async getAddress (id, wallet_id) {
+	async getAddress (id, walletId) {
 		const { host, port } = this.server;
 		const response = await request.fetch(host, port, id, 'get_address', {
-			account_index: parseInt(wallet_id || id),
+			account_index: parseInt(walletId),
 			address_index: [0]
 		});
 
@@ -103,13 +103,13 @@ class xla {
 		return response.result;
 	}
 
-	async getBalance (id, wallet_id) {
-		if (!wallet_id) {
+	async getBalance (id, walletId) {
+		if (!walletId) {
 			return { error: 'Missing wallet index' };
 		}
 		const { host, port } = this.server;
 		const response = await request.fetch(host, port, id, 'get_balance', {
-			account_index: parseInt(wallet_id),
+			account_index: parseInt(walletId),
 			address_index: [0]
 		});
 
@@ -141,11 +141,11 @@ class xla {
 		return response.result;
 	}
 
-	async transfer (id, idx, address, amount, do_not_relay) {
+	async transfer (id, idx, address, amount, doNotRelay) {
 		if (!idx) {
 			return { error: 'Missing wallet index' };
 		}
-		do_not_relay = do_not_relay || false;
+		doNotRelay = doNotRelay || false;
 
 		const { host, port } = this.server;
 		const response = await request.fetch(host, port, id, 'transfer', {
@@ -155,9 +155,9 @@ class xla {
 			ring_size: 11,
 			mixin: 11,
 			priority: 2,
-			do_not_relay,
-			get_tx_metadata: do_not_relay,
-			get_tx_keys: !do_not_relay,
+			do_not_relay: doNotRelay,
+			get_tx_metadata: doNotRelay,
+			get_tx_keys: !doNotRelay,
 			account_index: parseInt(idx)
 		});
 
@@ -189,15 +189,15 @@ class xla {
 		return response.result;
 	}
 
-	async transferMany (id, idx, destinations, do_not_relay, split = true) {
-		 return (split) ? this.transferSplit(id, idx, destinations, do_not_relay) : this.transfers(id, idx, destinations, do_not_relay);
+	async transferMany (id, idx, destinations, doNotRelay, split = true) {
+		return (split) ? this.transferSplit(id, idx, destinations, doNotRelay) : this.transfers(id, idx, destinations, doNotRelay);
 	}
 
-	async transfers (id, idx, destinations, do_not_relay) {
+	async transfers (id, idx, destinations, doNotRelay) {
 		if (!idx) {
 			return { error: 'Missing wallet index' };
 		}
-		do_not_relay = do_not_relay || false;
+		doNotRelay = doNotRelay || false;
 
 		const { host, port } = this.server;
 		const response = await request.fetch(host, port, id, 'transfer', {
@@ -205,9 +205,9 @@ class xla {
 			ring_size: 11,
 			mixin: 11,
 			priority: 2,
-			do_not_relay,
-			get_tx_metadata: do_not_relay,
-			get_tx_keys: !do_not_relay,
+			do_not_relay: doNotRelay,
+			get_tx_metadata: doNotRelay,
+			get_tx_keys: !doNotRelay,
 			account_index: parseInt(idx)
 		});
 
@@ -227,11 +227,11 @@ class xla {
 		return trx;
 	}
 
-	async transferSplit (id, idx, destinations, do_not_relay) {
+	async transferSplit (id, idx, destinations, doNotRelay) {
 		if (!idx) {
 			return { error: 'Missing wallet index' };
 		}
-		do_not_relay = do_not_relay || false;
+		doNotRelay = doNotRelay || false;
 
 		const { host, port } = this.server;
 		const response = await request.fetch(host, port, id, 'transfer_split', {
@@ -239,9 +239,9 @@ class xla {
 			ring_size: 11,
 			mixin: 11,
 			priority: 2,
-			do_not_relay,
-			get_tx_metadata: do_not_relay,
-			get_tx_keys: !do_not_relay,
+			do_not_relay: doNotRelay,
+			get_tx_metadata: doNotRelay,
+			get_tx_keys: !doNotRelay,
 			account_index: parseInt(idx)
 		});
 

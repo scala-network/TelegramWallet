@@ -8,7 +8,6 @@ const Command = require('../base/command');
 const utils = require('../utils');
 const TimeAgo = require('javascript-time-ago');
 const timeAgo = new TimeAgo('en-US');
-const { Markup } = require('telegraf');
 
 class InfoCommand extends Command {
 	get name () {
@@ -38,7 +37,7 @@ class InfoCommand extends Command {
 			return ctx.appResponse.reply('User account not avaliable. Please create a wallet https://t.me/' + global.config.bot.username);
 		}
 
-		const totalBalance = 0;
+		// const totalBalance = 0;
 		let output = '';
 		output += '<u>User Information</u>\n';
 		for (const field of User.fields) {
