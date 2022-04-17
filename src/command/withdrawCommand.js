@@ -85,7 +85,7 @@ Press button below to confirm`,
 {
     reply_markup: {
         inline_keyboard: [
-            [ { text: 'Confirm?', callback_data : 'submit' }],
+            [ { text: 'Confirm?', callback_data : 'meta' }],
         ],
         resize_keyboard : true, 
     	one_time_keyboard: true

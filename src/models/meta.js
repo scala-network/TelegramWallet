@@ -32,6 +32,29 @@ class Meta extends Model
 		return this.Query(options).deleteMeta(user_id, id);
 	}
 
+
+	async relay(Coin, metas) {
+		const explorer = [];
+		const tx_hashes = [];
+		for(let meta of mts.split(':')) {
+			const tx = await Coin.relay(ctx.from.id, meta);
+			if('error' in tx)  return tx.error;
+
+			const tx_hash = tx.tx_hash;
+			explorer.push(Coin.explorerLink(tx_hash));
+			tx_hashes.push(tx_hash);
+		}
+
+		await this.deleteMeta(ctx.from.id, mts);
+		return `<u>Transaction completed</u>
+Number of transactions: ${tx_hashes.length}
+Trx Hashes : 
+* ${tx_hashes.join("\n *")}
+Explorer : 
+* ${explorer.join("\n * ")}`;
+
+	}
+
 }
 
 
