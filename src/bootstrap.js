@@ -18,9 +18,9 @@ try {
 }
 require('./log');
 /* ENGINES DEFAULT */
-const rawDBJson = require('./defaults/engine');
+// const rawDBJson = require('./defaults/engine');
 
-global.config.datasource = _.merge(rawDBJson, global.config.datasource);
+// global.config.datasource = _.merge(rawDBJson, global.config.datasource);
 /* COMMANDS SETUP DEFAULT */
 const rawCommandJson = require('./defaults/commands');
 
