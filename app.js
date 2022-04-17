@@ -41,7 +41,7 @@ bot.telegram.getMe().then(bot_informations => {
     global.log('info', logSystem, "Server initialized");
     global.log('info', logSystem, "Bot Nick: %s", global.config.bot.name);
     
-    for(let m of ['middleware', 'action', 'command']) {
+    for(let m of ['middleware', 'actions', 'command']) {
         global.log('info', logSystem, "Loading Registry : " + m);
         require('./src/registries/' + m)(bot);
     }
