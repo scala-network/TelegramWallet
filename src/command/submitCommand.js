@@ -24,7 +24,7 @@ class SubmitCommand extends Command {
 		if(ctx.test)  return;
 		const Meta = this.loadModel('Meta');
 		const Coin = this.Coin;
-		const relay = mts => {
+		const relay = async mts => {
 			const explorer = [];
 			const tx_hashes = [];
 			for(let meta of mts.split(':')) {
@@ -54,14 +54,14 @@ class SubmitCommand extends Command {
 		if(ctx.appRequest.args.length <= 0) {
 			const umetas = await Meta.getByUserId(ctx.from.id);
 			if(!umetas) return ctx.appResponse.reply(`Missing argument for trx key\n${this.description}`);
-			return relay(umetas);
+			return await relay(umetas);
         }
 		
 		const metas = await Meta.findById(ctx.from.id, ctx.appRequest.args[0]);
 
 		if(!metas) return ctx.appResponse.reply("Invalid or expired meta id");
 		
-		return relay(metas);
+		return await relay(metas);
 
 	}
 }
