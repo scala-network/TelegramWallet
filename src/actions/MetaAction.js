@@ -12,15 +12,9 @@ class MetaAction extends Action {
 	get name() {
         return "meta";
     }
-
-    get listenTo() {
-    	return "meta";
-    }
-	
 	auth(ctx) {
 		return !ctx.appRequest.is.group;
 	}
-
 	async run(ctx) {
 		if(ctx.test)  return;
 		const Meta = this.loadModel('Meta');

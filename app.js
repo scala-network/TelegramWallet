@@ -40,9 +40,12 @@ bot.telegram.getMe().then(bot_informations => {
     global.config.bot.name = "@" + bot_informations.username;
     global.log('info', logSystem, "Server initialized");
     global.log('info', logSystem, "Bot Nick: %s", global.config.bot.name);
-    global.log('info', logSystem, "Loading Registries");
-    require('./src/registries/middleware')(bot);
-    require('./src/registries/command')(bot);
+    
+    for(let m of ['middleware', 'action', 'command']) {
+        global.log('info', logSystem, "Loading Registry : " + m);
+        require('./src/registries/' + m)(bot);
+    }
+    
 });
 bot.catch(e => global.log('error', logSystem, e));
 bot.launch();

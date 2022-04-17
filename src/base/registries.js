@@ -59,6 +59,7 @@ class Registeries
 		}, cliProgress.Presets.shades_classic);
 
 		bar.start(allowRegisteries.length, 0);
+		let loaded = 0;
 		for(let i =0; i < allowRegisteries.length;i++) {
 					
 			let reg = allowRegisteries[i];
@@ -66,9 +67,10 @@ class Registeries
 			bar.update(i+1);
 
 			if(!register || !register.enabled) return;
-
+			loaded++;
 			this.setBotRegistry(register, bot);
 		}
+		global.log("info", logSystem, "Total loaded module : " + loaded + "/" + allowRegisteries.length);
 		bar.stop();
 
 	}

@@ -4,7 +4,7 @@ const Prompt = require('./prompt');
 
 class Action extends Prompt{
 	get listenTo() {
-		return "";
+		return this.name;
 	}
 
 	async exec(ctx) {
