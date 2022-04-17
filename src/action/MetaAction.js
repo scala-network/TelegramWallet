@@ -1,15 +1,15 @@
 'use strict';
 /**
- * A Telegram Command. Address basically returns wallet*s) address.
- * To return current wallets address do /address
- *
- * @module Commands/address
  */
 const Action = require('../base/action');
 
 class MetaAction extends Action {
 	get name () {
 		return 'meta';
+	}
+
+	get description() {
+		return "Meta submit to relay transaction";
 	}
 
 	auth (ctx) {
