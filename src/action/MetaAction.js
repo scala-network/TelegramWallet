@@ -12,10 +12,6 @@ class MetaAction extends Action {
 		return "Meta submit to relay transaction";
 	}
 
-	auth (ctx) {
-		return !ctx.appRequest.is.group;
-	}
-
 	async run (ctx) {
 		if (ctx.test) return;
 		const Meta = this.loadModel('Meta');

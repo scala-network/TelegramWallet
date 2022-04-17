@@ -12,17 +12,17 @@ class MemberMiddleware extends Middleware {
 	async run (ctx, next) {
 		if (ctx.test) return;
 
-		if (!ctx || !ctx.appRequest || ctx.appRequest.is.action) {
+		if (!ctx || !ctx.appRequest || ctx.appRequest.is.command || ctx.appRequest.is.action) {
 			if (next) next();
 			return;
 		}
 
 		const User = Model.LoadRegistry('User');
-		const userId = ctx.from.id;
+		const userId = ctx.appRequest.from.id;
 		if (await User.exists(userId)) {
 			const username = await User.getUsernameById(userId);
-			if (username !== ctx.from.username) {
-				await User.updateUsername(userId, ctx.from.username);
+			if (username !== ctx.appRequest.from.username) {
+				await User.updateUsername(userId, ctx.appRequest.from.username);
 			}
 			if (ctx.appRequest.is.group) {
 				await Model.LoadRegistry('Member').addMember(ctx.chat.id, userId);

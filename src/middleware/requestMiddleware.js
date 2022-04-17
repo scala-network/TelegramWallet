@@ -12,58 +12,75 @@ class RequestMiddleware extends Middleware {
 	async run (ctx, next) {
 		if (ctx.test) return;
 
-		if (!ctx || !ctx.message || !ctx.message.text) {
+		if(!ctx || !ctx.update) {
 			if (next) {
 				await next(ctx);
 			}
 			return;
 		}
-
-		const cmd1 = ctx.message.text.split(' ')[0];
-
-		let action = cmd1;
-
-		if (action.endsWith(global.config.bot.name)) {
-			action = action.replace(global.config.bot.name, '').trim();
+		let appRequest = {
+			is : {
+				action: false,
+				command: false,
+				admin: false,
+				group: false,
+				user: false,
+				bot: false
+			},
+			args : [],
+			query : null,
+			command : null,
+			action : null,
+			from : {}
 		}
-		const isGroup = ctx.message.chat.type === 'group' || ctx.message.chat.type === 'supergroup';
-		const isAnAction = action.startsWith('/') && global.config.commands.allowed.indexOf(action.replace('/', '')) >= 0;
-		const is = {
-			admin: global.config.admins.indexOf(ctx.from.id) >= 0,
-			group: isGroup,
-			user: !isGroup && (ctx.message.chat.type !== 'channel' || ctx.message.chat.type === 'private'),
-			action: isAnAction,
-			bot: ctx.message.from.is_bot
-		};
-		let args = [];
-		let query = null;
-
-		if (isAnAction) {
-			const _query = ctx.message.text.replace(`${cmd1}`, '').trim();
-
-			if (_query !== '') {
-				args = _query.split(' ');
-				query = _query;
+		
+		if('message' in ctx.update && ctx.update.message.text) {
+			const message = ctx.update.message;
+			let command = message.text.split(' ')[0];	
+			if (command.endsWith(global.config.bot.name)) {
+				command = command.replace(global.config.bot.name, '').trim();
 			}
-			// action = action.replace()
+			const isGroup = message.chat.type === 'group' || message.chat.type === 'supergroup';
+			const isUser = !isGroup && (message.chat.type !== 'channel' || message.chat.type === 'private');
+			const isCommand = command.startsWith('/') && global.config.commands.allowed.indexOf(command.replace('/', '')) >= 0;
+
+			appRequest.is.action = false;
+			appRequest.is.command = isCommand;
+			appRequest.is.group = isGroup;
+			appRequest.is.user = isUser;
+			let args = [];
+			let query = null;
+
+			if (isCommand) {
+				const _query = message.text.replace(`${command}`, '').trim();
+
+				if (_query !== '') {
+					args = _query.split(' ');
+					query = _query;
+				}
+			} else {
+				command = null;
+			}
+			appRequest.command = command;
+			appRequest.args = args;
+			appRequest.query = query;
+			appRequest.from = message.from;
+		} else if('callback_query' in ctx.update) {
+			const cb = ctx.update.callback_query;
+			appRequest.is.action = true;
+			appRequest.is.command = false;
+			appRequest.action = cb.data;
+			appRequest.from = cb.from;
 		} else {
-			action = null;
+			console.log(ctx);
+			if (next) {
+				await next(ctx);
+			}
+			return;
 		}
-		// if(isAnAction && is_group && data.status == "administrator") {
-		//	 setTimeout(() => ctx.telegram.deleteMessage(ctx.message.chat.id, ctx.message.message_id), 1000);
-		// }
+		appRequest.is.bot = appRequest.from.is_bot;
 
-		// const snm = ctx.telegram.sendMessage;
-
-		// ctx.telegram.sendMessage  = async function(a,b,c,d) {
-		//	 return await snm(a,b,c,d).catch(e => global.log('error', logSystem, e));
-		// }
-
-		// ctx.reply  = async function(a,b,c,d) {
-		//	 return await snm(is.group ? ctx.message.chat.id : ctx.message.from.id,a,b,c,d).catch(e => global.log('error', logSystem, e));
-		// }
-
-		ctx.appRequest = { is, action, query, args };
+		ctx.appRequest = appRequest;
 		ctx.appResponse = {
 			sendMessage: async function (a, b, c, d) {
 				c = Object.assign({
@@ -79,7 +96,7 @@ class RequestMiddleware extends Middleware {
 					parse_mode: 'HTML'
 				}, b);
 				return await ctx.reply(a, b, c, d).catch(function (e) {
-					global.log('error', logSystem, 'Error sending to id : ' + is.group ? ctx.message.chat.id : ctx.message.from.id);
+					global.log('error', logSystem, 'Error sending to id : ' + appRequest.is.group ? ctx.update.message.chat.id : appRequest.from.id);
 					global.log('error', logSystem, e);
 				});
 			},

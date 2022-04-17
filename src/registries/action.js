@@ -12,13 +12,13 @@ class ActionManager extends Registeries {
 	}
 
 	setBotRegistry (reg, bot) {
-		bot.action(reg.listenTo, reg.exec);
+		const exec = async ctx => await reg.exec(ctx);
+		bot.action(reg.listenTo, exec);
 	}
 }
 
 module.exports = bot => {
-	if (!global.ActionManager) {
-		global.ActionManager = new ActionManager();
-	}
-	global.ActionManager.setBot(bot);
+	
+	const manager = new ActionManager();
+	manager.setBot(bot);
 };
