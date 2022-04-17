@@ -72,7 +72,6 @@ class RequestMiddleware extends Middleware {
 			appRequest.action = cb.data;
 			appRequest.from = cb.from;
 		} else {
-			console.log(ctx);
 			if (next) {
 				await next(ctx);
 			}

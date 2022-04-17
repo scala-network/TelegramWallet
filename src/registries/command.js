@@ -25,9 +25,7 @@ class CommandManager extends Registeries {
 				return;
 			}
 
-			if (!ctx.appRequest || !ctx.appRequest.is.action) {
-				return;
-			}
+			if (!ctx.appRequest || !ctx.appRequest.is.command) return;
 			const User = Model.LoadRegistry('User');
 			const exists = await User.exists(ctx.from.id);
 			if (ctx.appRequest.is.group && !exists) {
