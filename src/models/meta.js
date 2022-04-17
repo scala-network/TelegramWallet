@@ -1,61 +1,55 @@
 const Model = require('../base/model');
 
-class Meta extends Model
-{
-
-	get fields() {
+class Meta extends Model {
+	get fields () {
 		return [
-			"id",
-			"meta",
-			"user_id",
-			"expired"
+			'id',
+			'meta',
+			'user_id',
+			'expired'
 		];
-	};
+	}
 
-	get className() {
+	get className () {
 		return 'meta';
 	}
-	
-	async getId(user_id, tx_meta, options) {
-		return this.Query(options).getId(user_id, tx_meta);
+
+	async getId (userId, txMeta, options) {
+		return this.Query(options).getId(userId, txMeta);
 	}
 
-	async findById(user_id, id, options) {
-		return this.Query(options).findById(user_id, id);
+	async findById (userId, id, options) {
+		return this.Query(options).findById(userId, id);
 	}
 
-	async getByUserId(user_id, options) {
-		return this.Query(options).getByUserId(user_id);
+	async getByUserId (userId, options) {
+		return this.Query(options).getByUserId(userId);
 	}
 
-	async deleteMeta(user_id, id, options) {
-		return this.Query(options).deleteMeta(user_id, id);
+	async deleteMeta (userId, id, options) {
+		return this.Query(options).deleteMeta(userId, id);
 	}
 
-
-	async relay(Coin, metas) {
+	async relay (userId, Coin, metas) {
 		const explorer = [];
-		const tx_hashes = [];
-		for(let meta of mts.split(':')) {
-			const tx = await Coin.relay(ctx.from.id, meta);
-			if('error' in tx)  return tx.error;
+		const txHashes = [];
+		for (const meta of metas.split(':')) {
+			const tx = await Coin.relay(userId, meta);
+			if ('error' in tx) return tx.error;
 
-			const tx_hash = tx.tx_hash;
-			explorer.push(Coin.explorerLink(tx_hash));
-			tx_hashes.push(tx_hash);
+			const txHash = tx.tx_hash;
+			explorer.push(Coin.explorerLink(txHash));
+			txHashes.push(txHash);
 		}
 
-		await this.deleteMeta(ctx.from.id, mts);
+		await this.deleteMeta(userId, metas);
 		return `<u>Transaction completed</u>
-Number of transactions: ${tx_hashes.length}
+Number of transactions: ${txHashes.length}
 Trx Hashes : 
-* ${tx_hashes.join("\n *")}
+* ${txHashes.join('\n *')}
 Explorer : 
-* ${explorer.join("\n * ")}`;
-
+* ${explorer.join('\n * ')}`;
 	}
-
 }
-
 
 module.exports = Meta;

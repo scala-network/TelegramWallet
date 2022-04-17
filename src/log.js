@@ -1,4 +1,4 @@
-'use strict'
+'use strict';
 const fs = require('fs');
 const util = require('util');
 const dateFormat = require('dateformat');
@@ -7,94 +7,83 @@ const clc = require('cli-color');
 /**
  * Initialize log system
  **/
- 
+
 // Set CLI colors
-var severityMap = {
-    'info': clc.blue,
-    'warn': clc.yellow,
-    'error': clc.red
+const severityMap = {
+	info: clc.blue,
+	warn: clc.yellow,
+	error: clc.red
 };
 
 // Set severity levels
-var severityLevels = ['info', 'warn', 'error'];
+const severityLevels = ['info', 'warn', 'error'];
 
+const logFileDisbled = !global.config.log.files || !global.config.log.files.enabled || false;
+let logDir;
+/**
+* Write log entries to file at specified flush interval
+**/
+const pendingWrites = {};
 
-let logFileDisbled = !global.config.log.files || !global.config.log.files.enabled || false;
-
-if(!logFileDisbled){
-	
+if (!logFileDisbled) {
 	// Set log directory
-	var logDir = global.paths;
-	
-	// Create log directory if not exists
-	if (!fs.existsSync(logDir)){
-	    try {
-	        fs.mkdirSync(logDir);
-	    }
-	    catch(e){
-	        throw e;
-	    }
-	}
-	
-	/**
-	 * Write log entries to file at specified flush interval
-	 **/ 
-	var pendingWrites = {};
-	
-	setInterval(function(){
-	    for (var fileName in pendingWrites){
-	        var data = pendingWrites[fileName];
-	        fs.appendFile(fileName, data, function(err) {
-	            if (err) {
-	                console.log("Error writing log data to disk: %s", err);
-	                callback(null, "Error writing data to disk");
-	            }
-	        });
-	        delete pendingWrites[fileName];
-	    }
-	}, global.config.log.files.flushInterval * 1000);
+	logDir = global.config.log.files.path;
 
+	// Create log directory if not exists
+	if (!fs.existsSync(logDir)) {
+		fs.mkdirSync(logDir);
+	}
+
+	setInterval(function () {
+		for (const fileName in pendingWrites) {
+			const data = pendingWrites[fileName];
+			fs.appendFile(fileName, data, function (err) {
+				if (err) {
+					console.log('Error writing log data to disk: %s', err);
+					// callback(null, 'Error writing data to disk');
+				}
+			});
+			delete pendingWrites[fileName];
+		}
+	}, global.config.log.files.flushInterval * 1000);
 }
 /**
  * Add new log entry
  **/
 
-global.log = function(severity, system, text, data){
+global.log = function (severity, system, text, data) {
+	const logConsole = severityLevels.indexOf(severity) >= severityLevels.indexOf(global.config.log.console.level);
 
-	
-    var logConsole =  severityLevels.indexOf(severity) >= severityLevels.indexOf(global.config.log.console.level);
-    
-    let logFiles = (!logFileDisbled)? severityLevels.indexOf(severity) >= severityLevels.indexOf(global.config.log.files.level):false;
-    if (!logConsole && !logFiles) {
-    	return;
-    }
+	const logFiles = (!logFileDisbled) ? severityLevels.indexOf(severity) >= severityLevels.indexOf(global.config.log.files.level) : false;
+	if (!logConsole && !logFiles) {
+		return;
+	}
 
-    var time = dateFormat(new Date(), 'yyyy-mm-dd HH:MM:ss');
-    var formattedMessage = text;
+	const time = dateFormat(new Date(), 'yyyy-mm-dd HH:MM:ss');
+	let formattedMessage = text;
 
-    if (data) {
-		if(!Array.isArray(data)) {
+	if (data) {
+		if (!Array.isArray(data)) {
 			data = [data];
 		}
-        data.unshift(text);
-        formattedMessage = util.format.apply(null, data);
-    }
+		data.unshift(text);
+		formattedMessage = util.format.apply(null, data);
+	}
 
-    if (logConsole){
-        if (global.config.log.console.colors){
-        	if(process.env.forkId >= 0){
-        		system+=' (' + process.env.forkId+')';	
-        	}
-            console.log(severityMap[severity](time) + clc.white.bold(' [' + system + '] ') + formattedMessage);
-        }else{
-            console.log(time + ' [' + system + '] ' + formattedMessage);
-        }
-    }
+	if (logConsole) {
+		if (global.config.log.console.colors) {
+			if (process.env.forkId >= 0) {
+				system += ' (' + process.env.forkId + ')';
+			}
+			console.log(severityMap[severity](time) + clc.white.bold(' [' + system + '] ') + formattedMessage);
+		} else {
+			console.log(time + ' [' + system + '] ' + formattedMessage);
+		}
+	}
 
-
-    if (logFiles) {
-        var fileName = logDir + '/' + system + '_' + severity + '.log';
-        var fileLine = time + ' ' + formattedMessage + '\n';
-        pendingWrites[fileName] = (pendingWrites[fileName] || '') + fileLine;
-    }
+	if (logFiles) {
+		const fileName = logDir + '/' + system + '_' + severity + '.log';
+		const fileLine = time + ' ' + formattedMessage + '\n';
+		pendingWrites[fileName] = (pendingWrites[fileName] || '') + fileLine;
+	}
 };

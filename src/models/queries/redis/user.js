@@ -1,60 +1,54 @@
 'use strict';
 const STATUS = require('../../../status');
-
-const logSystem = "model/redis/user";
 const Query = require('../../../base/query');
-class User  extends Query
-{
-	async updateField(id, field, value) {
-		
-		const ukey = [global.config.coin, 'Users' , id].join(':');
-		
-		if(!~this.fields.indexOf(field)) {
-        		return STATUS.ERROR_MODEL_PROPERTIES_NOT_AVALIABLE;
+class User extends Query {
+	async updateField (id, field, value) {
+		const ukey = [global.config.coin, 'Users', id].join(':');
+
+		if (!~this.fields.indexOf(field)) {
+			return STATUS.ERROR_MODEL_PROPERTIES_NOT_AVALIABLE;
 		}
 
-			const user = await global.redisClient.hset(ukey, field, value);
+		const user = await global.redisClient.hset(ukey, field, value);
 
-		if(!user) {
+		if (!user) {
 			return STATUS.ERROR_MODEL_UPDATE;
 		}
 
-        	return STATUS.OK;
+		return STATUS.OK;
 	}
 
-
-	async findByUsername(username) {
-		const aKey = [global.config.coin, "Alias"].join(':');
-		const user_id = await global.redisClient.hget(aKey, username);
-		if(!user_id) {
+	async findByUsername (username) {
+		const aKey = [global.config.coin, 'Alias'].join(':');
+		const userId = await global.redisClient.hget(aKey, username);
+		if (!userId) {
 			return null;
 		}
-		return await this.findById(user_id);
+		return await this.findById(userId);
 	}
 
-	async getUsernameById(user_id) {
-		const ukey = [global.config.coin, 'Users' , user_id].join(':');
+	async getUsernameById (userId) {
+		const ukey = [global.config.coin, 'Users', userId].join(':');
 
-		const result = await global.redisClient.hget(ukey,'username');
-		if(!result) {
-        	return null;
-		} 
-		
+		const result = await global.redisClient.hget(ukey, 'username');
+		if (!result) {
+			return null;
+		}
+
 		return result;
 	}
 
-	async findById(user_id) {
-		
-		const ukey = [global.config.coin, 'Users' , user_id].join(':');
+	async findById (userId) {
+		const ukey = [global.config.coin, 'Users', userId].join(':');
 
 		const results = await global.redisClient.hgetall(ukey);
-		if(!results) {
-        	return null;
-		} 
-		if(results.wallet) {
-			try{
+		if (!results) {
+			return null;
+		}
+		if (results.wallet) {
+			try {
 				results.wallet = JSON.parse(results.wallet);
-			} catch(e) {
+			} catch (e) {
 
 			}
 		}
@@ -62,68 +56,65 @@ class User  extends Query
 		return results;
 	}
 
-	async exists(user_id) {
-		const ukey = [global.config.coin, 'Users' , user_id].join(':');
+	async exists (userId) {
+		const ukey = [global.config.coin, 'Users', userId].join(':');
 
 		const result = await global.redisClient.hget(ukey, 'user_id');
-		return (result !== null && `${result}` === `${user_id}`);
+		return (result !== null && `${result}` === `${userId}`);
 	}
 
-	async remove(user_id, username) {
-		const uKey = [global.config.coin, "Users" ,user_id].join(':');
-		const aKey = [global.config.coin, "Alias"].join(':');
+	async remove (userId, username) {
+		const uKey = [global.config.coin, 'Users', userId].join(':');
+		const aKey = [global.config.coin, 'Alias'].join(':');
 
 		await global.redisClient.multi()
-		.del(uKey)
-		.hdel(aKey, username)
-		.exec();
+			.del(uKey)
+			.hdel(aKey, username)
+			.exec();
 
 		return STATUS.OK;
 	}
-	
-	async updateUsername(user_id, username) {
-		const uKey = [global.config.coin, "Users" ,user_id].join(':');
-		const aKey = [global.config.coin, "Alias"].join(':');
 
-		let oldUsername = await global.redisClient.hget(uKey, "username");
+	async updateUsername (userId, username) {
+		const uKey = [global.config.coin, 'Users', userId].join(':');
+		const aKey = [global.config.coin, 'Alias'].join(':');
+
+		const oldUsername = await global.redisClient.hget(uKey, 'username');
 
 		return await global.redisClient
 			.multi()
 			.hset(uKey, 'username', username)
 			.hdel(aKey, oldUsername)
-			.hset(aKey, username, user_id)
+			.hset(aKey, username, userId)
 			.exec();
 	}
 
+	async add (userId, username) {
+		const uKey = [global.config.coin, 'Users', userId].join(':');
+		const aKey = [global.config.coin, 'Alias'].join(':');
 
-	async add(user_id, username) {
-		const uKey = [global.config.coin, "Users" ,user_id].join(':');
-		const aKey = [global.config.coin, "Alias"].join(':');
+		let user = await this.findById(userId);
 
-		let user = await this.findById(user_id);
-
-			if(user && parseInt(user.user_id) === user_id) {
-
-				if(user.wallet) {
-					return  STATUS.ERROR_ACCOUNT_EXISTS;
+		if (user && parseInt(user.user_id) === userId) {
+			if (user.wallet) {
+				return STATUS.ERROR_ACCOUNT_EXISTS;
 			}
 			user.status = STATUS.WALLET_REQUIRED;
-				return  user;
+			return user;
 		}
 		const status = STATUS.WALLET_REQUIRED;
 		user = {
-			user_id,
+			user_id: userId,
 			username,
 			status
-		}
+		};
 
-		let result = await global.redisClient.multi()
-		.hmset(uKey, ["user_id",user_id,
-			"username",username,
-			"status",username])
-		.hset(aKey, username, user_id)
-		.exec();
-
+		await global.redisClient.multi()
+			.hmset(uKey, ['user_id', userId,
+				'username', username,
+				'status', username])
+			.hset(aKey, username, userId)
+			.exec();
 
 		return user;
 	}

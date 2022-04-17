@@ -3,36 +3,35 @@ const Registeries = require('../base/registries');
 const Model = require('../base/model');
 
 class CommandManager extends Registeries {
-
-	get registerName() {
-		return "Command";
+	get registerName () {
+		return 'Command';
 	}
-	
-	get allowed() {
+
+	get allowed () {
 		return global.config.commands.allowed;
 	}
 
-	setBotRegistry(reg, bot) {	
+	setBotRegistry (reg, bot) {
 		const exec = async ctx => {
-			if(!ctx.from.username) {
-				ctx.reply("Unable to process request for users without username");
-				global.log("warn",logSystem, "No username defined for ID : " + ctx.from.id);
+			if (!ctx.from.username) {
+				ctx.reply('Unable to process request for users without username');
+				global.log('warn', logSystem, 'No username defined for ID : ' + ctx.from.id);
 				return;
 			}
 
-			if(!ctx.from.id) {
-				ctx.reply("Unable to process request for users without id");
-				global.log("warn",logSystem, "No ID defined for username : " + ctx.from.username);
+			if (!ctx.from.id) {
+				ctx.reply('Unable to process request for users without id');
+				global.log('warn', logSystem, 'No ID defined for username : ' + ctx.from.username);
 				return;
 			}
 
-			if(!ctx.appRequest || !ctx.appRequest.is.action) {
+			if (!ctx.appRequest || !ctx.appRequest.is.action) {
 				return;
 			}
 			const User = Model.LoadRegistry('User');
 			const exists = await User.exists(ctx.from.id);
-			if(ctx.appRequest.is.group && !exists) {
-				ctx.telegram.sendMessage(ctx.message.chat.id,"Please create a wallet https://t.me/" + global.config.bot.username);
+			if (ctx.appRequest.is.group && !exists) {
+				ctx.telegram.sendMessage(ctx.message.chat.id, 'Please create a wallet https://t.me/' + global.config.bot.username);
 				return;
 			}
 			reg.exec(ctx);
@@ -42,10 +41,9 @@ class CommandManager extends Registeries {
 	}
 }
 
-
 module.exports = bot => {
-	if(!global.CommandManager) {
+	if (!global.CommandManager) {
 		global.CommandManager = new CommandManager();
 	}
 	global.CommandManager.setBot(bot);
-}
+};

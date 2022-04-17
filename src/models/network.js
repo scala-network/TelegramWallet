@@ -1,29 +1,30 @@
-const { STATUS_CODES } = require('http');
-const Model = require('../base/model');
+'use strict';
 
-class Network extends Model
-{
-	get fields() {
+const Model = require('../base/model');
+const STATUS = require('../../../status');
+
+class Network extends Model {
+	get fields () {
 		return [
-			"height",
-			"updated",
-			"coin_id"
+			'height',
+			'updated',
+			'coin_id'
 		];
-	} 
-	
-	get className() {
+	}
+
+	get className () {
 		return 'network';
 	}
 
-	async lastHeight(coin, options) {
+	async lastHeight (coin, options) {
 		let result = await this.Query(options).lastHeight();
 
-		let updated = Date.now();
+		const updated = Date.now();
 		const step = updated - (global.config.rpc.interval * 1000);
-		if(result.height == 0 || !result.updated || parseInt(result.updated) <= step) {
-
+		const height = result.height ? parseInt(result.height) : false;
+		if (!height || !result.updated || parseInt(result.updated) <= step) {
 			const resultFromCoin = await coin.getHeight();
-			if(resultFromCoin === null) {
+			if (resultFromCoin === null) {
 				return STATUS.ERROR_FETCHED_DAEMON;
 			}
 			const height = resultFromCoin.height;
@@ -31,17 +32,15 @@ class Network extends Model
 			result = {
 				height,
 				updated
-			}
-	
+			};
 		}
 
 		return result;
 	}
 
-	addHeight(height, options) {
+	addHeight (height, options) {
 		return this.Query(options).addHeight(height);
 	}
 }
-
 
 module.exports = Network;

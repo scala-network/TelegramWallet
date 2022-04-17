@@ -2,7 +2,7 @@
 
 const Prompt = require('./prompt');
 
-class Command extends Prompt{
+class Command extends Prompt {
 
 }
 

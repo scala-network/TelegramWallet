@@ -1,13 +1,12 @@
-'use strict'
+'use strict';
 
-const logSystem = "base/model";
+const logSystem = 'base/model';
 
 class Model {
-
 	static Registries = {};
-	static LoadRegistry(registry) {
+	static LoadRegistry (registry) {
 		registry = registry.toLowerCase();
-		if(registry in Model.Registries) {
+		if (registry in Model.Registries) {
 			return Model.Registries[registry];
 		}
 
@@ -19,34 +18,34 @@ class Model {
 
 	#_qryObj = {};
 
-	get engine() {
+	get engine () {
 		return global.config.datasource.engine;
 	}
-	
-	get fields() {
+
+	get fields () {
 		return [];
 	}
 
-	constructor() {
-		if(!this.className) {
-			console.error("Missing model's name")
+	constructor () {
+		if (!this.className) {
+			console.error("Missing model's name");
 			process.exit();
 		}
 
-		if(!this.fields || this.fields.length <= 0) {
-			global.log('error',logSystem,'Missing  model\'s properties',[this.className]);
+		if (!this.fields || this.fields.length <= 0) {
+			global.log('error', logSystem, 'Missing  model\'s properties', [this.className]);
 			process.exit();
 		}
 	}
 
-	Query(options) {
+	Query (options) {
 		let engine = this.engine;
 
-		if(options && (options.constructor === Object) && options.engine) {
-			engine =  options.engine;
+		if (options && (options.constructor === Object) && options.engine) {
+			engine = options.engine;
 		}
 
-		if(!(engine in this.#_qryObj)) {
+		if (!(engine in this.#_qryObj)) {
 			const classObject = require(`../models/queries/${engine}/${this.className}`);
 			this.#_qryObj[engine] = new classObject(this.fields);
 		}
@@ -54,6 +53,5 @@ class Model {
 		return this.#_qryObj[engine];
 	}
 }
-
 
 module.exports = Model;

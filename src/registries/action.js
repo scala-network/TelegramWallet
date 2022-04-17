@@ -1,25 +1,24 @@
-const logSystem = 'registry/action';
+'use strict';
+
 const Registeries = require('../base/registries');
 
 class ActionManager extends Registeries {
-
-	get registerName() {
-		return "Action";
-	}
-	
-	get allowed() {
-		return ["Meta"];
+	get registerName () {
+		return 'Action';
 	}
 
-	setBotRegistry(reg, bot) {	
+	get allowed () {
+		return ['Meta'];
+	}
+
+	setBotRegistry (reg, bot) {
 		bot.action(reg.listenTo, reg.exec);
 	}
 }
 
-
 module.exports = bot => {
-	if(!global.ActionManager) {
+	if (!global.ActionManager) {
 		global.ActionManager = new ActionManager();
 	}
 	global.ActionManager.setBot(bot);
-}
+};

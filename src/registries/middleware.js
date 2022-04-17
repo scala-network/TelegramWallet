@@ -1,31 +1,29 @@
+'use strict';
 
-
-const logSystem = 'registry/middleware';
 const Registeries = require('../base/registries');
 
 class Middleware extends Registeries {
-    get allowed() {
-        return [
-            "request",
-            "log",
-            "member",
-            // "markdownMiddleware"
-        ];
-    }
+	get allowed () {
+		return [
+			'request',
+			'log',
+			'member'
+			// "markdownMiddleware"
+		];
+	}
 
-    get registerName() {
-        return "Middleware";
-    }
+	get registerName () {
+		return 'Middleware';
+	}
 
-    setBotRegistry(reg, bot) {
-        bot.use(async (ctx, next) => {
-            await reg.run(ctx, next)
-        });
-    }
+	setBotRegistry (reg, bot) {
+		bot.use(async (ctx, next) => {
+			await reg.run(ctx, next);
+		});
+	}
 }
-
 
 module.exports = bot => {
-    const man = new Middleware();
-    man.setBot(bot);
-}
+	const man = new Middleware();
+	man.setBot(bot);
+};

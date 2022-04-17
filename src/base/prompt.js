@@ -5,44 +5,42 @@ const Model = require('./model');
 const Coin = require('./coin');
 
 class Prompt {
-	get enabled() {
+	get enabled () {
 		return true;
 	}
 
-	get Coin() {
+	get Coin () {
 		return Coin();
 	}
 
-	get description() {
+	get description () {
 		return false;
 	}
 
-	loadModel(modelName) {
+	loadModel (modelName) {
 		return Model.LoadRegistry(modelName);
 	}
 
-	constructor() {
-
-		if(!this.name || !this.description) {
-			console.error("Method missing name @ description");
+	constructor () {
+		if (!this.name || !this.description) {
+			console.error('Method missing name @ description');
 			process.exit();
 		}
-		
-		try{
+
+		try {
 			this.run({ test: true });
-		} catch(e) {
-			console.error("Method missing run");
+		} catch (e) {
+			console.error('Method missing run');
 			process.exit();
 		}
-
 	}
-	
-	auth(ctx) {
+
+	auth (ctx) {
 		return true;
 	}
 
-	async exec(ctx) {
-		if(!this.auth(ctx)) {
+	async exec (ctx) {
+		if (!this.auth(ctx)) {
 			const toId = (!ctx.appRequest.is.group) ? ctx.from.id : ctx.chat.id;
 			return await ctx.telegram.sendMessage(toId, `Authorization failed for \`${ctx.appRequest.action}\``);
 		}

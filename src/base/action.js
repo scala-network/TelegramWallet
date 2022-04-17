@@ -1,14 +1,13 @@
-const logSystem = 'base/Action';
-
+'use strict';
 const Prompt = require('./prompt');
 
-class Action extends Prompt{
-	get listenTo() {
+class Action extends Prompt {
+	get listenTo () {
 		return this.name;
 	}
 
-	async exec(ctx) {
-		if(!this.auth(ctx)) {
+	async exec (ctx) {
+		if (!this.auth(ctx)) {
 			const toId = (!ctx.appRequest.is.group) ? ctx.from.id : ctx.chat.id;
 			return await ctx.telegram.sendMessage(toId, `Authorization failed for \`${ctx.appRequest.action}\``);
 		}

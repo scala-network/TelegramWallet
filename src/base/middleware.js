@@ -1,22 +1,19 @@
 class Middleware {
 	enabled = false;
 
-	constructor() {
-
-		if(!this.name) {
-			console.error("Method missing name");
+	constructor () {
+		if (!this.name) {
+			console.error('Method missing name');
 			process.exit();
 		}
-		
-		try{
+
+		try {
 			this.run({ test: true });
-		} catch(e) {
-			console.error("Method missing run");
+		} catch (e) {
+			console.error('Method missing run');
 			process.exit();
 		}
 	}
-	
-	
 }
 
 module.exports = Middleware;

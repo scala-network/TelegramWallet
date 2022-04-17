@@ -2,10 +2,10 @@
 const Model = require('./base/model');
 const Market = Model.LoadRegistry('Market');
 const https = require('https');
-const logSystem = "Worker";
+const logSystem = 'Worker';
 const sleep = async (timer = 1) => {
 	return new Promise((resolve, reject) => {
-		setTimeout(resolve,timer * 1000);
+		setTimeout(resolve, timer * 1000);
 	});
 };
 class CoinMarketCap {
@@ -32,13 +32,12 @@ class CoinMarketCap {
 		let tickers = cfg.tickers;
 		tickers = Array.isArray(tickers) ? tickers : [tickers];
 		if (tickers.length < 0) {
-			global.log('error', 'No tickets avaliable')
-			process.exit();
-			return;
+			global.log('error', 'No tickets avaliable');
+			return process.exit();
 		}
 		this.config = cfg;
 		this.apiKey = 'apiKey' in cfg ? cfg.apiKey : 'b54bcf4d-1bca-4e8e-9a24-22ff2c3d462c';
-		let isSandBox = (this.apiKey === 'b54bcf4d-1bca-4e8e-9a24-22ff2c3d462c');
+		const isSandBox = (this.apiKey === 'b54bcf4d-1bca-4e8e-9a24-22ff2c3d462c');
 
 		this.cmcId = 'cmcId' in cfg ? cfg.cmcId : '2629';
 		this.cmcEndPoint = isSandBox ? 'sandbox-api.coinmarketcap.com' : 'pro-api.coinmarketcap.com';
@@ -47,7 +46,7 @@ class CoinMarketCap {
 	}
 
 	async getQuotes (ticker) {
-		const cmcId  = ''+this.cmcId;
+		const cmcId = '' + this.cmcId;
 		return await new Promise((resolve, reject) => {
 			const options = {
 				hostname: this.cmcEndPoint,
@@ -60,7 +59,7 @@ class CoinMarketCap {
 			};
 
 			const req = https.request(options, res => {
-				let chunk = "";
+				let chunk = '';
 				res.on('data', d => {
 					chunk += d;
 				});
@@ -76,7 +75,7 @@ class CoinMarketCap {
 					try {
 						response = JSON.parse(dbuff);
 					} catch (e) {
-						return reject(new Error("(" + ticker + ") " + e.message));
+						return reject(new Error('(' + ticker + ') ' + e.message));
 					}
 					if (!response) return reject(new Error('No response'));
 					if (response.status && response.status.error_message) return reject(new Error(response.status.error_message));
@@ -96,20 +95,18 @@ class CoinMarketCap {
 		});
 	}
 
-
 	async fetch () {
-		const now = Date.now();
 		const symbol = global.config.coin;
-		
+
 		for (const ticker of this.tickers) {
 			const data = await this.getQuotes(ticker)
-				.catch(e => global.log('error',logSystem, 'Error RPC : ' + e.message));
+				.catch(e => global.log('error', logSystem, 'Error RPC : ' + e.message));
 			if (data) {
 				await Market.updateTicker(symbol, ticker, data)
-				.then(() => {
-					global.log('info', logSystem, "Data stored for ticker " + ticker);	
-				})
-				.catch(e => global.log('error',logSystem, 'Error : ' + e.message));
+					.then(() => {
+						global.log('info', logSystem, 'Data stored for ticker ' + ticker);
+					})
+					.catch(e => global.log('error', logSystem, 'Error : ' + e.message));
 			}
 			await sleep();
 		}
@@ -119,21 +116,21 @@ class CoinMarketCap {
 const clearOldStats = async () => {
 	const dateObj = new Date();
 	dateObj.setDate(dateObj.getDate() - 1);
-    const month = String(dateObj.getMonth()).padStart(2, '0');
-    const day = String(dateObj.getDate()).padStart(2, '0');
-    const year = dateObj.getFullYear();
+	const month = String(dateObj.getMonth()).padStart(2, '0');
+	const day = String(dateObj.getDate()).padStart(2, '0');
+	const year = dateObj.getFullYear();
 	const ydk = parseInt(year + month + day);
 	let cursor = false;
 	const todelete = [];
-	while(cursor !== 0){
-		let groupNimbuses = await global.redisClient.scan(cursor !== false ? cursor : 0,'match',global.config.coin + ':GroupNimbus:*', 'count', 100);
-		for(let groupNimbus of groupNimbuses[1]) {
-			if(!groupNimbus) continue;
+	while (cursor !== 0) {
+		const groupNimbuses = await global.redisClient.scan(cursor !== false ? cursor : 0, 'match', global.config.coin + ':GroupNimbus:*', 'count', 100);
+		for (const groupNimbus of groupNimbuses[1]) {
+			if (!groupNimbus) continue;
 			const parts = groupNimbus.split(':');
-			const nimbus = parts[parts.length -2];
-			if(nimbus === 'overall') continue;
+			const nimbus = parts[parts.length - 2];
+			if (nimbus === 'overall') continue;
 			const inum = parseInt(nimbus);
-			if(inum > ydk) continue;
+			if (inum > ydk) continue;
 			todelete.push(groupNimbus);
 		}
 		cursor = parseInt(groupNimbuses[0]);
@@ -141,47 +138,45 @@ const clearOldStats = async () => {
 	}
 
 	cursor = false;
-	while(cursor !== 0){
-		let groupWettest = await global.redisClient.scan(cursor !== false ? cursor : 0,'match',global.config.coin + ':GroupWettest:*', 'count', 100);
-		for(let groupWet of groupWettest[1]) {
-			if(!groupWet) continue;
+	while (cursor !== 0) {
+		const groupWettest = await global.redisClient.scan(cursor !== false ? cursor : 0, 'match', global.config.coin + ':GroupWettest:*', 'count', 100);
+		for (const groupWet of groupWettest[1]) {
+			if (!groupWet) continue;
 			const parts = groupWet.split(':');
-			const wet = parts[parts.length -2];
-			if(wet === 'overall') continue;
+			const wet = parts[parts.length - 2];
+			if (wet === 'overall') continue;
 			const inum = parseInt(wet);
-			if(inum > ydk) continue;
+			if (inum > ydk) continue;
 			todelete.push(groupWet);
-
 		}
-				
+
 		cursor = parseInt(groupWettest[0]);
 		sleep(0.5);
 	}
-	if(todelete.length > 0){
-		global.log('info', logSystem, "Clearing old stats %d", [todelete.length]);
+	if (todelete.length > 0) {
+		global.log('info', logSystem, 'Clearing old stats %d', [todelete.length]);
 		await global.redisClient.del(todelete);
 	} else {
-		global.log('info', logSystem, "No stats to be deleted");
+		global.log('info', logSystem, 'No stats to be deleted');
 	}
 };
 /** Clear previous wet and nimbus **/
 let daily = 0;
 let connect = true;
-(async() => {
-	while(true) {
-		
+(async () => {
+	while (true) {
 		/** Store data from CMC **/
-		if('market' in global.config && 'tickers' in global.config.market) {
-			if(!connect) {
-				await global.redisClient.connect().catch(()=>{});
+		if ('market' in global.config && 'tickers' in global.config.market) {
+			if (!connect) {
+				await global.redisClient.connect().catch(() => {});
 				connect = true;
 			}
 			const cmc = new CoinMarketCap(global.config.market);
 			await cmc.fetch();
-		} 
-		if(daily > 24) {
-			if(!connect) {
-				await global.redisClient.connect().catch(()=>{});
+		}
+		if (daily > 24) {
+			if (!connect) {
+				await global.redisClient.connect().catch(() => {});
 				connect = true;
 			}
 			await clearOldStats().catch(e => global.log('error', e.message));
@@ -189,14 +184,12 @@ let connect = true;
 		} else {
 			daily++;
 		}
-		if(connect) {
+		if (connect) {
 			await global.redisClient.save();
 			global.redisClient.disconnect();
 			connect = false;
 		}
 
-		await sleep(3600);//update every hour
-
-
+		await sleep(3600);// update every hour
 	}
 })();
