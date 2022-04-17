@@ -11,8 +11,8 @@ class Meta  extends Query
 		
 		await global.redisClient
 		.multi()
-		.setex(ukey, global.config.rpc.metaTTL, tx_meta);
-		.setex(mkey, global.config.rpc.metaTTL, uuid);
+		.setex(ukey, global.config.rpc.metaTTL, tx_meta)
+		.setex(mkey, global.config.rpc.metaTTL, uuid)
 		.exec();
 		return uuid;
 	}
