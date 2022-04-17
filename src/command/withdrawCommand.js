@@ -66,7 +66,6 @@ class WithdrawCommand extends Command {
 				const tx_hash = trx.tx_hash_list.join("\n * ");
 				const trx_fee = trx.fee_list.reduce((a, b) => a + b, 0);
 				const balance = parseInt(wallet.balance) - parseInt(trx_amount) - parseInt(trx_fee);
-				await Meta.setByUserId(ctx.from.id, uuid);
 				return ctx.appResponse.reply(`
 <u>Transaction Details</u>
 
