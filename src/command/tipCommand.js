@@ -53,6 +53,7 @@ class TransferCommand extends Command {
 		if (amount !== tipAmount) {
 			tipAmount = await Setting.findByFieldAndUserId('tip', ctx.from.id);
 		}
+		tipAmount = Setting.validateValue('tip', tipAmount);// Assuming 2% XLA transaction fee
 		const estimate = amount * 1.01;// Assuming 1% XLA transaction fee
 
 		if (estimate > parseFloat(wallet.unlock)) {
