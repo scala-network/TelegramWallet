@@ -46,7 +46,7 @@ class TransferCommand extends Command {
 			return ctx.sendMessage(ctx.from.id, wallet.error);
 		}
 
-		let tipAmount = ctx.appRequest.args[ctx.appRequest.args.length -1];
+		let tipAmount = ctx.appRequest.args[ctx.appRequest.args.length - 1];
 		const amount = Setting.validateValue('tip', tipAmount);// Assuming 2% XLA transaction fee
 
 		if (amount !== tipAmount) {
@@ -78,7 +78,7 @@ class TransferCommand extends Command {
 			totalTips += tipAmount;
 			userIds.push(user);
 			destinations.push({
-				amount : tipAmount,
+				amount: tipAmount,
 				address: user.wallet.address
 			});
 		}
