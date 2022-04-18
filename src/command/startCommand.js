@@ -18,7 +18,7 @@ class StartCommand extends Command {
 	}
 
 	auth (ctx) {
-		return !ctx.appRequest.is.group && ctx.appRequest.is.action;
+		return !ctx.appRequest.is.group && ctx.appRequest.is.command;
 	}
 
 	async run (ctx) {
