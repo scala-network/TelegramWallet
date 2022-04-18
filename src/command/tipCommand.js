@@ -32,6 +32,7 @@ class TransferCommand extends Command {
 		const Meta = this.loadModel('Meta');
 		const Setting = this.loadModel('Setting');
 		const sender = await User.findById(ctx.from.id);
+
 		if (!sender || sender === STATUS.ERROR_ACCOUNT_NOT_EXISTS) {
 			return ctx.appResponse.reply('User account not avaliable. Please create a wallet https://t.me/' + global.config.bot.username);
 		}
@@ -44,35 +45,48 @@ class TransferCommand extends Command {
 		if (wallet && 'error' in wallet) {
 			return ctx.sendMessage(ctx.from.id, wallet.error);
 		}
-		let username = ctx.appRequest.args[0].trim();
-		if (username.startsWith('@')) {
-			username = username.substr(1);
-		}
-		const user = await User.findByUsername(username);
-		if (!user || user === STATUS.ERROR_ACCOUNT_NOT_EXISTS) {
-			return ctx.appResponse.reply('User account not avaliable. Please create a wallet ' + ctx.appRequest.args[0] + ' https://t.me/' + global.config.bot.username);
-		}
-		if (!user || !('wallet' in user) || user === STATUS.ERROR_WALLET_NOT_AVALIABLE) {
-			return ctx.appResponse.reply('User wallet is not avaliable');
-		}
-		let tipAmount;
-		if (ctx.appRequest.args.length > 1) {
-			tipAmount = this.Coin.parse(ctx.appRequest.args[1]);
+
+		let tipAmount = ctx.appRequest.args[ctx.appRequest.args.length -1];
+		const amount = Setting.validateValue('tip', tipAmount);// Assuming 2% XLA transaction fee
+
+		if (amount !== tipAmount) {
+			tipAmount = this.Coin.parse(amount);
 		} else {
 			tipAmount = await Setting.findByFieldAndUserId('tip', ctx.from.id);
 		}
-		const amount = Setting.validateValue('tip', tipAmount);// Assuming 2% XLA transaction fee
 		const estimate = amount * 1.01;// Assuming 1% XLA transaction fee
 
 		if (estimate > parseFloat(wallet.unlock)) {
 			return ctx.appResponse.sendMessage(ctx.from.id, 'Insufficient fund estimate require ' + this.Coin.format(estimate));
 		}
+		const destinations = [];
+		let totalTips = 0;
+		const userIds = [];
 
-		if (sender.tip_submit !== 'enable') {
-			const trx = await this.Coin.transferSplit(ctx.from.id, wallet.wallet_id, [{
-				address: user.wallet.address,
-				amount
-			}], true);
+		for (const _uname of ctx.appRequest.args) {
+			let username = _uname.trim();
+			if (username.startsWith('@')) {
+				username = username.substr(1);
+			}
+
+			const user = await User.findByUsername(username);
+
+			if (!user || !('user_id' in user) || user === STATUS.ERROR_ACCOUNT_NOT_EXISTS) continue;
+
+			if (!('wallet' in user) || user === STATUS.ERROR_WALLET_NOT_AVALIABLE) continue;
+
+			totalTips += tipAmount;
+			userIds.push(user);
+			destinations.push({
+				amount : tipAmount,
+				address: user.wallet.address
+			});
+		}
+
+		const confirms = destinations.length > 1 || (sender.tip_submit !== 'enable');
+
+		if (confirms) {
+			const trx = await this.Coin.transferSplit(ctx.from.id, wallet.wallet_id, destinations, true);
 			if (!trx) {
 				return ctx.appResponse.reply('No response from  RPC');
 			}
@@ -90,8 +104,9 @@ class TransferCommand extends Command {
 @${sender.username}
 
 <b>To:</b> 
-@${user.username}
+@${userIds.map(u => u.username).join('\n@')}
 
+<b>Tip Amount :</b>  ${this.Coin.format(totalTips)}
 <b>Fee :</b>  ${this.Coin.format(ftrxFee)}
 <b>Trx Meta ID :</b>  ${uuid}
 <b>Trx Expiry :</b>  ${global.config.rpc.metaTTL} seconds
@@ -108,7 +123,7 @@ Press button below to confirm`,
 				}
 			});
 		} else {
-			const trx = await this.Coin.transferSplit(ctx.from.id, wallet.wallet_id, user.wallet.address, amount, false);
+			const trx = await this.Coin.transferSplit(ctx.from.id, wallet.wallet_id, destinations, false);
 			if ('error' in trx) {
 				return ctx.appResponse.reply(trx.error);
 			}
@@ -116,7 +131,6 @@ Press button below to confirm`,
 			const txHash = trx.tx_hash_list.join('\n * ');
 			const trxFee = trx.fee_list.reduce((a, b) => a + b, 0);
 			// const balance = parseInt(wallet.balance) - parseInt(trxAmount) - parseInt(trxFee);
-
 			await ctx.appResponse.sendMessage(ctx.from.id, `
 <u>Transaction Details</u>
 
@@ -124,30 +138,29 @@ From:
 @${sender.username}
 
 To: 
-@${user.username}
+@${userIds.map(u => u.username).join('\n@')}
 
-Amount : ${this.Coin.format(trxAmount)}
+<b>Tip Amount :</b>  ${this.Coin.format(trxAmount)}
 Fee : ${this.Coin.format(trxFee)}
 Current Unlock Balance : ${this.Coin.format(wallet.balance)}
 Number of transactions : ${trx.tx_hash_list.length}
 			`);
-
-			await ctx.appResponse.sendMessage(user.user_id, `
+			const template = `
 <u>Transaction Details</u>
 
 From: 
 @${sender.username}
 
 To: 
-@${user.username}
+@${userIds.map(u => u.username).join('\n@')}
 
 Amount : ${this.Coin.format(trxAmount)}
 Fee : ${this.Coin.format(trxFee)}
 Number of transactions : ${trx.tx_hash_list.length}
 Trx Hashes (${trx.amount_list.length} Transactions): 
-* ${txHash}
+* ${txHash}`;
 
-			`);
+			for (const u of userIds) await ctx.appResponse.sendMessage(u.user_id, template);
 		}
 	}
 }
