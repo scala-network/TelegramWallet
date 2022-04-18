@@ -68,7 +68,8 @@ class TransferCommand extends Command {
 			if (username.startsWith('@')) {
 				username = username.substr(1);
 			}
-
+			if(username === sender.username) continue;
+			
 			const user = await User.findByUsername(username);
 
 			if (!user || !('user_id' in user) || user === STATUS.ERROR_ACCOUNT_NOT_EXISTS) continue;
