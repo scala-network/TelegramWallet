@@ -95,7 +95,7 @@ class TransferCommand extends Command {
 			}
 
 			const uuid = await Meta.getId(ctx.from.id, trx.tx_metadata_list.join(':'));
-			// const ftrxAmount = trx.amount_list.reduce((a, b) => a + b, 0);
+			const ftrxAmount = trx.amount_list.reduce((a, b) => a + b, 0);
 			const ftrxFee = trx.fee_list.reduce((a, b) => a + b, 0);
 			return ctx.appResponse.sendMessage(ctx.from.id, `
 <u>Transaction Details</u>
@@ -106,7 +106,7 @@ class TransferCommand extends Command {
 <b>To:</b> 
 @${userIds.map(u => u.username).join('\n@')}
 
-<b>Tip Amount :</b>  ${this.Coin.format(totalTips)}
+<b>Tip Amount :</b>  ${this.Coin.format(ftrxAmount)}
 <b>Fee :</b>  ${this.Coin.format(ftrxFee)}
 <b>Trx Meta ID :</b>  ${uuid}
 <b>Trx Expiry :</b>  ${global.config.rpc.metaTTL} seconds
