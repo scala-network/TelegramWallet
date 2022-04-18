@@ -47,6 +47,7 @@ class TransferCommand extends Command {
 		}
 
 		let tipAmount = ctx.appRequest.args[ctx.appRequest.args.length - 1];
+		tipAmount = this.Coin.parse(tipAmount);
 		const amount = Setting.validateValue('tip', tipAmount);// Assuming 2% XLA transaction fee
 
 		if (amount !== tipAmount) {
