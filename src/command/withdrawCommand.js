@@ -46,13 +46,18 @@ class WithdrawCommand extends Command {
 			if (wallet && 'error' in wallet) {
 				return ctx.sendMessage(ctx.from.id, wallet.error);
 			}
-			const amount = this.Coin.parse(ctx.appRequest.args[1]);
-			if (amount > parseFloat(wallet.unlock)) {
-				return ctx.appResponse.reply('Insufficient fund');
+
+			let trx;
+			if(ctx.appRequest.args[1].trim().toLowerCase() === 'all') {
+				trx = await this.Coin.sweep(ctx.from.id, wallet.wallet_id, address, true);
+			} else {
+				const amount = this.Coin.parse(ctx.appRequest.args[1]);
+				if (amount > parseFloat(wallet.unlock)) {
+					return ctx.appResponse.reply('Insufficient fund');
+				}
+
+				trx = await this.Coin.transferSplit(ctx.from.id, wallet.wallet_id, [{ address, amount }], true);
 			}
-
-			const trx = await this.Coin.transferSplit(ctx.from.id, wallet.wallet_id, [{ address, amount }], true);
-
 			if ('error' in trx) {
 				return ctx.appResponse.reply(trx.error);
 			}
@@ -76,8 +81,7 @@ class WithdrawCommand extends Command {
 				<b>Trx Expiry :</b> ${global.config.rpc.metaTTL} seconds
 				<b>Current Unlock Balance :</b> ${this.Coin.format(wallet.balance)}
 				<b>Number of transactions :</b> ${trx.tx_hash_list.length}
-				Press button below to confirm`,
-			{
+				Press button below to confirm`,{
 				reply_markup: {
 					inline_keyboard: [
 						[{ text: 'Confirm?', callback_data: 'meta' }]

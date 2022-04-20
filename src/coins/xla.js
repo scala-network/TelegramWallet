@@ -255,6 +255,35 @@ class xla {
 
 		return response.result;
 	}
+
+	async sweep (id, idx, address, doNotRelay) {
+		if (!idx) {
+			return { error: 'Missing wallet index' };
+		}
+		doNotRelay = doNotRelay || false;
+
+		const { host, port } = this.server;
+		const response = await request.fetch(host, port, id, 'transfer_split', {
+			address,
+			ring_size: 11,
+			mixin: 11,
+			priority: 2,
+			do_not_relay: doNotRelay,
+			get_tx_metadata: doNotRelay,
+			get_tx_keys: !doNotRelay,
+			account_index: parseInt(idx)
+		});
+
+		if (!response) {
+			return { error: 'Unable to get a response from RPC' };
+		}
+
+		if ('error' in response) {
+			return { error: response.error.message };
+		}
+
+		return response.result;
+	}
 }
 
 module.exports = xla;
