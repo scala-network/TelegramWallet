@@ -48,7 +48,7 @@ class WithdrawCommand extends Command {
 			}
 
 			let trx;
-			if(ctx.appRequest.args[1].trim().toLowerCase() === 'all') {
+			if (ctx.appRequest.args[1].trim().toLowerCase() === 'all') {
 				trx = await this.Coin.sweep(ctx.from.id, wallet.wallet_id, address, true);
 			} else {
 				const amount = this.Coin.parse(ctx.appRequest.args[1]);
@@ -81,7 +81,7 @@ class WithdrawCommand extends Command {
 				<b>Trx Expiry :</b> ${global.config.rpc.metaTTL} seconds
 				<b>Current Unlock Balance :</b> ${this.Coin.format(wallet.balance)}
 				<b>Number of transactions :</b> ${trx.tx_hash_list.length}
-				Press button below to confirm`,{
+				Press button below to confirm`, {
 				reply_markup: {
 					inline_keyboard: [
 						[{ text: 'Confirm?', callback_data: 'meta' }]

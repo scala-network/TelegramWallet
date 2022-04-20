@@ -60,7 +60,6 @@ class TransferCommand extends Command {
 			return ctx.appResponse.sendMessage(ctx.from.id, 'Insufficient fund estimate require ' + this.Coin.format(estimate));
 		}
 		const destinations = [];
-		let totalTips = 0;
 		const userIds = [];
 
 		for (const _uname of ctx.appRequest.args) {
@@ -68,15 +67,14 @@ class TransferCommand extends Command {
 			if (username.startsWith('@')) {
 				username = username.substr(1);
 			}
-			if(username === sender.username) continue;
-			
+			if (username === sender.username) continue;
+
 			const user = await User.findByUsername(username);
 
 			if (!user || !('user_id' in user) || user === STATUS.ERROR_ACCOUNT_NOT_EXISTS) continue;
 
 			if (!('wallet' in user) || user === STATUS.ERROR_WALLET_NOT_AVALIABLE) continue;
 
-			totalTips += tipAmount;
 			userIds.push(user);
 			destinations.push({
 				amount: tipAmount,
