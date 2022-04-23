@@ -21,7 +21,7 @@ class Wallet extends Query {
 			unlocked: 0,
 			status: STATUS.WALLET_READY,
 			coin_id: global.config.coin,
-			walletId,
+			wallet_id: walletId,
 			height: height
 		};
 
