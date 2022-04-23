@@ -263,7 +263,7 @@ class xla {
 		doNotRelay = doNotRelay || false;
 
 		const { host, port } = this.server;
-		const response = await request.fetch(host, port, id, 'transfer_split', {
+		const response = await request.fetch(host, port, id, 'sweep_all', {
 			address,
 			ring_size: 11,
 			mixin: 11,
