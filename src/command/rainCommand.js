@@ -82,7 +82,10 @@ class RainCommand extends Command {
 			if (!user || !user.wallet) {
 				continue;
 			}
-			userNames.push('@' + user.username);
+			const username = user.username.trim();
+			if(!username) continue;
+			
+			userNames.push('@' + username);
 			sentMemberIds.push(userId);
 			destinations.push({
 				address: user.wallet.address,

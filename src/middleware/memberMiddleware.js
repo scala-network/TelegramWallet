@@ -19,6 +19,12 @@ class MemberMiddleware extends Middleware {
 
 		const User = Model.LoadRegistry('User');
 		const userId = ctx.appRequest.from.id;
+		const username = ctx.appRequest.from.username.trim();
+		if(!username) {
+			if (next) {
+				return next();
+			}
+		}
 		if (await User.exists(userId)) {
 			const username = await User.getUsernameById(userId);
 			if (username !== ctx.appRequest.from.username) {
