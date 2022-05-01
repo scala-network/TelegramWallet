@@ -61,8 +61,9 @@ class TransferCommand extends Command {
 		}
 		const destinations = [];
 		const userIds = [];
-
+		
 		for (const _uname of ctx.appRequest.args) {
+			if(!_uname || !_uname.trim()) continue;
 			let username = _uname.trim();
 			if (username.startsWith('@')) {
 				username = username.substr(1);
@@ -81,16 +82,18 @@ class TransferCommand extends Command {
 				address: user.wallet.address
 			});
 		}
-
+		if(destinations.length < 1) {
+			return await ctx.appResponse.reply("Invalid tip to no destinations");	
+		}
 		const confirms = destinations.length > 1 || (sender.tip_submit !== 'enable');
 
 		if (confirms) {
 			const trx = await this.Coin.transferSplit(ctx.from.id, wallet.wallet_id, destinations, true);
 			if (!trx) {
-				return ctx.appResponse.reply('No response from  RPC');
+				return await ctx.appResponse.reply('No response from  RPC');
 			}
 			if ('error' in trx) {
-				return ctx.appResponse.reply(trx.error);
+				return await ctx.appResponse.reply(trx.error);
 			}
 
 			const uuid = await Meta.getId(ctx.from.id, trx.tx_metadata_list.join(':'));
