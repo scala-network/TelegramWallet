@@ -12,7 +12,7 @@ class MemberMiddleware extends Middleware {
 	async run (ctx, next) {
 		if (ctx.test) return;
 
-		if (!ctx || !ctx.appRequest || ctx.appRequest.is.command || ctx.appRequest.is.action) {
+		if (!ctx || !ctx.appRequest || ctx.appRequest.is.command || ctx.appRequest.is.action || !ctx.appRequest.is.group) {
 			if (next) next();
 			return;
 		}
