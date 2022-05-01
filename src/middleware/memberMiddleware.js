@@ -12,7 +12,8 @@ class MemberMiddleware extends Middleware {
 	async run (ctx, next) {
 		if (ctx.test) return;
 
-		if (!ctx || !ctx.appRequest || ctx.appRequest.is.command || ctx.appRequest.is.action || !ctx.appRequest.is.group) {
+		if (!ctx || !ctx.appRequest || ctx.appRequest.is.command || ctx.appRequest.is.action
+		    || !ctx.appRequest.is.group || !('username' in ctx.appRequest.from) || !ctx.appRequest.from.username) {
 			if (next) next();
 			return;
 		}
