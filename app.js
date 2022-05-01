@@ -28,7 +28,6 @@ const TimeAgo = require('javascript-time-ago');
 TimeAgo.addDefaultLocale(require('javascript-time-ago/locale/en'));
 
 if(parseInt(process.env.forkId) === 0) {
-	return;
     return require('./src/worker.js');
 }
 
