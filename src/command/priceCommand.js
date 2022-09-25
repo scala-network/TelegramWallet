@@ -31,6 +31,7 @@ class PriceCommand extends Command {
 
 		if (ctx.appRequest.args.length >= 1) {
 			const exchange = ctx.appRequest.args[0];
+			
 			if (global.config.market.tickers.indexOf(exchange.toUpperCase()) >= 0) {
 				const marketExchange = await Market.getMarketExchange(this.Coin.symbol.toLowerCase(), exchange);
 

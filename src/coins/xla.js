@@ -1,7 +1,7 @@
 const request = require('../engines/request');
 class xla {
 	get server () {
-		return global.config.rpc.server;
+		return global.config.xla.rpc.server;
 	}
 
 	get fullname () {

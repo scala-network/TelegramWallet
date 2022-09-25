@@ -1,14 +1,14 @@
 'use strict';
 const Model = require('./model');
-const Coin = require('./coin');
+const CoinManager = require('./coin_manager')();
 
 class Prompt {
 	get enabled () {
 		return true;
 	}
 
-	get Coin () {
-		return Coin();
+	get Coins () {
+		return CoinManager;
 	}
 
 	get description () {

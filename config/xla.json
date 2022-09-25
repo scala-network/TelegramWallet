@@ -1,0 +1,19 @@
+{
+	"rpc" : {
+		"interval" : 1,
+		"metaTTL" : 60,
+		"server" : {
+			"address":"127.0.0.1",
+			"port":"11812"
+		}
+	},
+	"market" : {
+		"cmcId": "2629",
+		"apiKey": "b54bcf4d-1bca-4e8e-9a24-22ff2c3d462c",
+		"tickers": ["BTC", "USD", "LTC", "EUR","LUNC"]		
+	},
+	"tip": 1000,
+	"rain": 100,
+	"rain_max": 10,
+	"rain_min": 10
+}

@@ -3,14 +3,6 @@
 		"token":"TELEGRAM:TOKEN",
 		"username" : "BotUsername"
 	},
-	"coin" : "xla",
-	"admins":[],
-	"rpc" : {
-		"interval" : 1,
-		"metaTTL" : 60,
-		"server" : {
-			"address":"127.0.0.1",
-			"port":"11812"
-		}
-	}
+	"coins" : ["xla","lunc"],
+	"admins":[]
 }

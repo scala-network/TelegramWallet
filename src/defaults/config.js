@@ -5,7 +5,7 @@ module.exports = {
 	 *  Account create will be
 	 *  a subaddress
 	 **/
-	coin: 'xla',
+	coins: [],
 	swm: true,
 	log: {
 		files: {
@@ -21,14 +21,24 @@ module.exports = {
 		}
 	},
 	datasource: {
-		engine: 'redis',
-		// "path" :  "/path/to/socket/or/remove/key",
-		address: '127.0.0.1',
-		port: 6379,
-		db: 5,
-		keepalive: true,
-		auth: false,
-		prefix: null
+		redis: {
+			engine: 'redis',
+			address: '127.0.0.1',
+			port: 6379,
+			db: 5,
+			keepalive: true,
+			auth: false,
+			prefix: null
+		},
+		mysql: {
+			engine: 'mysql2',
+			address: '127.0.0.1',
+			port: 3306,
+			db: 'database',
+			keepalive: true,
+			username: 'username',
+			password: 'password',
+		}
 	},
 
 	admins: []

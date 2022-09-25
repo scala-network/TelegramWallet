@@ -5,7 +5,7 @@ const utils = require('../../../utils');
 class Market extends Query {
 	async getLastUpdated (coin) {
 		const key = [coin, 'price'].join(':');
-		const lastUpdated = global.redisClient.hget(key, 'last_updated');
+		const lastUpdated = await global.redisClient.hget(key, 'last_updated');
 		return lastUpdated;
 	}
 

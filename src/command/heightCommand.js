@@ -21,21 +21,33 @@ class HeightCommand extends Command {
 	async run (ctx) {
 		if (ctx.test) return;
 		const Network = this.loadModel('Network');
-		const result = await Network.lastHeight(this.Coin);
+		const Wallet = this.loadModel('Wallet');
 
-		let output = 'Coin ID :' + this.Coin.symbol + ' \n';
-		output = 'Daemon height: ' + utils.formatNumber(result.height | 0) + ' \n';
-		output += 'Sync Time: ' + timeAgo.format(parseInt(result.updated), 'round') + ' \n';
+		for(let coin of global.config.coins) {
+			const coinObject = this.Coins.get(coin);
+
+			const result = await Network.lastHeight(coinObject);
+
+			let output = 'Coin ID :' + coinObject.symbol + ' \n';
+			output = 'Daemon height: ' + utils.formatNumber(result.height | 0) + ' \n';
+			output += 'Sync Time: ' + timeAgo.format(parseInt(result.updated), 'round') + ' \n';
+				
+		}
+
 		const { id } = ctx.from;
 
 		if (!ctx.appRequest.is.group) {
-			const wallet = await this.loadModel('Wallet').findByUserId(id);
+			output+='<u>Wallet height</u>\n';
+			const wallet = await Wallet.findByUserId(id);
 			if (wallet) {
-				output += 'Wallet height: ' + utils.formatNumber(wallet.height | 0) + ' \n';
+				for(let [coin,details] of wallet) {
+					output += coin +" : " + utils.formatNumber(wallet.height | 0) + ' \n';
+				}
 			} else {
-				output += 'No wallet avaliable';
+				output = 'No wallet avaliable';
 			}
 		}
+		
 
 		ctx.appResponse.reply(output);
 	}

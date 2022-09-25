@@ -23,15 +23,16 @@ class AddressCommand extends Command {
 	async run (ctx) {
 		if (ctx.test) return;
 
-		const Wallet = this.loadModel('Wallet');
-
-		const wallet = await Wallet.findByUserId(ctx.from.id);
+		const Wallet = this.loadModel('Wallets');
 		let output = 'Wallet address: ';
+		const wallet = await Wallets.findByUserId(ctx.from.id);
 
 		if (wallet) {
-			output += wallet.address;
+			for(let [coin,details] of wallet) {
+				output += coin +" : "+details.address;	
+			}
 		} else {
-			output += 'No wallet avaliable';
+			output = 'No wallet avaliable';
 		}
 
 		ctx.appResponse.reply(output);

@@ -10,7 +10,7 @@ class Wallet extends Query {
 	* address - The wallet address
 	* heightOrIndex - In SWM heightOrIndex is the index of the address
 	* */
-	async addByUser (user, address, walletId, height) {
+	async addByUser (user, address, walletId, height, coin = 'xla') {
 		const ukey = [global.config.coin, 'Users', user.user_id].join(':');
 
 		const wallet = {
@@ -30,8 +30,8 @@ class Wallet extends Query {
 		return wallet;
 	}
 
-	async update (userId, wallet) {
-		const ukey = [global.config.coin, 'Users', userId].join(':');
+	async update (userId, wallet, coin = 'xla') {
+		const ukey = [coin, 'Users', userId].join(':');
 
 		wallet.user_id = userId;
 		wallet.updated = Date.now();
@@ -43,24 +43,29 @@ class Wallet extends Query {
 		return wallet;
 	}
 
-	async findByUserId (userId) {
-		const ukey = [global.config.coin, 'Users', userId].join(':');
+	async findByUserId (userId, coins = null) {
+		const ukey = ['xla', 'Users', userId].join(':');
+		
+		if(!coins) {
+			coins = global.config.coins;	
+		} else if(typeof coins === 'string') {
+			coins = [coins];
+		}
 
-		const results = await global.redisClient.hget(ukey, 'wallet');
+		const results = await global.redisClient.hmget(ukey, coins);
 		if (!results) {
 			return null;
 		}
-
-		let wallet = {};
-		if (results) {
+		let output = {};
+		for(let i=0;i<coins.length;i++) {
+			const c = coins[i];
 			try {
-				wallet = JSON.parse(results);
+				output[c] = JSON.parse(results[i]);
 			} catch (e) {
 
 			}
 		}
-
-		return wallet;
+		return output;
 	}
 }
 

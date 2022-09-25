@@ -21,8 +21,8 @@ class Wallet extends Model {
 		return 'wallet';
 	}
 
-	findByUserId (id, options) {
-		return this.Query(options).findByUserId(id);
+	findByUserId (id, coins, options) {
+		return this.Query(options).findByUserId(id, coins);
 	}
 
 	addByUser (user, address, walletId, height, options) {

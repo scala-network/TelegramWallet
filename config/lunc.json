@@ -1,0 +1,16 @@
+{
+	"rpc": {
+		"address":"http://localhost:1317", 
+  		"chainID": "localterra", 
+		"metaTTL" : 60
+	},
+	"market" : {
+		"cmcId": "4172",
+		"apiKey": "b54bcf4d-1bca-4e8e-9a24-22ff2c3d462c",
+		"tickers": ["BTC", "USD", "LTC", "EUR","XLA"]		
+	},
+	"tip": 1000,
+	"rain": 100,
+	"rain_max": 10,
+	"rain_min": 10
+}

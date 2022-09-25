@@ -11,7 +11,7 @@ class WithdrawCommand extends Command {
 	}
 
 	get description () {
-		return 'Withdraw coins in wallet (usages : /withdraw coin_address amount)';
+		return 'Withdraw coins in wallet. Use all as amount to withdraw all from account (usages : /withdraw coin coin_address amount)';
 	}
 
 	auth (ctx) {
@@ -21,13 +21,13 @@ class WithdrawCommand extends Command {
 	async run (ctx) {
 		if (ctx.test) return;
 
-		if (ctx.appRequest.args.length <= 1) {
+		if (ctx.appRequest.args.length <= 2) {
 			return ctx.appResponse.reply(`Missing arguments\n${this.description}`);
 		}
 
 		const Wallet = this.loadModel('Wallet');
 		const Meta = this.loadModel('Meta');
-		const address = ctx.appRequest.args[0];
+		const address = ctx.appRequest.args[1];
 		const valid = await this.Coin.validateAddress(ctx.from.id, address);
 
 		switch (valid) {

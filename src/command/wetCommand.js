@@ -22,27 +22,43 @@ class WetCommand extends Command {
 	async run (ctx) {
 		if (ctx.test) return;
 		const Member = this.loadModel('Member');
-		const results = await Member.findWet(ctx.chat.id);
+
+		let coin;
+		if (ctx.appRequest.args.length >= 1) {
+			coin = (''+ctx.appRequest.args[0]).trim().toLowerCase();
+		}
+		if(!coin) {
+			coin = 'xla';
+		}
+		if(!~global.config.coins.indexOf(coin)) {
+			return ctx.appResponse.reply(`Invalid coin. Avaliable coins are ${global.config.coins.join(',')}`);
+		}
+
+		const coinObject = this.Coins.get(coin);
+
+		const results = await Member.findWet(ctx.chat.id, coin);
 
 		if (results.overall.length <= 0) {
 			return ctx.appResponse.reply("It haven't been raining");
 		}
 
-		let template = '<u>Wettest Today</u>';
+		let template = `<u>Wettest Today ${coin}</u>`;
 
 		for (let i = 0; i < results.today.length; i++) {
 			const member = results.today[i];
-			template += '\n' + member.username + '    ' + this.Coin.format(member.amount);
+			template += '\n' + member.username + '    ' + coinObject.format(member.amount);
 		}
 
-		template += '\n\n\n<u>Wettest All Time</u>';
+		template += `\n\n\n<u>Wettest All Time ${coin}</u>`;
+
 
 		for (let i = 0; i < results.overall.length; i++) {
 			const member = results.overall[i];
-			template += '\n' + member.username + '    ' + this.Coin.format(member.amount);
+			template += '\n' + member.username + '    ' + coinObject.format(member.amount);
 		}
 
 		await ctx.appResponse.sendMessage(ctx.chat.id, template, { parse_mode: 'HTML' });
+
 	}
 }
 module.exports = WetCommand;

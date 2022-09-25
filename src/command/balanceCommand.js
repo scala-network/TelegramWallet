@@ -31,24 +31,29 @@ class BalanceCommand extends Command {
 		let output = '<u>Wallet Information</u>\n';
 
 		if (oldWallet) {
-			let wallet;
+			for(let [coin,details] of oldWallet) {
+				let wallet;
+				let coinObject = this.Coins.get(coin);
+				const syncWallet = await Wallet.syncBalance(ctx.from.id, details, coinObject);
+				if (syncWallet && 'error' in syncWallet) {
+					wallet = details;
+				} else {
+					wallet = syncWallet;
+				}
 
-			const syncWallet = await Wallet.syncBalance(ctx.from.id, oldWallet, this.Coin);
-			if (syncWallet && 'error' in syncWallet) {
-				wallet = oldWallet;
-			} else {
-				wallet = syncWallet;
-			}
-			output += `Coin ID: ${wallet.coin_id}\n`;
-			output += `Balance: ${utils.formatNumber(this.Coin.format(wallet.balance || 0))}\n`;
-			output += `Unlocked Balance: ${utils.formatNumber(this.Coin.format(wallet.unlock || 0))}\n`;
-			output += `Last Sync: ${timeAgo.format(parseInt(wallet.updated || 0), 'round')}\n`;
-			output += `Last Height: ${utils.formatNumber(wallet.height || 0)}\n`;
+				output += `Coin ID: ${wallet.coin_id}\n`;
+				output += `Balance: ${utils.formatNumber(coinObject.format(wallet.balance || 0))}\n`;
+				if(wallet.unlock)
+				output += `Unlocked Balance: ${utils.formatNumber(coinObject.format(wallet.unlock || 0))}\n`;
+				output += `Last Sync: ${timeAgo.format(parseInt(wallet.updated || 0), 'round')}\n`;
+				output += `Last Height: ${utils.formatNumber(wallet.height || 0)}\n`;
 
-			if (wallet.pending > 0) {
-				output += `Confirmations Remaining: ${wallet.pending}\n`;
+				if ('pending' in wallet && wallet.pending > 0) {
+					output += `Confirmations Remaining: ${wallet.pending}\n`;
+				}
+
+				output += "===================================";
 			}
-			// await Wallet.update(wallet);
 		} else {
 			output += 'No wallet avaliable';
 		}
