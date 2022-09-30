@@ -4,11 +4,7 @@ class User extends Model {
 	get fields () {
 		return [
 			'user_id',
-			'username',
-			'status',
-			'wallet',
-			'wallet_id',
-			'coin_id'
+			'username'
 		];
 	}
 

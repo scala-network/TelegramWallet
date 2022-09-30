@@ -95,24 +95,19 @@ class User extends Query {
 
 		let user = await this.findById(userId);
 
-		if (user && parseInt(user.user_id) === userId) {
-			if (user.xla) {
-				return STATUS.ERROR_ACCOUNT_EXISTS;
-			}
-			user.status = STATUS.WALLET_REQUIRED;
+		if (user) {
 			return user;
 		}
-		const status = STATUS.WALLET_REQUIRED;
 		user = {
 			user_id: userId,
 			username,
-			status
 		};
 
 		await global.redisClient.multi()
-			.hmset(uKey, ['user_id', userId,
+			.hmset(uKey, [
+				'user_id', userId,
 				'username', username,
-				'status', username])
+			])
 			.hset(aKey, username, userId)
 			.exec();
 

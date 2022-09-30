@@ -22,16 +22,19 @@ Set value for your config. To get settings for a coin run /set coin only. usages
 \n<u><b>Configs avaliable</b></u>
 <b>rain</b>
 - Set amount of coin to distribute per head 
-- usages: /set xla rain 10
+- usage: /set xla rain 10
 <b>tip</b>
 - Set default tip value 
-- usages: /set xla tip 100
-<b>tip_submit (enable | disable)</b>
-- On enable tip will automatically be sent without confirmation
-<b>rain_submit (enable | disable)</b>
-- On enable rain will automatically be sent without confirmation (default: disable)
+- usage: /set xla tip 100
+<b>tip_submit coin (enable | disable)</b>
+- On enable tip will require a confirmation before sending (default: disable)
+- usage: /tip_submit xla disable
+<b>rain_submit coin (enable | disable)</b>
+- On enable rain will require a confirmation before sending (default: disable) 
+- usage: /rain_submit xla disable
 <b>wet</b>
-- Number of latest members to recieve rain`;
+- Number of latest members to recieve rain
+- usage: /wet xla 10`;
 	}
 
 	auth (ctx) {
@@ -45,10 +48,7 @@ Set value for your config. To get settings for a coin run /set coin only. usages
 			return ctx.appResponse.reply(`Missing coin\n${this.full_description}`);
 		}
 
-		let coin;
-		if (ctx.appRequest.args.length >= 1) {
-			coin = (''+ctx.appRequest.args[0]).trim().toLowerCase();
-		}
+		let coin = (''+ctx.appRequest.args[0]).trim().toLowerCase();
 		if(!coin) {
 			coin = 'xla';
 		}
@@ -78,7 +78,10 @@ Set value for your config. To get settings for a coin run /set coin only. usages
 					out = coinObject.format(out);
 					break;
 				case 'wet':
-					out += ' Users';
+					if(out === 1)
+					out += ' Member';
+					else
+					out += ' Members';
 					break;
 				case 'tip_submit':
 				case 'rain_submit':
@@ -104,7 +107,7 @@ Set value for your config. To get settings for a coin run /set coin only. usages
 
 			status = await Setting.updateField(ctx.from.id, field, _headCount, coin);
 
-			if (status !== STATUS.OK) {
+			if (!status) {
 				return ctx.appResponse.reply(`Unable to save ${field} amount`);
 			}
 			extra = "";
@@ -124,7 +127,7 @@ Set value for your config. To get settings for a coin run /set coin only. usages
 
 			status = await Setting.updateField(ctx.from.id, field, value, coin);
 
-			if (status !== STATUS.OK) {
+			if (!status) {
 				return ctx.appResponse.reply(`Unable to save ${field} amount`);
 			}
 			extra = "";
@@ -142,7 +145,7 @@ Set value for your config. To get settings for a coin run /set coin only. usages
 			}
 			status = await Setting.updateField(ctx.from.id, field, enabledDisabled, coin);
 
-			if (status !== STATUS.OK) {
+			if (!status) {
 				return ctx.appResponse.reply('Unable to save submit enabled/disabled for '.field);
 			}
 			return ctx.appResponse.reply('Setting saved');

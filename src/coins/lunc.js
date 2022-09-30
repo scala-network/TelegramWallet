@@ -201,17 +201,17 @@ class lunc {
 		const taxAmount = await this.getFee(totalAmount);
 		// Compute the burn tax amount for this transaction and convert to Coins
 		const taxAmountCoins = new Coins({ uluna : taxAmount });
-		console.log("Burn tax amount: ", taxAmountCoins);
+		// console.log("Burn tax amount: ", taxAmountCoins);
 		const walletInfo = await wallet.accountNumberAndSequence();
 		const signerData = [{ sequenceNumber: walletInfo.sequence }];
 		const gasPricesCoins = await this.#_getGasPriceCoins();
 		// Estimate the gas amount and fee (without burn tax) for the message
-		var txFee = await this.#_lcd.tx.estimateFee(signerData,{ msgs: send, gasPrices: gasPricesCoins, gasAdjustment: 3 });
-		console.log("Gas and Fee estimate, pre-tax:", txFee.amount)
+		var txFee = await this.#_lcd.tx.estimateFee(signerData,{ msgs: send, gasPrices: gasPricesCoins, gasAdjustment: 3, feeDenoms: ["uluna"] });
+		// console.log("Gas and Fee estimate, pre-tax:", txFee.amount)
 
 		// Add the burn tax component to the estimated fee
 		txFee.amount = txFee.amount.add(taxAmountCoins);
-		console.log("Gas and Fee estimate, post tax:", txFee.amount);
+		// console.log("Gas and Fee estimate, post tax:", txFee.amount);
 
 		const tx = await wallet.createAndSignTx({ msgs: send, fee: txFee });
 		// let tx = await wallet.createAndSignTx({ msgs:send,gasPrices:{uluna:fee}});

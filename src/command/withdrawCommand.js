@@ -21,6 +21,14 @@ class WithdrawCommand extends Command {
 	async run (ctx) {
 		if (ctx.test) return;
 
+		const Meta = this.loadModel('Meta');
+
+		const currentMeta = await Meta.getByUserId(ctx.from.id);
+
+		if(currentMeta) {
+			return ctx.appResponse.sendMessage(ctx.from.id, 'Confirmations still pending. Unable to create new request');
+		}
+
 		if (ctx.appRequest.args.length < 3) {
 			return ctx.appResponse.reply(`Missing arguments\n${this.description}`);
 		}
@@ -44,7 +52,6 @@ class WithdrawCommand extends Command {
 		const coinObject = this.Coins.get(coin);
 
 		const Wallet = this.loadModel('Wallet');
-		const Meta = this.loadModel('Meta');
 		const address = ctx.appRequest.args[1];
 		const valid = await coinObject.validateAddress(ctx.from.id, address);
 
@@ -100,15 +107,7 @@ class WithdrawCommand extends Command {
 				<b>Trx Expiry :</b> ${global.config.rpc.metaTTL} seconds
 				<b>Current Unlock Balance :</b> ${coinObject.format(wallet.balance)}
 				<b>Number of transactions :</b> ${trx.tx_hash_list.length}
-				Press button below to confirm`, {
-				reply_markup: {
-					inline_keyboard: [
-						[{ text: 'Confirm?', callback_data: 'meta' }]
-					],
-					resize_keyboard: true,
-					one_time_keyboard: true
-				}
-			});
+				Press button below to confirm`, this.Helper.metaButton());
 		default:
 			if (valid) {
 				return ctx.appResponse.reply(valid);

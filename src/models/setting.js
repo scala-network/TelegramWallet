@@ -30,6 +30,7 @@ class Setting extends Model {
 
 	validateValue (field,value,coin='xla' ) {
 		if(!(coin in global.coins)) return false;
+		
 		switch (field) {
 		case 'tip_submit':
 		case 'rain_submit':
@@ -45,6 +46,9 @@ class Setting extends Model {
 			break;
 		case 'tip':
 		case 'rain':
+			if(!value) {
+				return global.coins[coin].settings[field];
+			}
 			value = parseInt(value) || 0;
 			if(value === 0) {
 				return global.coins[coin].settings[field];
@@ -59,6 +63,9 @@ class Setting extends Model {
 			}
 			break;
 		case 'wet':
+			if(!value) {
+				return global.coins[coin].settings[field];
+			}
 			value = parseInt(value) || 0;
 			if(value === 0) {
 				return global.coins[coin].settings.wet;

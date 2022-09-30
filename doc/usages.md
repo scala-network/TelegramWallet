@@ -9,8 +9,8 @@
 	sudo apt-get install build-essential libssl-dev
 	curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.39.1/install.sh | bash
 	source ~/.profile
-	nvm install 16
-	nvm alias default 16
+	nvm install 18
+	nvm alias default 18
 	nvm use default
 ```
 * [Redis](http://redis.io/) key-value store v5.0+ 

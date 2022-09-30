@@ -44,8 +44,15 @@ class BalanceCommand extends Command {
 
 				output += `Coin ID: ${wallet.coin_id}\n`;
 				output += `Balance: ${utils.formatNumber(coinObject.format(wallet.balance || 0))}\n`;
-				if(wallet.unlock)
-				output += `Unlocked Balance: ${utils.formatNumber(coinObject.format(wallet.unlock || 0))}\n`;
+				let unlock = wallet.balance;
+				if('unlock' in wallet){
+					unlock = wallet.unlock;
+				}
+				if('trading' in wallet) {
+					output += `Trade Locked: ${utils.formatNumber(coinObject.format(wallet.trading || 0))}\n`;
+					unlock-= wallet.trading;
+				}
+				output += `Unlocked Balance: ${utils.formatNumber(coinObject.format(unlock || 0))}\n`;
 				output += `Last Sync: ${timeAgo.format(parseInt(wallet.updated || 0), 'round')}\n`;
 				output += `Last Height: ${utils.formatNumber(wallet.height || 0)}\n`;
 

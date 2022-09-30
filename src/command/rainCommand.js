@@ -11,8 +11,12 @@
   	}
 
   	get description () {
-  		return 'Send coins to latest active users. To set default rain value go to /set rain amount';
+  		return 'Send coins to latest active users. usages: /rain coin';
   	}
+
+  	get full_description () {
+		return `Sends airdrop to latest active users. To setup rain run /set`;
+	}
 
   	auth (ctx) {
   		return ctx.appRequest.is.group;
@@ -33,17 +37,19 @@
   			return ctx.appResponse.reply('User account not avaliable. Please create a wallet https://t.me/' + global.config.bot.username);
   		}
 
+		const currentMeta = await Meta.getByUserId(ctx.from.id);
+
+		if(currentMeta) {
+			return ctx.appResponse.sendMessage(ctx.from.id, 'Confirmations still pending. Unable to create new request');
+		}
+
   		let coin;
   		if (ctx.appRequest.args.length >= 1) {
   			coin = (''+ctx.appRequest.args[0]).trim().toLowerCase();
   		}
   		if(!coin) {
-  			coin = 'xla';
+  			return ctx.appResponse.reply(`Missing coin argument.\n${this.full_description}`);
   		}
-  		if(!~global.config.coins.indexOf(coin)) {
-  			return ctx.appResponse.reply(`Invalid coin. Avaliable coins are ${global.config.coins.join(',')}`);
-  		}
-
 
   		let wallet = await Wallet.findByUserId(sender.user_id, coin);
 
@@ -63,12 +69,10 @@
   			ctx.appResponse.reply(`No wallet avaliable for ${coin}`);
   			return ctx.appResponse.sendMessage(ctx.from.id, `No wallet avaliable for ${coin} run /address to create one`);
   		}
-  		let rainValue = await Setting.findByFieldAndUserId('rain', ctx.from.id, coin);
-  		let rainMax = await Setting.findByFieldAndUserId('wet', ctx.from.id, coin);
-  		let rain_submit = await Setting.findByFieldAndUserId('rain_submit', ctx.from.id, coin);
-  		rainMax = Setting.validateValue('wet', rainMax, coin);
-  		const amount = Setting.validateValue('rain', rainValue, coin);
-  		rain_submit = await Setting.validateValue('rain_submit', rain_submit, coin);
+  		let setting = await Setting.findByFieldAndUserId(['rain','wet','rain_submit'], ctx.from.id, coin);
+  		let rainMax = Setting.validateValue('wet', setting.wet, coin);
+  		const amount = Setting.validateValue('rain', setting.rain, coin);
+  		let rain_submit = await Setting.validateValue('rain_submit', setting.rain_submit, coin);
 
 
   		const members = await Member.findByLast10(ctx.chat.id);
@@ -108,7 +112,7 @@
   		}
 
   		if (destinations.length <= 0) {
-  			return ctx.appResponse.reply('No member with an account');
+  			return ctx.appResponse.reply(`No members with ${coin} account`);
   		}
   		const getfee = await coinObject.getFee();
 
@@ -126,7 +130,7 @@
 			}
   		}
 		
-  		const lock = rain_submit !== 'enabled';
+  		const lock = rain_submit === 'disabled';
 		
 		const trx = await coinObject.transferMany(ctx.from.id, wallet.wallet_id, destinations, lock);
 		if (!trx) {
@@ -143,24 +147,23 @@
 			const trxAmount = trx.amount_list.reduce((a, b) => a + b, 0);
 			const txHash = trx.tx_hash_list.join('\n* ');
 			const balance = parseInt(wallet.balance) - parseInt(trxAmount) - parseInt(trxFee);
-			const total = trxAmount + trxFee;
+			const total = trxAmount + parseInt(trxFee);
 			const totalXla = coinObject.format(total);
 			await ctx.appResponse.reply('Airdrops to last ' + userNames.length + ' active members total of ' + totalXla + '\n' + userNames.join('\n'));
 			await ctx.appResponse.sendMessage(ctx.from.id, `
-				<u>Transaction Details</u>
+<u>Transaction Details</u>
 
-				From: 
-				@${sender.username}
+From: 
+@${sender.username}
 
-				To: 
-				${userNames.join('\n')}
+To: 
+${userNames.join('\n')}
 
-				Amount : ${coinObject.format(trxAmount)}
-				Fee : ${coinObject.format(trxFee)}
-				Trx Hash: 
-				* ${txHash}
-				Current Balance : ${coinObject.format(balance)}
-				`);
+Amount : ${coinObject.format(trxAmount)}
+Fee : ${coinObject.format(trxFee)}
+Trx Hash: 
+* ${txHash}
+Current Balance : ${coinObject.format(balance)}`);
 			await Member.addNimbus(ctx.chat.id, '@' + sender.username, total);
 
 			for (const i in sentMemberIds) {
@@ -169,55 +172,44 @@
 				await Member.addWet(ctx.chat.id, userNames[i], amount);
 
 				await ctx.appResponse.sendMessage(smi, `
-					<u>Transaction Details</u>
+<u>Transaction Details</u>
 
-					From: 
-					@${sender.username}
+From: 
+@${sender.username}
 
-					To: 
-					${userNames.join('\n')}
+To: 
+${userNames.join('\n')}
 
-					Amount : ${coinObject.format(trxAmount)}
-					Fee : ${coinObject.format(trxFee)}
-					Trx Hashes (${trx.amount_list.length} Transactions): 
-					* ${txHash}`);
+Amount : ${coinObject.format(trxAmount)}
+Fee : ${coinObject.format(trxFee)}
+Trx Hashes (${trx.amount_list.length} Transactions):
+* ${txHash}`);
 			}
 		} else {
 
-			ctx.appResponse.reply('Airdrop confirmation require to ' + userNames.length + " active members total. To skip confirmation set rain_submit enable. Users don't get wet if have confirmation");
+			ctx.appResponse.reply('Airdrop confirmation require to ' + userNames.length + " active members total. To skip confirmation set rain_submit disable. Users don't get wet if have confirmation");
 
 			const trxFee = trx.fee_list.reduce((a, b) => a + b, 0);
 			const trxAmount = trx.amount_list.reduce((a, b) => a + b, 0);
-			// const txHash = trx.tx_hash_list.join('\n * ');
-			// const balance = parseInt(wallet.balance) - parseInt(trxAmount) - parseInt(trxFee);
 			const uuid = await Meta.getId(ctx.from.id, trx.tx_metadata_list.join(':'));
 
 			return ctx.appResponse.sendMessage(ctx.from.id, `
-				<u>Transaction Details</u>
+<u>Transaction Details</u>
 
-				From: 
-				@${sender.username}
+From: 
+@${sender.username}
 
-				To: 
-				${userNames.join('\n')}
-				
-				Amount : ${coinObject.format(trxAmount)}
-				Fee : ${coinObject.format(trxFee)}
-				Trx Meta ID: ${uuid}
-				Trx Expiry: ${global.config.rpc.metaTTL} seconds
-				Current Unlock Balance : ${coinObject.format(wallet.balance)}
-				Number of transactions : ${trx.tx_hash_list.length}
-				To proceed with transaction run
-				Press button below to confirm`,
-				{
-					reply_markup: {
-						inline_keyboard: [
-						[{ text: 'Confirm?', callback_data: 'meta' }]
-						],
-						resize_keyboard: true,
-						one_time_keyboard: true
-					}
-				});
+To: 
+${userNames.join('\n')}
+
+Amount : ${coinObject.format(trxAmount)}
+Fee : ${coinObject.format(trxFee)}
+Trx Meta ID: ${uuid}
+Trx Expiry: ${global.config.rpc.metaTTL} seconds
+Current Balance : ${coinObject.format(wallet.balance)}
+Number of transactions : ${trx.tx_hash_list.length}
+To proceed with transaction run
+Press button below to confirm`,this.Helper.metaButton());
 		}
 	}
 }

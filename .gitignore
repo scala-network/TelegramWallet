@@ -3,3 +3,5 @@ package-lock.json
 config.json
 .DS_Store
 /tmp/*
+/config/lunc.json
+/config/xla.json

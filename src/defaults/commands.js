@@ -12,7 +12,6 @@ module.exports = {
 		'nimbus',
 		'set',
 		'withdraw',
-		'submit',
 		'version',
 		'wet',
 		'price'

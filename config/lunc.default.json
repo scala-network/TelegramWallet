@@ -1,0 +1,19 @@
+{
+	"rpc": {
+		"address":"https://rebel1.grouptwo.org", 
+  		"chainID": "rebel-2"
+	},
+	"market" : {
+		"cmcId": "4172",
+		"apiKey": "b54bcf4d-1bca-4e8e-9a24-22ff2c3d462c",
+		"tickers": ["BTC", "USD", "LTC", "EUR","XLA"]		
+	},
+	"settings" : {
+		"tip": 100000,
+		"rain": 100000,
+		"wet": 10,
+		"wet_max":20,
+		"rain_min": 10,
+		"rain_max": 1000000000	
+	}
+}

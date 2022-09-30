@@ -11,18 +11,18 @@ class Setting extends Query {
 		const exists = await User.exists(userId);
 
 		if (!exists) {
-			return STATUS.ERROR_ACCOUNT_NOT_EXISTS;
+			return {error:"User doesn't exists"};
 		}
 
 		const ukey = [coin, 'settings', userId].join(':');
 
 		if (!~this.fields.indexOf(field)) {
-			return STATUS.ERROR_MODEL_PROPERTIES_NOT_AVALIABLE;
+			return {error:"Invalid field"};
 		}
 
 		await global.redisClient.hset(ukey, field, value);
 
-		return STATUS.OK;
+		return true;
 	}
 
 	async findAllByUserId (userId, coin = 'xla') {
@@ -31,7 +31,7 @@ class Setting extends Query {
 		const exists = await User.exists(userId);
 
 		if (!exists) {
-			return STATUS.ERROR_ACCOUNT_NOT_EXISTS;
+			return {error:"User doesn't exists"};
 		}
 
 		const ukey = [coin, 'settings', userId].join(':');
@@ -48,7 +48,6 @@ class Setting extends Query {
 			const field = this.fields[i];
 			if(settings[i] !== null) results[field] = setting;
 		}
-		console.log(results);
 		return results;
 	}
 
@@ -58,12 +57,20 @@ class Setting extends Query {
 		const exists = await User.exists(userId);
 
 		if (!exists) {
-			return STATUS.ERROR_ACCOUNT_NOT_EXISTS;
+			return {error:"User doesn't exists"};
 		}
 
 		const ukey = [coin, 'settings', userId].join(':');
-
-		const setting = await global.redisClient.hget(ukey, field);
+		let setting;
+		if(Array.isArray(field)){
+			let result = await global.redisClient.hmget(ukey, field);
+			for(let i = 0;i<field.length;i++) {
+				const f = field[i];
+				setting[f] = result[i];
+			}
+		} else {
+			setting = await global.redisClient.hget(ukey, field);
+		}
 		return setting || null;
 	}
 }

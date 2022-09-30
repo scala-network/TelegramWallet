@@ -37,46 +37,31 @@ class InfoCommand extends Command {
 
 		// const totalBalance = 0;
 		let output = '';
-		output += '<u>User Information</u>\n';
+		output += '<b><u>User\'s Information</u></b>\n\n';
 		for (const field of User.fields) {
-			if (~['wallet_id', 'wallet', 'status', 'user_id', 'coin_id'].indexOf(field)) {
-				continue;
-			}
-			output += `[${field}] : ${result[field]}\n`;
+			output += `${field} : ${result[field]}\n`;
 		}
 
-		output += '\n<u>User Settings</u>\n';
-		for (const i in Settings.fields) {
-			const field = Settings.fields[i];
-
-			let out = Settings.validateValue(field, result[field]);
-			switch (field) {
-			case 'tip':
-			case 'rain':
-				// out = this.Coin.format(out);
-				break;
-			case 'tip_submit':
-			case 'rain_submit':
-			default:
-				if (out === false) {
-					out = 'disable';
-				}
-				break;
-			}
-			output += `[${field}] : ${out}\n`;
-		}
-
-		output += '\n<u>Wallet Information</u>\n';
+		output += '\n<u><b>Wallet Information</b></u>\n\n';
 
 		const wallets = await Wallet.findByUserId(ctx.from.id);
 		for(let [coin,wallet] of Object.entries(wallets)){
 			const coinObject = this.Coins.get(coin);
 			if (wallet) {
-				output += `Address : ${wallet.address}\n`;
+				output += `Coin ID : ${coin}\n`;
+				output += `Address : \n${wallet.address}\n`;
+				
 				output += `Balance : ${utils.formatNumber(coinObject.format(wallet.balance || 0))}\n`;
+				let unlock = wallet.balance;
+				if('unlock' in wallet){
+					unlock = wallet.unlock
+				}
+				if('trading' in wallet){
+					output += `Trade Lock : ${utils.formatNumber(wallet.trading || 0)}\n`;
+					unlock -= wallet.trading; 
+				}
 				output += `Unlock : ${utils.formatNumber(coinObject.format(wallet.unlock || 0))}\n`;
-				output += `Height : ${utils.formatNumber(wallet.height || 0)}\n`;
-				output += `Last Sync: ${timeAgo.format(parseInt(wallet.updated || 0), 'round')}\n`;
+				output += `Last Sync: ${timeAgo.format(parseInt(wallet.updated || 0), 'round')}\n\n`;
 			} else {
 				output += 'No wallet avaliable\n';
 			}

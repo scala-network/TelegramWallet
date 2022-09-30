@@ -1,7 +1,7 @@
 'use strict';
 const Model = require('./model');
 const CoinManager = require('./coin_manager')();
-
+const Helper = require('../helpers/index');
 class Prompt {
 	get enabled () {
 		return true;
@@ -23,6 +23,10 @@ class Prompt {
 		return Model.LoadRegistry(modelName);
 	}
 
+	get Helper() {
+		return Helper;
+	}
+	
 	constructor () {
 		if (!this.name || !this.description) {
 			console.error('Method missing name @ description');
@@ -35,6 +39,7 @@ class Prompt {
 			console.error('Method missing run');
 			process.exit();
 		}
+
 	}
 
 	auth (ctx) {
