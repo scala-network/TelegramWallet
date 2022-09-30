@@ -16,6 +16,7 @@
     "http": "0.0.0",
     "https": "^1.0.0",
     "ioredis": "^4.28.5",
+    "isomorphic-fetch": "^3.0.0",
     "javascript-time-ago": "^2.3.8",
     "lodash": "^4.17.21",
     "telegraf": "^4.4.1",

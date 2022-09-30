@@ -1,4 +1,6 @@
 const { Coins, LCDClient,MnemonicKey,MsgSend, Fee, isTxError } = require('@terra-money/terra.js');
+const fetch = require("isomorphic-fetch");
+
 const bech32 = require('bech32');
 class lunc {
 	#_lcd;
@@ -92,7 +94,15 @@ class lunc {
 		return wallet.key.accAddress;
 	}
 
-	async getFee() {
+	async #_getGasPriceCoins(){
+		const gasPrices = await fetch("https://fcd.terra.dev/v1/txs/gas_prices");
+		const gasPricesJson = await gasPrices.json();
+		console.log(gasPricesJson);
+		return new Coins(gasPricesJson);
+
+	}
+
+	async getFee(txAmount) {
 		let taxRate= await this.#_lcd.treasury.taxRate().catch(e => {});
 		if(!taxRate) taxRate = 0;
 		let taxCap = await this.#_lcd.treasury.taxCap().catch(e => {});
@@ -101,8 +111,7 @@ class lunc {
 		}else {
 			taxCap = parseFloat(taxCap.amount);
 		}
-
-		return Math.min(parseFloat(taxRate)*100000, taxCap);
+		return Math.min(Math.ceil(txAmount * parseFloat(taxRate)), parseInt(taxCap));
 	}
 
 	async getBalance (id, walletId) {
@@ -151,27 +160,7 @@ class lunc {
 	}
 
 	async transfer (id, idx, address, amount, doNotRelay) {
-		if (!idx) {
-			return { error: 'Missing wallet index' };
-		}
-		const wallet = await this.#_getWallet(idx);
-		let send;
-		if(doNotRelay) {
-			send = new MsgSend(wallet.key.accAddress,address,{ uluna: amount });
-			const unsignedTx = await wallet.createTx({msgs: [send]});
-
-		} else {
-			send = new MsgSend(
-				wallet.key.accAddress,
-				address,
-				{ uluna: amount }
-				);
-			console.log(amount);
-			const tx = await wallet.createAndSignTx({ msgs: [send] });
-			const result = await lcd.tx.broadcast(tx);
-		}
-
-		
+		return this.transferMany(id,idx, [{address,amount}], doNotRelay);
 	}
 
 	async relay (id, meta) {
@@ -191,28 +180,49 @@ class lunc {
 	}
 
 	async transferMany (id, idx, destinations, doNotRelay, split = true, fee = 0) {
+		if (!idx) {
+			return { error: 'Missing wallet index' };
+		}
+		let totalAmount = 0;
 		const wallet = await this.#_getWallet(idx);
 		const send =  destinations.map(des => {
+			totalAmount+=des.amount;
 			return new MsgSend(
-			  wallet.key.accAddress,
-			  des.address,
-			  { uluna: des.amount }
-			);
+				wallet.key.accAddress,
+				des.address,
+				{ uluna: des.amount }
+				);
 		});
-		if(!fee) {
-			fee = await this.getFee();
+		
+		if(!doNotRelay) {
+			return;
 		}
-		let tx = await wallet.createAndSignTx({ msgs:send,gasPrices:{uluna:fee}});
+
+		const taxAmount = await this.getFee(totalAmount);
+		// Compute the burn tax amount for this transaction and convert to Coins
+		const taxAmountCoins = new Coins({ uluna : taxAmount });
+		console.log("Burn tax amount: ", taxAmountCoins);
+		const walletInfo = await wallet.accountNumberAndSequence();
+		const signerData = [{ sequenceNumber: walletInfo.sequence }];
+		const gasPricesCoins = await this.#_getGasPriceCoins();
+		// Estimate the gas amount and fee (without burn tax) for the message
+		var txFee = await this.#_lcd.tx.estimateFee(signerData,{ msgs: send, gasPrices: gasPricesCoins, gasAdjustment: 3 });
+		console.log("Gas and Fee estimate, pre-tax:", txFee.amount)
+
+		// Add the burn tax component to the estimated fee
+		txFee.amount = txFee.amount.add(taxAmountCoins);
+		console.log("Gas and Fee estimate, post tax:", txFee.amount);
+
+		const tx = await wallet.createAndSignTx({ msgs: send, fee: txFee });
+		// let tx = await wallet.createAndSignTx({ msgs:send,gasPrices:{uluna:fee}});
 		return new Promise(resolve => {
 			this.#_lcd.tx.broadcast(tx).then(result => {
 				if (isTxError(result)) {
-				    return resolve({error:result.raw_log});
+					return resolve({error:result.raw_log});
 				}
 
-				let gasfee = fee * result.gas_wanted;
-				console.log(result);
 				resolve({
-					fee_list : [gasfee],
+					fee_list : [txFee.amount],
 					amount_list : destinations.map(des => des.amount),
 					tx_hash_list : [result.txhash]
 				});
@@ -222,14 +232,14 @@ class lunc {
 				}
 				return resolve({error:e.message});
 			})
-			
-		})
- 		
-	}
 
-	async sweep (id, idx, address, doNotRelay) {
-		return { error: 'Unable to get a response from RPC' };
-	}
+		})
+
+}
+
+async sweep (id, idx, address, doNotRelay) {
+	return { error: 'Unable to get a response from RPC' };
+}
 }
 
 module.exports = lunc;
