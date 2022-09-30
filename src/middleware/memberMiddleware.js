@@ -10,6 +10,7 @@ class MemberMiddleware extends Middleware {
 	}
 
 	async run (ctx, next) {
+
 		if (ctx.test) return;
 
 		if (!ctx || !ctx.appRequest || ctx.appRequest.is.command || ctx.appRequest.is.action
@@ -34,7 +35,7 @@ class MemberMiddleware extends Middleware {
 			if (ctx.appRequest.is.group) {
 				await Model.LoadRegistry('Member').addMember(ctx.chat.id, userId);
 			}
-		}
+		}  
 
 		if (next) {
 			return next();

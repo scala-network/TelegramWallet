@@ -29,8 +29,6 @@ class InfoCommand extends Command {
 
 		const User = this.loadModel('User');
 		const Wallet = this.loadModel('Wallet');
-		const Settings = this.loadModel('Setting');
-
 		const result = await User.findById(ctx.from.id);
 
 		if (!result) {
@@ -55,7 +53,7 @@ class InfoCommand extends Command {
 			switch (field) {
 			case 'tip':
 			case 'rain':
-				out = this.Coin.format(out);
+				// out = this.Coin.format(out);
 				break;
 			case 'tip_submit':
 			case 'rain_submit':
@@ -70,17 +68,20 @@ class InfoCommand extends Command {
 
 		output += '\n<u>Wallet Information</u>\n';
 
-		const wallet = result.wallet ? result.wallet : await Wallet.findByUserId(ctx.from.id);
-
-		if (wallet) {
-			output += `Address : ${wallet.address}\n`;
-			output += `Balance : ${utils.formatNumber(this.Coin.format(wallet.balance || 0))}\n`;
-			output += `Unlock : ${utils.formatNumber(this.Coin.format(wallet.unlock || 0))}\n`;
-			output += `Height : ${utils.formatNumber(wallet.height || 0)}\n`;
-			output += `Last Sync: ${timeAgo.format(parseInt(wallet.updated || 0), 'round')}\n`;
-		} else {
-			output += 'No wallet avaliable\n';
+		const wallets = await Wallet.findByUserId(ctx.from.id);
+		for(let [coin,wallet] of Object.entries(wallets)){
+			const coinObject = this.Coins.get(coin);
+			if (wallet) {
+				output += `Address : ${wallet.address}\n`;
+				output += `Balance : ${utils.formatNumber(coinObject.format(wallet.balance || 0))}\n`;
+				output += `Unlock : ${utils.formatNumber(coinObject.format(wallet.unlock || 0))}\n`;
+				output += `Height : ${utils.formatNumber(wallet.height || 0)}\n`;
+				output += `Last Sync: ${timeAgo.format(parseInt(wallet.updated || 0), 'round')}\n`;
+			} else {
+				output += 'No wallet avaliable\n';
+			}
 		}
+		
 
 		ctx.appResponse.reply(output);
 	}

@@ -16,7 +16,9 @@ class StartCommand extends Command {
 	get name () {
 		return 'start';
 	}
-
+	get needStart() {
+		return false;
+	}
 	auth (ctx) {
 		return !ctx.appRequest.is.group && ctx.appRequest.is.command;
 	}
@@ -34,6 +36,8 @@ class StartCommand extends Command {
 		const user = await User.add(id, username);
 
 		let wallet;
+		const coin = 'xla';
+		const coinObject = this.Coins.get(coin);
 		switch (user) {
 		case STATUS.ERROR_ACCOUNT_EXISTS:
 			return ctx.appResponse.reply(`Hello ${username}. Welcome back!`);
@@ -45,10 +49,10 @@ class StartCommand extends Command {
 				await User.remove(id, username);
 				return ctx.appResponse.reply('Account created failed');
 			}
-			if (!user.wallet) {
-				wallet = await Wallet.findByUserId(user.user_id);
+			if (coin in user) {
+				wallet = await Wallet.findByUserId(user.user_id,coin);
 			} else {
-				wallet = user.wallet;
+				wallet = user[coin];
 			}
 
 			let address;
@@ -57,13 +61,13 @@ class StartCommand extends Command {
 				address = wallet.address;
 				walletId = wallet.wallet_id;
 			} else {
-				walletId = user.wallet_id;
+				walletId = user[coin+'_id'];
 			}
 
 			let result;
 
 			if (user.status === STATUS.WALLET_REQUIRED || !walletId) {
-				result = await this.Coin.createSubAddress(user.user_id);
+				result = await coinObject.createSubAddress(user.user_id);
 
 				if (!result) {
 					// await User.remove(id);
@@ -77,14 +81,14 @@ class StartCommand extends Command {
 				walletId = result.account_index;
 				address = result.address;
 
-				global.log('info', logSystem, 'Create new subaddress for \n\t\t=> %s\n\t\t=> %s', [
+				global.log('info', logSystem, 'Create new subaddress for XLA \n\t\t=> %s\n\t\t=> %s', [
 					`${user.user_id}@${username}`,
 					`${address.slice(0, 5)}...${address.slice(address.length - 5)} : ${walletId}`
 				]);
 			}
 
 			if (!address && walletId) {
-				result = await this.Coin.getAddress(user.user_id, walletId);
+				result = await coinObject.getAddress(user.user_id, walletId);
 				if (result) {
 					if ('error' in result) {
 						global.log('error', logSystem, 'Getting old subaddress for %s at %s\n %s', [
@@ -92,10 +96,6 @@ class StartCommand extends Command {
 						]);
 
 						return ctx.appResponse.reply(result.error.message);
-					}
-
-					if (result.addresses.length > 0) {
-						address = result.addresses[0].address;
 					}
 
 					global.log('info', logSystem, 'Create old subaddress for \n\t\t=> %s\n\t\t=> %s', [
@@ -108,22 +108,58 @@ class StartCommand extends Command {
 			if (user.status === STATUS.WALLET_REQUIRED && address && walletId) {
 				const Network = this.loadModel('Network');
 
-				const network = Network.lastHeight(this.Coin);
+				const network = Network.lastHeight(coinObject);
 				let height;
 				if (!network || !network.height) {
 					height = 0;
 				}
-				wallet = await Wallet.addByUser(user, address, walletId, height);
+				wallet = await Wallet.addByUser(user, address, walletId, height, coin);
 			} else if (
 				(!walletId && wallet.wallet_id !== walletId) ||
                     (!address && wallet.address !== address)
 			) {
 				wallet = await Wallet.update(user.user_id, wallet);
 			}
-
+			let output;
 			if (wallet) {
-				return ctx.appResponse.reply('Account created successfully');
+				const Wallet = this.loadModel('Wallet');
+		 		output += '😘<b>Welcome to Scala Telegram Wallet!</b>\nYour telegram is binded. Run /help for usages.\n<u>Wallet address:</u>\n\n';
+		 		return ctx.appResponse.reply(output);
+		 		output = "";
+		 		const wallets = await Wallet.findByUserId(ctx.from.id);
+		 		let outputs = [];
+		 		let buttons = [];
+		 		if (wallets) {
+		 			for(let coin of global.config.coins) {
+		 				const coinObject = this.Coins.get(coin);
+		 				if(coin in wallets && wallets[coin]!== null){
+		 					const wallet = wallets[coin];
+		 					outputs.push(`<b>${coinObject.fullname}(${coinObject.symbol})</b> :\n${wallet.address}`);
+		 				}
+		 				else{
+		 					buttons.push({
+		 						text:`Create ${coinObject.fullname}(${coinObject.symbol}) Address`,
+		 						// callback_data: `address-${coinObject.symbol.toLowerCase()}`
+		 						callback_data: `address-${coin}`
+		 					});
+		 				}
+		 					
+		 			}
+		 		} else {
+		 			output = 'No wallet avaliable';
+		 		}
+
+		 		ctx.appResponse.reply(output+outputs.join('\n\n'),{
+		 			reply_markup: {
+		 				inline_keyboard: [buttons],
+		 				resize_keyboard: false,
+		 				one_time_keyboard: true,
+		                remove_keyboard: true
+		 			}
+		 		});
+				
 			}
+
 			await User.remove(id, username);
 
 			return ctx.appResponse.reply('Account creation failed');

@@ -15,6 +15,10 @@ class Prompt {
 		return false;
 	}
 
+	get needStart(){
+		return true;
+	}
+
 	loadModel (modelName) {
 		return Model.LoadRegistry(modelName);
 	}
@@ -38,6 +42,10 @@ class Prompt {
 	}
 
 	async exec (ctx) {
+		if(this.needStart) {
+			const user = await this.loadModel('User').findById(ctx.from.id);
+ 			if(!user) return ctx.sendMessage('Seems you are not connected run /start to get connected');
+		}
 		if (!this.auth(ctx)) {
 			const toId = (!ctx.appRequest.is.group) ? ctx.appRequest.from.id : ctx.chat.id;
 			if (ctx.appRequest.is.action) { return await ctx.telegram.sendMessage(toId, `Authorization failed for \`${ctx.appRequest.action}\``); } else if (ctx.appRequest.is.command) { return await ctx.telegram.sendMessage(toId, `Authorization failed for \`${ctx.appRequest.command}\``); }

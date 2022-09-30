@@ -3,7 +3,7 @@ const Query = require('../../../base/query');
 
 class Member extends Query {
 	async addMember (chatID, memberID) {
-		const ckey = [global.config.coin, 'GroupMembers', chatID].join(':');
+		const ckey = ["xla:GroupMembers", chatID].join(':');
 		const result = await global.redisClient
 			.multi()
 			.zadd(ckey, Date.now(), memberID)
@@ -16,19 +16,19 @@ class Member extends Query {
 	}
 
 	async findByLast10 (chatID) {
-		const ckey = [global.config.coin, 'GroupMembers', chatID].join(':');
+		const ckey = ["xla:GroupMembers", chatID].join(':');
 		return await global.redisClient.zrevrange(ckey, 0, -1);
 	}
 
-	async findWet (chatID) {
+	async findWet (chatID, coin) {
 		const dateObj = new Date();
 		const month = String(dateObj.getMonth()).padStart(2, '0');
 		const day = String(dateObj.getDate()).padStart(2, '0');
 		const year = dateObj.getFullYear();
 
 		const dateKey = year + month + day;
-		const ckey1 = [global.config.coin, 'GroupWettest:overall', chatID].join(':');
-		const ckey2 = [global.config.coin, 'GroupWettest:' + dateKey, chatID].join(':');
+		const ckey1 = [coin, 'GroupWettest:overall', chatID].join(':');
+		const ckey2 = [coin, 'GroupWettest:' + dateKey, chatID].join(':');
 
 		const results = await global.redisClient
 			.multi()
@@ -71,31 +71,30 @@ class Member extends Query {
 		return { overall, today };
 	}
 
-	async addWet (chatID, username, amount) {
+	async addWet (chatID, username, amount, coin) {
 		const dateObj = new Date();
 		const month = String(dateObj.getMonth()).padStart(2, '0');
 		const day = String(dateObj.getDate()).padStart(2, '0');
 		const year = dateObj.getFullYear();
 		const dateKey = year + month + day;
-		const ckey1 = [global.config.coin, 'GroupWettest:overall', chatID].join(':');
-		const ckey2 = [global.config.coin, 'GroupWettest:' + dateKey, chatID].join(':');
+		const ckey1 = [coin, 'GroupWettest:overall', chatID].join(':');
+		const ckey2 = [coin, 'GroupWettest:' + dateKey, chatID].join(':');
 		await global.redisClient
 			.multi()
 			.zincrby(ckey1, amount, username)
 			.zincrby(ckey2, amount, username)
 			.exec();
-		// We set to 11 so that if any of the top10 is sending the money we will get the 11th member
 	}
 
-	async findNimbus (chatID) {
+	async findNimbus (chatID, coin) {
 		const dateObj = new Date();
 		const month = String(dateObj.getMonth()).padStart(2, '0');
 		const day = String(dateObj.getDate()).padStart(2, '0');
 		const year = dateObj.getFullYear();
 
 		const dateKey = year + month + day;
-		const ckey1 = [global.config.coin, 'GroupNimbus:overall', chatID].join(':');
-		const ckey2 = [global.config.coin, 'GroupNimbus:' + dateKey, chatID].join(':');
+		const ckey1 = [coin, 'GroupNimbus:overall', chatID].join(':');
+		const ckey2 = [coin, 'GroupNimbus:' + dateKey, chatID].join(':');
 
 		const results = await global.redisClient
 			.multi()
@@ -138,14 +137,14 @@ class Member extends Query {
 		return { overall, today };
 	}
 
-	async addNimbus (chatID, username, amount) {
+	async addNimbus (chatID, username, amount, coin) {
 		const dateObj = new Date();
 		const month = String(dateObj.getMonth()).padStart(2, '0');
 		const day = String(dateObj.getDate()).padStart(2, '0');
 		const year = dateObj.getFullYear();
 		const dateKey = year + month + day;
-		const ckey1 = [global.config.coin, 'GroupNimbus:overall', chatID].join(':');
-		const ckey2 = [global.config.coin, 'GroupNimbus:' + dateKey, chatID].join(':');
+		const ckey1 = [coin, 'GroupNimbus:overall', chatID].join(':');
+		const ckey2 = [coin, 'GroupNimbus:' + dateKey, chatID].join(':');
 		await global.redisClient
 			.multi()
 			.zincrby(ckey1, amount, username)

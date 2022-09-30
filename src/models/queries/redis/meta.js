@@ -2,45 +2,37 @@
 const { v4: UUID } = require('uuid');
 const Query = require('../../../base/query');
 class Meta extends Query {
-	async getId (userId, txMeta) {
+	async getId (userId, meta, coin) {
 		const uuid = UUID();
-		const ukey = [global.config.coin, 'Meta', userId, uuid].join(':');
-		const mkey = [global.config.coin, 'Submit', userId].join(':');
-
+		const ukey = ['xla:meta', userId].join(':');
+		// const mkey = ['xla:meta:submit', userId].join(':');
+		const ttl = global.config.rpc.metaTTL;
 		await global.redisClient
 			.multi()
-			.setex(ukey, global.config.rpc.metaTTL, txMeta)
-			.setex(mkey, global.config.rpc.metaTTL, uuid)
+			.hmset(ukey, {uuid, meta, coin})
+			.expire(ukey, ttl)
 			.exec();
 		return uuid;
 	}
 
 	async findById (userId, id) {
-		const ukey = [global.config.coin, 'Meta', userId, id].join(':');
-		const meta = await global.redisClient.get(ukey);
-		return meta;
+		const metaObject = await this.getByUserId(userId);
+		if(!metaObject || metaObject.uuid !== id) return null;
+		return metaObject;
 	}
 
-	async getByUserId (userId, options) {
-		const ukey = [global.config.coin, 'Submit', userId].join(':');
-		const uuid = await global.redisClient.get(ukey);
-
-		if (!uuid) return false;
-
-		const mkey = [global.config.coin, 'Meta', userId, uuid].join(':');
-		const meta = await global.redisClient.get(mkey);
-
-		return meta;
+	async getByUserId (userId) {
+		const ukey = ['xla:meta', userId].join(':');
+		const metaObject = await global.redisClient.hgetall(ukey);
+		if (!metaObject) return null;
+		return metaObject;
 	}
 
 	async deleteMeta (userId, id) {
-		const mkey = [global.config.coin, 'Meta', userId, id].join(':');
-		const ukey = [global.config.coin, 'Submit', userId].join(':');
-		await global.redisClient
-			.multi()
-			.del(ukey)
-			.del(mkey)
-			.exec();
+		const ukey = ['xla:meta', userId].join(':');
+		const metaId = await global.redisClient.hget(ukey,'uuid');
+		if(!metaId || metaId !== id) return null;
+		await global.redisClient.del(ukey);
 	}
 }
 

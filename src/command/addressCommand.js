@@ -5,37 +5,57 @@
  *
  * @module Commands/address
  */
-const Command = require('../base/command');
+ const Command = require('../base/command');
 
-class AddressCommand extends Command {
-	get name () {
-		return 'address';
-	}
+ class AddressCommand extends Command {
+ 	get name () {
+ 		return 'address';
+ 	}
 
-	get description () {
-		return 'Returns wallet address';
-	}
+ 	get description () {
+ 		return 'Returns wallet address';
+ 	}
 
-	auth (ctx) {
-		return !ctx.appRequest.is.group;
-	}
+ 	auth (ctx) {
+ 		return !ctx.appRequest.is.group;
+ 	}
 
-	async run (ctx) {
-		if (ctx.test) return;
+ 	async run (ctx) {
+ 		if (ctx.test) return;
 
-		const Wallet = this.loadModel('Wallets');
-		let output = 'Wallet address: ';
-		const wallet = await Wallets.findByUserId(ctx.from.id);
+ 		const Wallet = this.loadModel('Wallet');
+ 		let output = '<u>Wallet address:</u>\n\n';
+ 		const wallets = await Wallet.findByUserId(ctx.from.id);
+ 		let outputs = [];
+ 		let buttons = [];
+ 		if (wallets) {
+ 			for(let coin of global.config.coins) {
+ 				const coinObject = this.Coins.get(coin);
+ 				if(coin in wallets && wallets[coin]!== null){
+ 					const wallet = wallets[coin];
+ 					outputs.push(`<b>${coinObject.fullname}(${coinObject.symbol})</b> :\n${wallet.address}`);
+ 				}
+ 				else{
+ 					buttons.push({
+ 						text:`Create ${coinObject.fullname}(${coinObject.symbol}) Address`,
+ 						// callback_data: `address-${coinObject.symbol.toLowerCase()}`
+ 						callback_data: `address-${coin}`
+ 					});
+ 				}
+ 					
+ 			}
+ 		} else {
+ 			output = 'No wallet avaliable';
+ 		}
 
-		if (wallet) {
-			for(let [coin,details] of wallet) {
-				output += coin +" : "+details.address;	
-			}
-		} else {
-			output = 'No wallet avaliable';
-		}
-
-		ctx.appResponse.reply(output);
-	}
-}
-module.exports = AddressCommand;
+ 		ctx.appResponse.reply(output+outputs.join('\n\n'),{
+ 			reply_markup: {
+ 				inline_keyboard: [buttons],
+ 				resize_keyboard: false,
+ 				one_time_keyboard: true,
+                remove_keyboard: true
+ 			}
+ 		});
+ 	}
+ }
+ module.exports = AddressCommand;

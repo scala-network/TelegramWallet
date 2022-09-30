@@ -1,7 +1,7 @@
 const request = require('../engines/request');
 class xla {
 	get server () {
-		return global.config.xla.rpc.server;
+		return global.coins.xla.rpc.server;
 	}
 
 	get fullname () {
@@ -20,12 +20,20 @@ class xla {
 		return 2;
 	}
 
+	async gasPrice() {
+		return 0;
+	}
+
 	parse (amount) {
 		return parseFloat(`${amount}`.replace(',', '')) * this.atomicUnits;
 	}
 
 	format (coin) {
 		return (parseInt(coin) / this.atomicUnits).toFixed(this.fractionDigits).replace(/\B(?=(\d{3})+(?!\d))/g, ',') + ' ' + this.symbol;
+	}
+
+	async getFee() {
+		return Promise.resolve(1.02);
 	}
 
 	explorerLink (hash) {
@@ -82,25 +90,29 @@ class xla {
 			return { error: response.error.message };
 		}
 
-		return response.result;
+		if(!('result' in response)) return { error: "Invalid key result in response" };
+		if(!('height' in response.result)) return { error: "Invalid key height in response.result" };
+
+		return {
+			height:response.result.height
+		}
 	}
 
 	async getAddress (id, walletId) {
+		if (!walletId) return { error: 'Missing wallet index' };
+
 		const { host, port } = this.server;
 		const response = await request.fetch(host, port, id, 'get_address', {
 			account_index: parseInt(walletId),
 			address_index: [0]
 		});
 
-		if (!response) {
-			return { error: 'Unable to get a response from RPC' };
-		}
-
-		if ('error' in response) {
-			return { error: response.error.message };
-		}
-
-		return response.result;
+		if (!response) return { error: 'Unable to get a response from RPC' };
+		if ('error' in response) return { error: response.error.message };
+		if(!('result' in response)) return { error: "Invalid key result in response" };
+		if(!('addresses' in response.result)) return { error: "Invalid key addresses in response.result" };
+		if(response.result.addresses.length <= 0) return { error: "Invalid length in response.result.addresses" };
+		return response.result.addresses[0].address;
 	}
 
 	async getBalance (id, walletId) {
@@ -120,12 +132,13 @@ class xla {
 		if ('error' in response) {
 			return { error: response.error.message };
 		}
-
+		if(!('result' in response)) return { error: "Invalid key result in response" };
 		return response.result;
 	}
 
 	async createSubAddress (id) {
 		const { host, port } = this.server;
+
 		const response = await request.fetch(host, port, id, 'create_account', {
 			label: `${id}`
 		});

@@ -35,8 +35,11 @@ for(let [engine,dsConfig] of Object.entries(global.config.datasource)) {
 			break;
 	}
 }
+
 global.coins = {};
 for(let coin of global.config.coins) {
 	global.coins[coin] = require('../config/'+coin);
 }
 
+// console.log(global.coins);
+// process.exit();

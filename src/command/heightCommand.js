@@ -22,15 +22,15 @@ class HeightCommand extends Command {
 		if (ctx.test) return;
 		const Network = this.loadModel('Network');
 		const Wallet = this.loadModel('Wallet');
-
+		let output = "";
 		for(let coin of global.config.coins) {
 			const coinObject = this.Coins.get(coin);
 
 			const result = await Network.lastHeight(coinObject);
 
-			let output = 'Coin ID :' + coinObject.symbol + ' \n';
-			output = 'Daemon height: ' + utils.formatNumber(result.height | 0) + ' \n';
-			output += 'Sync Time: ' + timeAgo.format(parseInt(result.updated), 'round') + ' \n';
+			output += 'Coin ID :' + coinObject.symbol + ' \n';
+			output += 'Daemon height: ' + utils.formatNumber(result.height | 0) + ' \n';
+			output += 'Sync Time: ' + timeAgo.format(parseInt(result.updated), 'round') + ' \n\n';
 				
 		}
 
@@ -38,9 +38,9 @@ class HeightCommand extends Command {
 
 		if (!ctx.appRequest.is.group) {
 			output+='<u>Wallet height</u>\n';
-			const wallet = await Wallet.findByUserId(id);
-			if (wallet) {
-				for(let [coin,details] of wallet) {
+			const wallets = await Wallet.findByUserId(id);
+			if (wallets) {
+				for(let [coin,wallet] of Object.entries(wallets)) {
 					output += coin +" : " + utils.formatNumber(wallet.height | 0) + ' \n';
 				}
 			} else {

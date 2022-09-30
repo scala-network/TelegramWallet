@@ -21,14 +21,32 @@ class WithdrawCommand extends Command {
 	async run (ctx) {
 		if (ctx.test) return;
 
-		if (ctx.appRequest.args.length <= 2) {
+		if (ctx.appRequest.args.length < 3) {
 			return ctx.appResponse.reply(`Missing arguments\n${this.description}`);
 		}
+		let coin;
+		if (ctx.appRequest.args.length >= 1) {
+			coin = (''+ctx.appRequest.args[0]).trim().toLowerCase();
+		}
+		if(!coin) {
+			coin = 'xla';
+		}
+		if(!~global.config.coins.indexOf(coin)) {
+			return ctx.appResponse.reply(`Invalid coin. Avaliable coins are ${global.config.coins.join(',')}`);
+		}
+		if (ctx.appRequest.args.length >= 2) {
+			return ctx.appResponse.reply(`Missing coin address\n${this.description}`);
+		}
+		if (ctx.appRequest.args.length >= 3) {
+			return ctx.appResponse.reply(`Missing sent amount\n${this.description}`);
+		}
+		
+		const coinObject = this.Coins.get(coin);
 
 		const Wallet = this.loadModel('Wallet');
 		const Meta = this.loadModel('Meta');
 		const address = ctx.appRequest.args[1];
-		const valid = await this.Coin.validateAddress(ctx.from.id, address);
+		const valid = await coinObject.validateAddress(ctx.from.id, address);
 
 		switch (valid) {
 		case null:
@@ -42,21 +60,21 @@ class WithdrawCommand extends Command {
 				return ctx.appResponse.reply('No wallet avaliable');
 			}
 
-			wallet = await Wallet.syncBalance(ctx.from.id, wallet, this.Coin);
+			wallet = await Wallet.syncBalance(ctx.from.id, wallet, coinObject);
 			if (wallet && 'error' in wallet) {
 				return ctx.sendMessage(ctx.from.id, wallet.error);
 			}
 
 			let trx;
-			if (ctx.appRequest.args[1].trim().toLowerCase() === 'all') {
-				trx = await this.Coin.sweep(ctx.from.id, wallet.wallet_id, address, true);
+			if (ctx.appRequest.args[2].trim().toLowerCase() === 'all') {
+				trx = await coinObject.sweep(ctx.from.id, wallet.wallet_id, address, true);
 			} else {
-				const amount = this.Coin.parse(ctx.appRequest.args[1]);
+				const amount = coinObject.parse(ctx.appRequest.args[2]);
 				if (amount > parseFloat(wallet.unlock)) {
 					return ctx.appResponse.reply('Insufficient fund');
 				}
 
-				trx = await this.Coin.transferSplit(ctx.from.id, wallet.wallet_id, [{ address, amount }], true);
+				trx = await coinObject.transferMany(ctx.from.id, wallet.wallet_id, [{ address, amount }], true, true);
 			}
 			if ('error' in trx) {
 				return ctx.appResponse.reply(trx.error);
@@ -75,11 +93,12 @@ class WithdrawCommand extends Command {
 				<b>To:</b>
 				${address}
 				
-				<b>Amount :</b> ${this.Coin.format(trxAmount)}
-				<b>Fee :</b> ${this.Coin.format(trxFee)}
+				<b>Coin :</b> ${coinObject.symbol}
+				<b>Amount :</b> ${coinObject.format(trxAmount)}
+				<b>Fee :</b> ${coinObject.format(trxFee)}
 				<b>Trx Meta ID :</b> ${uuid}
 				<b>Trx Expiry :</b> ${global.config.rpc.metaTTL} seconds
-				<b>Current Unlock Balance :</b> ${this.Coin.format(wallet.balance)}
+				<b>Current Unlock Balance :</b> ${coinObject.format(wallet.balance)}
 				<b>Number of transactions :</b> ${trx.tx_hash_list.length}
 				Press button below to confirm`, {
 				reply_markup: {

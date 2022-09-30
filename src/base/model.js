@@ -19,7 +19,7 @@ class Model {
 	#_qryObj = {};
 
 	get engine () {
-		return global.config.datasource.engine;
+		return 'redis';
 	}
 
 	get fields () {
@@ -38,7 +38,7 @@ class Model {
 		}
 	}
 
-	Query (options) {
+	Query (options = []) {
 		let engine = this.engine;
 
 		if (options && (options.constructor === Object) && options.engine) {

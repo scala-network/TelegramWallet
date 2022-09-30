@@ -1,23 +1,22 @@
-const { Coins, LCDClient,MnemonicKey,MsgSend } = require('@terra-money/terra.js');
+const { Coins, LCDClient,MnemonicKey,MsgSend, Fee, isTxError } = require('@terra-money/terra.js');
 const bech32 = require('bech32');
 class lunc {
 	#_lcd;
 	async #_getWallet(wid){
-		const seed = await global.redisClient.hget('lunc:storages', wid);
+		const seed = await global.redisClient.lindex('lunc:mnemonic', wid);
 		const mk = new MnemonicKey({ mnemonic:Buffer.from(seed, 'base64').toString('utf8')});
 		return await this.#_lcd.wallet(mk);
 	}
 
-	async #_setWallet(wid, seed){
-		global.redisClient.incrby('lunc:rno',1);
-		return await global.redisClient.hset('lunc:storages', wid, Buffer.from(seed).toString('base64'));
+	async #_setWallet(seed){
+		await global.redisClient.rpush('lunc:mnemonic', Buffer.from(seed).toString('base64'))
 	}
 
 
 	constructor() {
 		this.#_lcd = new LCDClient({
-		  URL: this.server.rpc.address, // Use "https://lcd.terra.dev" for prod "http://localhost:1317" for localterra.
-		  chainID: this.server.rpc.chainID, // Use "columbus-5" for production or "localterra".
+		  URL: this.server.address, // Use "https://lcd.terra.dev" for prod "http://localhost:1317" for localterra.
+		  chainID: this.server.chainID, // Use "columbus-5" for production or "localterra".
 		  // gasPrices: gasPricesCoins,
 		  // gasAdjustment: "1.5", // Increase gas price slightly so transactions go through smoothly.
 		  // gas: 10000000,
@@ -26,7 +25,7 @@ class lunc {
 	}
 
 	get server () {
-		return global.config.lunc.rpc;
+		return global.coins.lunc.rpc;
 	}
 
 	get fullname () {
@@ -74,21 +73,36 @@ class lunc {
 	
 	async getHeight (id) {
 		try{
-			
 			const bb = await this.#_lcd.tendermint.blockInfo();
 			if(!bb) throw new Error("Unable to get response");
 			if(!('block' in bb)) throw new Error("Invalid response block");
 			if(!('header' in bb.block)) throw new Error("Invalid response block");
 			if(!('height' in bb.block.header)) throw new Error("Invalid response block");
-			return bb.block.header.height;
-		}catch(e => {
+
+			return {
+				height:bb.block.header.height
+			}
+		}catch(e) {
 			return { error: e.message };
-		});
+		};
 	}
 
 	async getAddress (id, walletId) {
 
 		return wallet.key.accAddress;
+	}
+
+	async getFee() {
+		let taxRate= await this.#_lcd.treasury.taxRate().catch(e => {});
+		if(!taxRate) taxRate = 0;
+		let taxCap = await this.#_lcd.treasury.taxCap().catch(e => {});
+		if(!taxCap || !('amount' in taxCap)) {
+			taxCap = 10000 * this.atomicUnits;
+		}else {
+			taxCap = parseFloat(taxCap.amount);
+		}
+
+		return Math.min(parseFloat(taxRate)*100000, taxCap);
 	}
 
 	async getBalance (id, walletId) {
@@ -97,26 +111,43 @@ class lunc {
 		const address = wallet.key.accAddress;
 		let balance;
 		try{
-			balance = await lcd.bank.balance(address);
-		} catch(e) {
-			console.log(e.code);
-		}
+			balance = await this.#_lcd.bank.balance(address);
 
-		console.log(balance[0].toData(true));
+			if(balance.length <= 1) return {error:'Invalid response'};
+			balance = balance[0].toData(true);
+			if(balance.length > 0) {
+				balance = balance.filter(bal => {
+					if(!('denom' in bal) && !('amount' in bal)) return false;
+					if(bal.denom !== 'uluna') return false;
+					return true;
+				});
+				if(balance.length <= 0) return {error:'Invalid denom'};
+				balance = balance[0];
+				if(!('denom' in balance) && !('amount' in balance)) return {error:'Invalid response'};
+				balance = parseInt(balance.amount);
+			} else {
+				balance = 0;
+			}
+			
+			return { balance};
+		} catch(e) {
+			
+			return {error:e.message}
+		}
 
 	}
 
 	async createSubAddress (id) {
 		const mk = new MnemonicKey();
 		const wallet = await this.#_lcd.wallet(mk);
-		const rno = await global.redisClient.get('lunc:rno');
-		if(!rno) {
-			rno = 1;
+		let account_index = await global.redisClient.llen('lunc:mnemonic');
+		if(!account_index) {
+			account_index = 0;
 		}
 
 		const address = wallet.key.accAddress;
-		await this.#_setWallet(rno,wallet.key.mnemonic);
-		return address;
+		await this.#_setWallet(account_index,wallet.key.mnemonic);
+		return {account_index,address};
 	}
 
 	async transfer (id, idx, address, amount, doNotRelay) {
@@ -127,7 +158,7 @@ class lunc {
 		let send;
 		if(doNotRelay) {
 			send = new MsgSend(wallet.key.accAddress,address,{ uluna: amount });
-			const unsignedTx = await wallet.createTx({[send]});
+			const unsignedTx = await wallet.createTx({msgs: [send]});
 
 		} else {
 			send = new MsgSend(
@@ -135,10 +166,12 @@ class lunc {
 				address,
 				{ uluna: amount }
 				);
+			console.log(amount);
+			const tx = await wallet.createAndSignTx({ msgs: [send] });
+			const result = await lcd.tx.broadcast(tx);
 		}
 
-		const tx = await wallet.createAndSignTx({ msgs: [send] });
-		const result = await lcd.tx.broadcast(tx);
+		
 	}
 
 	async relay (id, meta) {
@@ -157,37 +190,45 @@ class lunc {
 		return response.result;
 	}
 
-	async transferMany (id, idx, destinations, doNotRelay, split = true) {
-		return (split) ? this.transferSplit(id, idx, destinations, doNotRelay) : this.transfers(id, idx, destinations, doNotRelay);
+	async transferMany (id, idx, destinations, doNotRelay, split = true, fee = 0) {
+		const wallet = await this.#_getWallet(idx);
+		const send =  destinations.map(des => {
+			return new MsgSend(
+			  wallet.key.accAddress,
+			  des.address,
+			  { uluna: des.amount }
+			);
+		});
+		if(!fee) {
+			fee = await this.getFee();
+		}
+		let tx = await wallet.createAndSignTx({ msgs:send,gasPrices:{uluna:fee}});
+		return new Promise(resolve => {
+			this.#_lcd.tx.broadcast(tx).then(result => {
+				if (isTxError(result)) {
+				    return resolve({error:result.raw_log});
+				}
+
+				let gasfee = fee * result.gas_wanted;
+				console.log(result);
+				resolve({
+					fee_list : [gasfee],
+					amount_list : destinations.map(des => des.amount),
+					tx_hash_list : [result.txhash]
+				});
+			}).catch(e => {
+				if('response' in e && 'data' in e.response && 'message' in e.response.data) {
+					return resolve({error:e.response.data.message});
+				}
+				return resolve({error:e.message});
+			})
+			
+		})
+ 		
 	}
 
 	async sweep (id, idx, address, doNotRelay) {
-		if (!idx) {
-			return { error: 'Missing wallet index' };
-		}
-		doNotRelay = doNotRelay || false;
-
-		const { host, port } = this.server;
-		const response = await request.fetch(host, port, id, 'sweep_all', {
-			address,
-			ring_size: 11,
-			mixin: 11,
-			priority: 2,
-			do_not_relay: doNotRelay,
-			get_tx_metadata: doNotRelay,
-			get_tx_keys: !doNotRelay,
-			account_index: parseInt(idx)
-		});
-
-		if (!response) {
-			return { error: 'Unable to get a response from RPC' };
-		}
-
-		if ('error' in response) {
-			return { error: response.error.message };
-		}
-
-		return response.result;
+		return { error: 'Unable to get a response from RPC' };
 	}
 }
 

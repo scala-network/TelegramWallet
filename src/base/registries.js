@@ -64,8 +64,9 @@ class Registeries {
 			loaded++;
 			this.setBotRegistry(register, bot);
 		}
-		global.log('info', logSystem, 'Total loaded module : ' + loaded + '/' + allowRegisteries.length);
 		bar.stop();
+		global.log('info', logSystem, 'Total loaded module : ' + loaded + '/' + allowRegisteries.length);
+
 	}
 }
 

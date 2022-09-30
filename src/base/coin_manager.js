@@ -7,12 +7,12 @@ class CoinManager
 	constructor() {
 		let coins = global.config.coins;
 		for(let coin of coins) {
-			const _Coin = require('../coins/'+coin);
+			const _Coin = require('../coins/'+coin.toLowerCase());
 			this.#_coins[coin] = new _Coin();
 		}
 	}
 	get(coin) {
-		if(coin in this.#_coins) return this.#_coins[coin];
+		if(coin.toLowerCase() in this.#_coins) return this.#_coins[coin.toLowerCase()];
 		return null;
 	}
 }

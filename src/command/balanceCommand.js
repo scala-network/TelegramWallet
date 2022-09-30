@@ -28,13 +28,14 @@ class BalanceCommand extends Command {
 		const Wallet = this.loadModel('Wallet');
 
 		const oldWallet = await Wallet.findByUserId(ctx.from.id);
-		let output = '<u>Wallet Information</u>\n';
+		let output = '<u>Wallet Balance</u>\n\n';
 
 		if (oldWallet) {
-			for(let [coin,details] of oldWallet) {
+			for(let [coin,details] of Object.entries(oldWallet)) {
 				let wallet;
 				let coinObject = this.Coins.get(coin);
 				const syncWallet = await Wallet.syncBalance(ctx.from.id, details, coinObject);
+				
 				if (syncWallet && 'error' in syncWallet) {
 					wallet = details;
 				} else {
@@ -52,7 +53,7 @@ class BalanceCommand extends Command {
 					output += `Confirmations Remaining: ${wallet.pending}\n`;
 				}
 
-				output += "===================================";
+				output += "\n";
 			}
 		} else {
 			output += 'No wallet avaliable';

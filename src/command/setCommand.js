@@ -13,16 +13,25 @@ class SetCommand extends Command {
 	get name () {
 		return 'set';
 	}
-
 	get description () {
+		return `Set value for coin config. Run /set for more details`
+	}
+	get full_description () {
 		return `
-Set value for your config. usages: /set config value
-**Configs avaliable**
-rain - Set amount of coin to distribute per head (usages: /set rain 10)(min: 1)
-tip - Set default tip value (usages: /set tip 100)(default: 10)
-tip_submit - (enable | disable). On enable tip will automatically be sent without confirmatio (default: disable)
-rain_submit - (enable | disable). On enable rain will automatically be sent without confirmation (default: disable)
-rain_max - Number of latest members to recieve rain (default: 20) (max : 20 | min: 1)`;
+Set value for your config. To get settings for a coin run /set coin only. usages: /set coin config value
+\n<u><b>Configs avaliable</b></u>
+<b>rain</b>
+- Set amount of coin to distribute per head 
+- usages: /set xla rain 10
+<b>tip</b>
+- Set default tip value 
+- usages: /set xla tip 100
+<b>tip_submit (enable | disable)</b>
+- On enable tip will automatically be sent without confirmation
+<b>rain_submit (enable | disable)</b>
+- On enable rain will automatically be sent without confirmation (default: disable)
+<b>wet</b>
+- Number of latest members to recieve rain`;
 	}
 
 	auth (ctx) {
@@ -32,10 +41,21 @@ rain_max - Number of latest members to recieve rain (default: 20) (max : 20 | mi
 	async run (ctx) {
 		if (ctx.test) return;
 
-		if (ctx.appRequest.args.length <= 1) {
-			// return ctx.appResponse.reply(`Missing arguments\n${this.description}`);
-			return ctx.appResponse.reply(`Missing arguments\n${this.description}`);
+		if (ctx.appRequest.args.length < 1) {
+			return ctx.appResponse.reply(`Missing coin\n${this.full_description}`);
 		}
+
+		let coin;
+		if (ctx.appRequest.args.length >= 1) {
+			coin = (''+ctx.appRequest.args[0]).trim().toLowerCase();
+		}
+		if(!coin) {
+			coin = 'xla';
+		}
+		if(!~global.config.coins.indexOf(coin)) {
+			return ctx.appResponse.reply(`Invalid coin. Avaliable coins are ${global.config.coins.join(',')}`);
+		}
+		const coinObject = this.Coins.get(coin);
 
 		const User = this.loadModel('User');
 		const Setting = this.loadModel('Setting');
@@ -43,67 +63,84 @@ rain_max - Number of latest members to recieve rain (default: 20) (max : 20 | mi
 		const exists = await User.exists(ctx.from.id);
 
 		if (!exists) {
-			return ctx.appResponse.reply('User and wallet not avaliable please /create');
+			return ctx.appResponse.reply('User not avaliable run /start');
+		}
+		if (ctx.appRequest.args.length < 2) {
+			let output = `<u>Coin Settings (${coinObject.fullname})</u>\n`;
+			const result = await Setting.findAllByUserId(ctx.from.id,coin);
+			for (const i in Setting.fields) {
+				const field = Setting.fields[i];
+
+				let out = Setting.validateValue(field, result[field], coin);
+				switch (field) {
+				case 'tip':
+				case 'rain':
+					out = coinObject.format(out);
+					break;
+				case 'wet':
+					out += ' Users';
+					break;
+				case 'tip_submit':
+				case 'rain_submit':
+				default:
+					if (out === false) {
+						out = 'disable';
+					}
+					break;
+				}
+				output += `<b>${field}</b> : ${out}\n`;
+			}
+
+			return ctx.appResponse.reply(output);
 		}
 		let status;
-		const field = ctx.appRequest.args[0];
+		const field = ctx.appRequest.args[1];
+		let extra;
 		switch (field) {
-		case 'rain_max':
-			const headCount = ctx.appRequest.args[1];
-			const minValue = global.config.commands.rain_min || 1;
+		case 'wet':
+			let headCount = ctx.appRequest.args[2];
 
-			if (minValue === false) {
-				return ctx.appResponse.reply('Unable to validate field value');
-			}
-			if (minValue > headCount) {
-				return ctx.appResponse.reply(`Unable to save ${field} amount lower than ${minValue}`);
-			}
+			let _headCount = Setting.validateValue('wet_max', headCount, coin);
 
-			const maxValue = Setting.validateValue('rain_max', headCount);
-
-			if (maxValue === false) {
-				return ctx.appResponse.reply('Unable to validate field value');
-			}
-
-			if (maxValue < headCount) {
-				return ctx.appResponse.reply(`Unable to save ${field} amount higher than ${maxValue}`);
-			}
-
-			status = await Setting.updateField(ctx.from.id, field, headCount);
+			status = await Setting.updateField(ctx.from.id, field, _headCount, coin);
 
 			if (status !== STATUS.OK) {
 				return ctx.appResponse.reply(`Unable to save ${field} amount`);
 			}
-
-			return ctx.appResponse.reply(`Amount saved for ${field}`);
+			extra = "";
+			if(_headCount !== headCount) {
+				extra = ". Due to exceed max or min value";
+			}
+			return ctx.appResponse.reply(`Amount saved ${coin} for ${field} at ${_headCount}${extra}`);
 		case 'rain':
 		case 'tip':
-			const amount = this.Coin.parse(parseFloat(ctx.appRequest.args[1])); // From 10.00 to 1000
-			const value = Setting.validateValue(field, amount);
+
+			const amount = coinObject.parse(parseFloat(ctx.appRequest.args[2])); // From 10.00 to 1000
+			const value = Setting.validateValue(field, amount, coin);
 
 			if (value === false) {
 				return ctx.appResponse.reply('Unable to validate field value');
 			}
-			if (value > amount) {
-				return ctx.appResponse.reply(`Unable to save ${field} amount lower than ${value}`);
-			}
 
-			status = await Setting.updateField(ctx.from.id, field, value);
+			status = await Setting.updateField(ctx.from.id, field, value, coin);
 
 			if (status !== STATUS.OK) {
 				return ctx.appResponse.reply(`Unable to save ${field} amount`);
 			}
-
-			return ctx.appResponse.reply(`Amount saved for ${field}`);
+			extra = "";
+			if(amount !== value) {
+				extra = ". Due to exceed max or min value";
+			}
+			return ctx.appResponse.reply(`Amount saved ${coin} for ${field} at ${coinObject.format(value)}`);
 
 		case 'tip_submit':
 		case 'rain_submit':
-			let enabledDisabled = ctx.appRequest.args[1].toLowerCase();
-			enabledDisabled = Setting.validateValue(field, enabledDisabled);
+			let enabledDisabled = ctx.appRequest.args[2].toLowerCase();
+			enabledDisabled = Setting.validateValue(field, enabledDisabled, coin);
 			if (!enabledDisabled) {
 				return ctx.appResponse.reply('Invalid value send enabled / disabled only');
 			}
-			status = await Setting.updateField(ctx.from.id, field, enabledDisabled);
+			status = await Setting.updateField(ctx.from.id, field, enabledDisabled, coin);
 
 			if (status !== STATUS.OK) {
 				return ctx.appResponse.reply('Unable to save submit enabled/disabled for '.field);

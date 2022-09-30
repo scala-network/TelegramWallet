@@ -14,6 +14,10 @@ class NimbusCommand extends Command {
 	get description () {
 		return 'Who makes the most rain';
 	}
+	
+	get needStart() {
+		return false;
+	}
 
 	auth (ctx) {
 		return ctx.appRequest.is.group;
@@ -33,8 +37,7 @@ class NimbusCommand extends Command {
 			return ctx.appResponse.reply(`Invalid coin. Avaliable coins are ${global.config.coins.join(',')}`);
 		}
 
-		const results = await Member.findNimbus(ctx.chat.id,coin);
-		const results = _results[coin];
+		let results = await Member.findNimbus(ctx.chat.id,coin);
 		const coinObject = this.Coins.get(coin);
 		if (results.overall.length <= 0) {
 			return ctx.appResponse.reply(`It haven't been raining for ${coin}`);

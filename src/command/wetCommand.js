@@ -14,7 +14,9 @@ class WetCommand extends Command {
 	get description () {
 		return 'Who gets the most rain';
 	}
-
+	get needStart() {
+		return false;
+	}
 	auth (ctx) {
 		return ctx.appRequest.is.group;
 	}

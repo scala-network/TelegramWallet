@@ -14,12 +14,12 @@ if(!cluster.isWorker) {
         });
         worker.forkId = forkId;
         worker.on('exit', function (code, signal) {
-            setTimeout(function () {
-               spawn(forkId);
-            }, 500);
+            // setTimeout(function () {
+            //    spawn(forkId);
+            // }, 500);
         });
     }
-    spawn(0);// For worker
+    // spawn(0);// For worker
     spawn(1);// For application
     return;
 }
@@ -47,6 +47,9 @@ bot.telegram.getMe().then(bot_informations => {
     }
     
 });
+// bot.action(/^address-([A-Za-z]+)$/, (ctx) => {
+//   return ctx.answerCbQuery(`Param: ${ctx.match[1]}! 👍`)
+// })
 bot.catch(e => global.log('error', logSystem, e));
 bot.launch();
 

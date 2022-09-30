@@ -1,8 +1,8 @@
 'use strict';
 const Query = require('../../../base/query');
 class Network extends Query {
-	async lastHeight () {
-		const key = [global.config.coin, 'network'].join(':');
+	async lastHeight (coin) {
+		const key = ['xla', 'network', coin].join(':');
 
 		const result = await global.redisClient.hmget(key, ['height', 'updated']);
 
@@ -17,8 +17,8 @@ class Network extends Query {
 		};
 	}
 
-	async addHeight (height) {
-		const key = [global.config.coin, 'network'].join(':');
+	async addHeight (height, coin) {
+		const key = ['xla', 'network', coin].join(':');
 		const updated = Date.now();
 		return await global.redisClient.hmset(key, {
 			height,

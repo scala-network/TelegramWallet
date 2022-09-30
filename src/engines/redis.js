@@ -1,5 +1,5 @@
 const cluster = require('cluster');
-
+const Redis = require('ioredis');
 module.exports = config => {
 	const options = (() => {
 		const options = {
@@ -32,44 +32,70 @@ module.exports = config => {
 		if (config.password) {
 			options.password = config.password;
 		}
+		options.host = config.host || '127.0.0.1';
+		options.port = config.port || 6379;
 		return options;
 	})();
-	const client = require('ioredis').createClient(config.host || '127.0.0.1', config.port || 6379, options);
-
+	const convertor = result => {
+	  if (Array.isArray(result)) {
+	    const obj = {};
+	    for (let i = 0; i < result.length; i += 2) {
+	      obj[result[i]] = result[i + 1];
+	    }
+	    return obj;
+	  }
+	  return result;
+	};
+	Redis.Command.setReplyTransformer("hgetall", convertor);
+	
+	const client = new Redis(options);
 	client.on('error', err => {
-		console.log(`Datasource/Redis: Error on redis with code : ${err.code}`, err);
+		global.log('error', `Datasource/Redis`,`Error on redis with code : %s, %j`, [err.code,err]);
 		if (err.code === 'ECONNREFUSED') {
 			return process.exit();
 		}
 	});
 	client.on('disconnect', err => {
-		console.log(`Datasource/Redis: Disconnect on redis with code : ${err.code}`, err);
+		global.log('error', `Datasource/Redis`,`Disconnect on redis with code : %s, %j`, [err.code,err]);
 		if (err.code === 'ECONNREFUSED') {
 			return process.exit();
 		}
 	});
-	if (cluster.isWorker) return client;
+
+
+	if (cluster.isWorker) {
+		client.on('connect', () => {
+			global.log('info',`Datasource/Redis`,'Connected %s:%s:%s', [client.options.host, client.options.port, client.options.db]);
+		});
+		return client;
+	}
+	
+
 	(async () => {
-		const info = await client.info();
+		const info = await client.info('server');
 
 		if (!info) {
-			global.log('error', 'Datasource/Redis: Redis version check failed');
+			global.log('error', 'Datasource/Redis','Redis version check failed');
 			return process.exit();
 		}
 
 		const parts = info.split('\r\n');
 		let versionString;
+		let versionArray;
 		let version;
 		for (let i = 0; i < parts.length; i++) {
 			if (parts[i].indexOf(':') !== -1) {
 				const valParts = parts[i].split(':');
-				if (~['redis_version'].indexOf(valParts[0].toLowerCase())) {
+				if (!!~['redis_version'].indexOf(valParts[0].toLowerCase())) {
 					versionString = valParts[1];
-					version = parseFloat(versionString);
-					if (version === 0) {
+					versionArray = versionString.split('.');
+					if (versionArray.length < 0) {
 						versionString = '';
 						continue;
+					} else {
+						version = parseInt(versionArray[0]) + (0.1 * versionArray[1])
 					}
+
 					break;
 				}
 			}
