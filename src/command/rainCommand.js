@@ -209,13 +209,13 @@ class RainCommand extends Command {
 				Current Balance : ${coinObject.format(wallet.balance)}
 				Unlock Balance : ${coinObject.format(unlockBalance)}
 				Choose to confirm or cancel transaction`, this.Helper.metaButton());
-			setTimeout(() => {
-
-				ctx.telegram.deleteMessage(x.chat.id,x.message_id).catch(e => {
-
-				}).then(() => {
-					ctx.appResponse.sendMessage(ctx.from.id, "Transaction Action Timeout");
-				});	
+			setTimeout(async () => {
+				try{
+					await ctx.telegram.deleteMessage(x.chat.id,x.message_id)
+				}catch{
+					return;
+				}
+				ctx.appResponse.sendMessage(ctx.from.id, "Transaction Action Timeout");
 
 			}, global.config.rpc.metaTTL * 1000);
 		}

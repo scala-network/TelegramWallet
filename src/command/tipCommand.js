@@ -156,20 +156,35 @@ class TransferCommand extends Command {
 				<b>Current Unlock Balance :</b>  ${coinObject.format(unlock)}
 				<b>Number of transactions :</b>  ${trx.tx_hash_list.length}
 				Press button below to confirm`, this.Helper.metaButton());
-			setTimeout(() => {
+			setTimeout(async () => {
 
-				ctx.telegram.deleteMessage(x.chat.id,x.message_id).catch(e => {
-
-				}).then(() => {
-					ctx.appResponse.sendMessage(ctx.from.id, "Transaction Action Timeout");
-				});	
+				try{
+					await ctx.telegram.deleteMessage(x.chat.id,x.message_id)
+				}catch{
+					return;
+				}
+				ctx.appResponse.sendMessage(ctx.from.id, "Transaction Action Timeout");
 
 			}, global.config.rpc.metaTTL * 1000);
-		} else {
-			const trxAmount = trx.amount_list.reduce((a, b) => a + b, 0);
-			const txHash = trx.tx_hash_list.join('\n * ');
-			const trxFee = trx.fee_list.reduce((a, b) => a + b, 0);
-			await ctx.appResponse.sendMessage(ctx.from.id, `
+			} else {
+				const trxAmount = trx.amount_list.reduce((a, b) => a + b, 0);
+				const txHash = trx.tx_hash_list.join('\n * ');
+				const trxFee = trx.fee_list.reduce((a, b) => a + b, 0);
+				await ctx.appResponse.sendMessage(ctx.from.id, `
+					<u>Transaction Details</u>
+
+					From: 
+					@${sender.username}
+
+					To: 
+					@${userIds.map(u => u.username).join('\n@')}
+
+					<b>Tip Amount :</b>  ${coinObject.format(trxAmount)}
+					Fee : ${coinObject.format(trxFee)}
+					Current Unlock Balance : ${coinObject.format(unlock)}
+					Number of transactions : ${trx.tx_hash_list.length}
+					`);
+				const template = `
 				<u>Transaction Details</u>
 
 				From: 
@@ -178,46 +193,32 @@ class TransferCommand extends Command {
 				To: 
 				@${userIds.map(u => u.username).join('\n@')}
 
-				<b>Tip Amount :</b>  ${coinObject.format(trxAmount)}
+				Amount : ${coinObject.format(trxAmount)}
 				Fee : ${coinObject.format(trxFee)}
-				Current Unlock Balance : ${coinObject.format(unlock)}
 				Number of transactions : ${trx.tx_hash_list.length}
-				`);
-			const template = `
-			<u>Transaction Details</u>
+				Trx Hashes (${trx.amount_list.length} Transactions): 
+				* ${txHash}`;
 
-			From: 
-			@${sender.username}
-
-			To: 
-			@${userIds.map(u => u.username).join('\n@')}
-
-			Amount : ${coinObject.format(trxAmount)}
-			Fee : ${coinObject.format(trxFee)}
-			Number of transactions : ${trx.tx_hash_list.length}
-			Trx Hashes (${trx.amount_list.length} Transactions): 
-			* ${txHash}`;
-
-			for (const u of userIds) await ctx.appResponse.sendMessage(u.user_id, template);
+				for (const u of userIds) await ctx.appResponse.sendMessage(u.user_id, template);
+			}
+		let msg = '';
+		for (const [key, value] of Object.entries(invalids)) {
+			switch (key) {
+				case 'user':
+				msg += `\n* User does is not linked ${value}`;
+				break;
+				case 'wallet':
+				await ctx.appResponse.sendMessage(value, `Somebody tried to tip you but no ${coin} wallet found. Run /address to create one`);
+				break;
+				case 'fails':
+				msg += `\n* Trying to send to  ${value.username} fails. Error : ${value.error}`;
+				break;
+			}
 		}
-	let msg = '';
-	for (const [key, value] of Object.entries(invalids)) {
-		switch (key) {
-			case 'user':
-			msg += `\n* User does is not linked ${value}`;
-			break;
-			case 'wallet':
-			await ctx.appResponse.sendMessage(value, `Somebody tried to tip you but no ${coin} wallet found. Run /address to create one`);
-			break;
-			case 'fails':
-			msg += `\n* Trying to send to  ${value.username} fails. Error : ${value.error}`;
-			break;
+		if (msg) {
+			await ctx.appResponse.sendMessage(ctx.from.id, `<u><b>Tip Error Log</b></u>\n${msg}`);
 		}
 	}
-	if (msg) {
-		await ctx.appResponse.sendMessage(ctx.from.id, `<u><b>Tip Error Log</b></u>\n${msg}`);
-	}
-}
 }
 
 module.exports = TransferCommand;
