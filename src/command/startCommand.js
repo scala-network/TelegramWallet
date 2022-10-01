@@ -1,24 +1,21 @@
 'use strict';
 const Command = require('../base/command');
-const STATUS = require('../status');
 
 const logSystem = 'command/start';
 
 class StartCommand extends Command {
 	get description () {
-		let o = 'Function on start';
-		if (!global.config.swm) {
-			o += ' usages: /start';
-		}
-		return o;
+		return 'Function on start';
 	}
 
 	get name () {
 		return 'start';
 	}
-	get needStart() {
+
+	get needStart () {
 		return false;
 	}
+
 	auth (ctx) {
 		return !ctx.appRequest.is.group && ctx.appRequest.is.command;
 	}
@@ -28,6 +25,7 @@ class StartCommand extends Command {
 
 		const { id, username } = ctx.from;
 		const User = this.loadModel('User');
+		const Network = this.loadModel('Network');
 		const Wallet = this.loadModel('Wallet');
 		if (!username) {
 			return ctx.send('To create an account user must have username');
@@ -39,24 +37,21 @@ class StartCommand extends Command {
 		const coin = 'xla';
 		const coinObject = this.Coins.get(coin);
 		wallet = Wallet.findByUserId(ctx.from.id, coin);
-		if(wallet) return ctx.appResponse.reply(`Hello ${username}. Welcome back!`);
-		
+		if (wallet) return ctx.appResponse.reply(`Hello ${username}. Welcome back!`);
+
 		if (user && parseInt(user.user_id) !== id) {
 			await User.remove(id, username);
 			return ctx.appResponse.reply('Account created failed');
 		}
 		if (coin in user) {
-			wallet = await Wallet.findByUserId(user.user_id,coin);
+			wallet = await Wallet.findByUserId(user.user_id, coin);
 		} else {
 			wallet = user[coin];
 		}
-		
-		let walletId;
-		let address;
-		let result = await coinObject.createSubAddress(user.user_id);
+
+		const result = await coinObject.createSubAddress(user.user_id);
 
 		if (!result) {
-			// await User.remove(id);
 			return ctx.appResponse.reply('Unable to create address for wallet');
 		}
 
@@ -64,53 +59,49 @@ class StartCommand extends Command {
 			return ctx.appResponse.reply(result.error);
 		}
 
-		walletId = result.account_index;
-		address = result.address;
+		const walletId = result.account_index;
+		const address = result.address;
 
 		global.log('info', logSystem, 'Create new subaddress for XLA \n\t\t=> %s\n\t\t=> %s', [
 			`${user.user_id}@${username}`,
 			`${address.slice(0, 5)}...${address.slice(address.length - 5)} : ${walletId}`
 		]);
-
+		const height = Network.lastHeight(coin);
 		wallet = await Wallet.addByUser(user, address, walletId, height, coin);
-		if(!wallet) return ctx.appResponse.reply('Unable to create address for wallet');
-		if('error' in wallet) return ctx.appResponse.reply('RPC Error: ' + wallet.error);
+		if (!wallet) return ctx.appResponse.reply('Unable to create address for wallet');
+		if ('error' in wallet) return ctx.appResponse.reply('RPC Error: ' + wallet.error);
 
- 		ctx.appResponse.reply('😘<b>Welcome to Scala Telegram Wallet!</b>\nYour telegram is binded. Run /help for usages');
+		ctx.appResponse.reply('😘<b>Welcome to Scala Telegram Wallet!</b>\nYour telegram is binded. Run /help for usages');
 
- 		let output = '<u>Wallet address:</u>\n\n';
- 		const wallets = await Wallet.findByUserId(ctx.from.id);
- 		let outputs = [];
- 		let buttons = [];
- 		if (wallets) {
- 			for(let coin of global.config.coins) {
- 				const coinObject = this.Coins.get(coin);
- 				if(coin in wallets && wallets[coin]!== null){
- 					const wallet = wallets[coin];
- 					outputs.push(`<b>${coinObject.fullname}(${coinObject.symbol})</b> :\n${wallet.address}`);
- 				}
- 				else{
- 					buttons.push({
- 						text:`Create ${coinObject.fullname}(${coinObject.symbol}) Address`,
- 						// callback_data: `address-${coinObject.symbol.toLowerCase()}`
- 						callback_data: `address-${coin}`
- 					});
- 				}
- 					
- 			}
- 		} else {
- 			output = 'No wallet avaliable';
- 		}
+		let output = '<u>Wallet address:</u>\n\n';
+		const wallets = await Wallet.findByUserId(ctx.from.id);
+		const outputs = [];
+		const buttons = [];
+		if (wallets) {
+			for (const coin of global.config.coins) {
+				const coinObject = this.Coins.get(coin);
+				if (coin in wallets && wallets[coin] !== null) {
+					const wallet = wallets[coin];
+					outputs.push(`<b>${coinObject.fullname}(${coinObject.symbol})</b> :\n${wallet.address}`);
+				} else {
+					buttons.push({
+						text: `Create ${coinObject.fullname}(${coinObject.symbol}) Address`,
+						callback_data: `address-${coin}`
+					});
+				}
+			}
+		} else {
+			output = 'No wallet avaliable';
+		}
 
- 		ctx.appResponse.reply(output+outputs.join('\n\n'),{
- 			reply_markup: {
- 				inline_keyboard: [buttons],
- 				resize_keyboard: false,
- 				one_time_keyboard: true,
-                remove_keyboard: true
- 			}
- 		});
-				
+		ctx.appResponse.reply(output + outputs.join('\n\n'), {
+			reply_markup: {
+				inline_keyboard: [buttons],
+				resize_keyboard: false,
+				one_time_keyboard: true,
+				remove_keyboard: true
+			}
+		});
 	}
 }
 

@@ -1,5 +1,4 @@
 'use strict';
-const STATUS = require('../../../status');
 const Query = require('../../../base/query');
 const Model = require('../../../base/model');
 
@@ -7,17 +6,16 @@ class Setting extends Query {
 	async updateField (userId, field, value, coin = 'xla') {
 		const User = Model.LoadRegistry('User');
 
-
 		const exists = await User.exists(userId);
 
 		if (!exists) {
-			return {error:"User doesn't exists"};
+			return { error: "User doesn't exists" };
 		}
 
 		const ukey = [coin, 'settings', userId].join(':');
 
 		if (!~this.fields.indexOf(field)) {
-			return {error:"Invalid field"};
+			return { error: 'Invalid field' };
 		}
 
 		await global.redisClient.hset(ukey, field, value);
@@ -31,7 +29,7 @@ class Setting extends Query {
 		const exists = await User.exists(userId);
 
 		if (!exists) {
-			return {error:"User doesn't exists"};
+			return { error: "User doesn't exists" };
 		}
 
 		const ukey = [coin, 'settings', userId].join(':');
@@ -44,9 +42,8 @@ class Setting extends Query {
 		const results = {};
 		for (let i = 0; i < this.fields.length; i++) {
 			const setting = settings[i];
-			
 			const field = this.fields[i];
-			if(settings[i] !== null) results[field] = setting;
+			if (settings[i] !== null) results[field] = setting;
 		}
 		return results;
 	}
@@ -57,16 +54,19 @@ class Setting extends Query {
 		const exists = await User.exists(userId);
 
 		if (!exists) {
-			return {error:"User doesn't exists"};
+			return { error: "User doesn't exists" };
 		}
 
 		const ukey = [coin, 'settings', userId].join(':');
-		let setting;
-		if(Array.isArray(field)){
-			let result = await global.redisClient.hmget(ukey, field);
-			for(let i = 0;i<field.length;i++) {
+		let setting = {};
+		if (Array.isArray(field)) {
+			const result = await global.redisClient.hmget(ukey, field);
+			for (let i = 0; i < field.length; i++) {
 				const f = field[i];
 				setting[f] = result[i];
+			}
+			if(Object.keys(setting).length <= 0){
+				setting = null;
 			}
 		} else {
 			setting = await global.redisClient.hget(ukey, field);

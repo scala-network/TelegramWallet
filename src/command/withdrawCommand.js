@@ -25,74 +25,81 @@ class WithdrawCommand extends Command {
 
 		const currentMeta = await Meta.getByUserId(ctx.from.id);
 
-		if(currentMeta) {
+		if (currentMeta) {
 			return ctx.appResponse.sendMessage(ctx.from.id, 'Confirmations still pending. Unable to create new request');
 		}
+		if (ctx.appRequest.args.length < 1) {
+			return ctx.appResponse.reply(`Missing coin argument\n${this.description}`);
+		}
 
-		if (ctx.appRequest.args.length < 3) {
-			return ctx.appResponse.reply(`Missing arguments\n${this.description}`);
-		}
-		let coin;
-		if (ctx.appRequest.args.length >= 1) {
-			coin = (''+ctx.appRequest.args[0]).trim().toLowerCase();
-		}
-		if(!coin) {
-			coin = 'xla';
-		}
-		if(!~global.config.coins.indexOf(coin)) {
+		const coin = ctx.appRequest.args[0];
+
+		if (!~global.config.coins.indexOf(coin)) {
 			return ctx.appResponse.reply(`Invalid coin. Avaliable coins are ${global.config.coins.join(',')}`);
 		}
-		if (ctx.appRequest.args.length >= 2) {
+
+		const coinObject = this.Coins.get(coin);
+		const Wallet = this.loadModel('Wallet');
+		
+		let wallet = await Wallet.findByUserId(ctx.from.id, coin);
+
+		if (!wallet) {
+			return ctx.appResponse.reply(`No wallet avaliable for coin ${coin}`);
+		}
+		if (wallet && 'error' in wallet) {
+			return ctx.reply("Wallet Error : " + wallet.error);
+		}
+
+		wallet = await Wallet.syncBalance(ctx.from.id, wallet, coinObject);
+		if (wallet && 'error' in wallet) {
+			return ctx.reply("Wallet Error : " + wallet.error);
+		}
+
+		if (ctx.appRequest.args.length < 2) {
 			return ctx.appResponse.reply(`Missing coin address\n${this.description}`);
 		}
-		if (ctx.appRequest.args.length >= 3) {
-			return ctx.appResponse.reply(`Missing sent amount\n${this.description}`);
-		}
-		
-		const coinObject = this.Coins.get(coin);
-
-		const Wallet = this.loadModel('Wallet');
 		const address = ctx.appRequest.args[1];
 		const valid = await coinObject.validateAddress(ctx.from.id, address);
+		if (valid === null) return ctx.appResponse.reply('Unable to validate address');
+		if (valid === false) return ctx.appResponse.reply('Address is not valid');
 
-		switch (valid) {
-		case null:
-			return ctx.appResponse.reply('Unable to validate address');
-		case false:
-			return ctx.appResponse.reply('Address is not valid');
-		case true:
-			let wallet = await Wallet.findByUserId(ctx.from.id);
+		if (ctx.appRequest.args.length < 3) {
+			return ctx.appResponse.reply(`Missing sent amount\n${this.description}`);
+		}
+		const inputAmount = ctx.appRequest.args[2];
+		if(isNaN(inputAmount) && inputAmount.trim().toLowerCase() !== 'all') {
+			return ctx.appResponse.reply(`Invalid amount`);
+		}
+		let unlock = wallet.balance;
+		if('unlock' in wallet) {
+			unlock = wallet.unlock;
+		}
+		
+		if('trading' in wallet) {
+			unlock -= wallet.trading;
+		}
+		let trx;
+		if(inputAmount.trim().toLowerCase() === 'all') {
+			trx = await coinObject.sweep(ctx.from.id, wallet.wallet_id, address, true);
+		} else {
+			const amount = coinObject.parse(inputAmount);
 
-			if (!wallet) {
-				return ctx.appResponse.reply('No wallet avaliable');
+			if (amount > parseFloat(unlock)) {
+				return ctx.appResponse.reply('Insufficient fund');
 			}
 
-			wallet = await Wallet.syncBalance(ctx.from.id, wallet, coinObject);
-			if (wallet && 'error' in wallet) {
-				return ctx.sendMessage(ctx.from.id, wallet.error);
-			}
+			trx = await coinObject.transferMany(ctx.from.id, wallet.wallet_id, [{ address, amount }], true);
+		}
+		if ('error' in trx) {
+			return ctx.appResponse.reply(trx.error);
+		}
+		
 
-			let trx;
-			if (ctx.appRequest.args[2].trim().toLowerCase() === 'all') {
-				trx = await coinObject.sweep(ctx.from.id, wallet.wallet_id, address, true);
-			} else {
-				const amount = coinObject.parse(ctx.appRequest.args[2]);
-				if (amount > parseFloat(wallet.unlock)) {
-					return ctx.appResponse.reply('Insufficient fund');
-				}
-
-				trx = await coinObject.transferMany(ctx.from.id, wallet.wallet_id, [{ address, amount }], true, true);
-			}
-			if ('error' in trx) {
-				return ctx.appResponse.reply(trx.error);
-			}
-
-			const uuid = await Meta.getId(ctx.from.id, trx.tx_metadata_list.join(':'));
-			const trxAmount = trx.amount_list.reduce((a, b) => a + b, 0);
-			const trxFee = trx.fee_list.reduce((a, b) => a + b, 0);
-			// const balance = parseInt(wallet.balance) - parseInt(trx_amount) - parseInt(trx_fee);
-			return ctx.appResponse.reply(`
-				<u>Transaction Details</u>
+		await Meta.getId(ctx.from.id, trx.tx_metadata_list.join(':'), coin);
+		const trxAmount = trx.amount_list.reduce((a, b) => a + b, 0);
+		const trxFee = trx.fee_list.reduce((a, b) => a + b, 0);
+		const x = await ctx.appResponse.reply(`
+				<u>Pending Transaction Details</u>
 
 				<b>From:</b>
 				${wallet.address}
@@ -103,18 +110,20 @@ class WithdrawCommand extends Command {
 				<b>Coin :</b> ${coinObject.symbol}
 				<b>Amount :</b> ${coinObject.format(trxAmount)}
 				<b>Fee :</b> ${coinObject.format(trxFee)}
-				<b>Trx Meta ID :</b> ${uuid}
 				<b>Trx Expiry :</b> ${global.config.rpc.metaTTL} seconds
-				<b>Current Unlock Balance :</b> ${coinObject.format(wallet.balance)}
+				<b>Current Balance :</b> ${coinObject.format(wallet.balance)}
+				<b>Unlock Balance :</b> ${coinObject.format(unlock)}
 				<b>Number of transactions :</b> ${trx.tx_hash_list.length}
-				Press button below to confirm`, this.Helper.metaButton());
-		default:
-			if (valid) {
-				return ctx.appResponse.reply(valid);
-			}
+				Choose to confirm or cancel transaction`, this.Helper.metaButton());
+		setTimeout(() => {
+			ctx.telegram.deleteMessage(x.chat.id,x.message_id).catch(e => {
 
-			return ctx.appResponse.reply('Unable to withdraw coin');
-		}
+			}).then(() => {
+				ctx.reply("Transaction Action Timeout");
+			});	
+
+		}, global.config.rpc.metaTTL * 1000)
+		
 	}
 }
 module.exports = WithdrawCommand;

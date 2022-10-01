@@ -1,9 +1,9 @@
 'use strict';
 /**
- * A Telegram Command. Transfer sends coin to username.
- * To return current wallets address do /tip <username>
- * @module Commands/tip
- */
+* A Telegram Command. Transfer sends coin to username.
+* To return current wallets address do /tip <username>
+* @module Commands/tip
+*/
 const Command = require('../base/command');
 
 class TransferCommand extends Command {
@@ -15,12 +15,12 @@ class TransferCommand extends Command {
 		return 'Tip coin to another user. Run /tip for more information';
 	}
 
-	get full_description() {
+	get fullDescription () {
 		return `Transfer coin to another user. 
-To setup default tipping value go to /set coin tip amount.
-Usages : /tip coin username custom_amount(optional)
-You can send a non default value by /tip coin username custom_amount (eg : /tip xla username 10)
-For multiple users /tip coin username1 username2 username3 username4 custom_amount`
+		To setup default tipping value go to /set coin tip amount.
+		Usages : /tip coin username custom_amount(optional)
+		You can send a non default value by /tip coin username custom_amount (eg : /tip xla username 10)
+		For multiple users /tip coin username1 username2 username3 username4 custom_amount`;
 	}
 
 	auth (ctx) {
@@ -29,7 +29,6 @@ For multiple users /tip coin username1 username2 username3 username4 custom_amou
 
 	async run (ctx) {
 		if (ctx.test) return;
-
 
 		const Wallet = this.loadModel('Wallet');
 		const User = this.loadModel('User');
@@ -43,33 +42,33 @@ For multiple users /tip coin username1 username2 username3 username4 custom_amou
 
 		const currentMeta = await Meta.getByUserId(ctx.from.id);
 
-		if(currentMeta) {
+		if (currentMeta) {
 			return ctx.appResponse.sendMessage(ctx.from.id, 'Confirmations still pending. Unable to create new request');
 		}
 
 		if (ctx.appRequest.args.length < 1) {
-			return ctx.appResponse.reply(`Missing coin argument\n${this.full_description}`);
+			return ctx.appResponse.reply(`Missing coin argument\n${this.fullDescription}`);
 		}
-		let coin = (''+ctx.appRequest.args[0]).trim().toLowerCase();
-		if(!coin) {
+		let coin = ('' + ctx.appRequest.args[0]).trim().toLowerCase();
+		if (!coin) {
 			coin = 'xla';
 		}
-		if(!~global.config.coins.indexOf(coin)) {
+		if (!~global.config.coins.indexOf(coin)) {
 			return ctx.appResponse.reply(`Invalid coin. Avaliable coins are ${global.config.coins.join(',')}`);
 		}
 		const coinObject = this.Coins.get(coin);
-
-		const wallet = await Wallet.syncBalance(ctx.from.id, wallet, coinObject);
+		let wallet = await Wallet.findByUserId(ctx.from.id, coin);
+		wallet = await Wallet.syncBalance(ctx.from.id, wallet, coinObject);
 		if (wallet && 'error' in wallet) {
 			return ctx.sendMessage(ctx.from.id, wallet.error);
 		}
 		const args = [].concat(ctx.appRequest.args);
-		args.shift();//removing coin
+		args.shift();
 		let tipAmount = args[ctx.appRequest.args.length - 1];
-		if(isNaN(tipAmount)) {
+		if (isNaN(tipAmount)) {
 			tipAmount = await Setting.findByFieldAndUserId('tip', ctx.from.id, coin);
 		} else {
-			args.pop();//removing amount
+			args.pop();
 			tipAmount = coinObject.parse(tipAmount);
 		}
 
@@ -79,8 +78,8 @@ For multiple users /tip coin username1 username2 username3 username4 custom_amou
 
 		const estimate = coinObject.estimateFee(tipAmount);
 		let unlock = 'unlock' in wallet ? wallet.unlock : wallet.balance;
-		if('trading' in wallet) {
-			unlock-= wallet.trading;
+		if ('trading' in wallet) {
+			unlock -= wallet.trading;
 		}
 		if (estimate > parseFloat(unlock)) {
 			return ctx.appResponse.sendMessage(ctx.from.id, `Insufficient fund estimate require ${coinObject.format(estimate)}`);
@@ -88,12 +87,12 @@ For multiple users /tip coin username1 username2 username3 username4 custom_amou
 		const destinations = [];
 		const userIds = [];
 		const invalids = {
-			user :[],
-			wallet:[],
-			fails:[]
-		}
+			user: [],
+			wallet: [],
+			fails: []
+		};
 		for (const _uname of ctx.appRequest.args) {
-			if(!_uname || !_uname.trim()) continue;
+			if (!_uname || !_uname.trim()) continue;
 			let username = _uname.trim();
 			if (username.startsWith('@')) {
 				username = username.substr(1);
@@ -106,15 +105,15 @@ For multiple users /tip coin username1 username2 username3 username4 custom_amou
 				invalids.user.push(username);
 				continue;
 			}
-			const rwallet = await Wallet.findByUserId(user.user_id,coin);
+			const rwallet = await Wallet.findByUserId(user.user_id, coin);
 			if (!rwallet) {
 				invalids.wallet.push(user.user_id);
-				continue;	
+				continue;
 			}
 
 			if ('error' in rwallet) {
-				invalids.wallet.push({username, error:rwallet.error});
-				continue;	
+				invalids.wallet.push({ username, error: rwallet.error });
+				continue;
 			}
 
 			userIds.push(user);
@@ -123,96 +122,102 @@ For multiple users /tip coin username1 username2 username3 username4 custom_amou
 				address: user.wallet.address
 			});
 		}
-		if(destinations.length < 1) {
-			return await ctx.appResponse.reply(`Invalid tip to no users with ${coin.toUpperCase()} wallet or linked`);	
+		if (destinations.length < 1) {
+			return await ctx.appResponse.reply(`Invalid tip to no users with ${coin.toUpperCase()} wallet or linked`);
 		}
-		const tip_submit = await Setting.findByFieldAndUserId('tip_submit', ctx.from.id);
-		const confirms = tip_submit !== 'disable';
+		const tipSubmit = await Setting.findByFieldAndUserId('tip_submit', ctx.from.id);
+		const confirms = tipSubmit !== 'disable';
 		const trx = await coinObject.transferMany(ctx.from.id, wallet.wallet_id, destinations, confirms);
 		if (!trx) {
 			return await ctx.appResponse.reply('No response from  RPC');
 		}
 		if ('error' in trx) {
-			return await ctx.appResponse.reply('Error RPC: '+ trx.error);
+			return await ctx.appResponse.reply('Error RPC: ' + trx.error);
 		}
 
 		if (confirms) {
-			
 			const uuid = await Meta.getId(ctx.from.id, trx.tx_metadata_list.join(':'));
 			const ftrxAmount = trx.amount_list.reduce((a, b) => a + b, 0);
 			const ftrxFee = trx.fee_list.reduce((a, b) => a + b, 0);
 
-			await ctx.appResponse.sendMessage(ctx.from.id, `
-<u>Transaction Details</u>
+			const x = await ctx.appResponse.sendMessage(ctx.from.id, `
+				<u>Pending Transaction Details</u>
 
-<b>From:</b> 
-@${sender.username}
+				<b>From:</b> 
+				@${sender.username}
 
-<b>To:</b> 
-@${userIds.map(u => u.username).join('\n@')}
+				<b>To:</b> 
+				@${userIds.map(u => u.username).join('\n@')}
 
-<b>Tip Amount :</b>  ${coinObject.format(ftrxAmount)}
-<b>Fee :</b>  ${coinObject.format(ftrxFee)}
-<b>Trx Meta ID :</b>  ${uuid}
-<b>Trx Expiry :</b>  ${global.config.rpc.metaTTL} seconds
-<b>Current Unlock Balance :</b>  ${coinObject.format(unlock)}
-<b>Number of transactions :</b>  ${trx.tx_hash_list.length}
-Press button below to confirm`,this.Helper.metaButton());
+				<b>Tip Amount :</b>  ${coinObject.format(ftrxAmount)}
+				<b>Fee :</b>  ${coinObject.format(ftrxFee)}
+				<b>Trx Meta ID :</b>  ${uuid}
+				<b>Trx Expiry :</b>  ${global.config.rpc.metaTTL} seconds
+				<b>Current Unlock Balance :</b>  ${coinObject.format(unlock)}
+				<b>Number of transactions :</b>  ${trx.tx_hash_list.length}
+				Press button below to confirm`, this.Helper.metaButton());
+			setTimeout(() => {
+
+				ctx.telegram.deleteMessage(x.chat.id,x.message_id).catch(e => {
+
+				}).then(() => {
+					ctx.appResponse.sendMessage(ctx.from.id, "Transaction Action Timeout");
+				});	
+
+			}, global.config.rpc.metaTTL * 1000);
 		} else {
 			const trxAmount = trx.amount_list.reduce((a, b) => a + b, 0);
 			const txHash = trx.tx_hash_list.join('\n * ');
 			const trxFee = trx.fee_list.reduce((a, b) => a + b, 0);
-			// const balance = parseInt(wallet.balance) - parseInt(trxAmount) - parseInt(trxFee);
 			await ctx.appResponse.sendMessage(ctx.from.id, `
-<u>Transaction Details</u>
+				<u>Transaction Details</u>
 
-From: 
-@${sender.username}
+				From: 
+				@${sender.username}
 
-To: 
-@${userIds.map(u => u.username).join('\n@')}
+				To: 
+				@${userIds.map(u => u.username).join('\n@')}
 
-<b>Tip Amount :</b>  ${coinObject.format(trxAmount)}
-Fee : ${coinObject.format(trxFee)}
-Current Unlock Balance : ${coinObject.format(unlock)}
-Number of transactions : ${trx.tx_hash_list.length}
-			`);
+				<b>Tip Amount :</b>  ${coinObject.format(trxAmount)}
+				Fee : ${coinObject.format(trxFee)}
+				Current Unlock Balance : ${coinObject.format(unlock)}
+				Number of transactions : ${trx.tx_hash_list.length}
+				`);
 			const template = `
-<u>Transaction Details</u>
+			<u>Transaction Details</u>
 
-From: 
-@${sender.username}
+			From: 
+			@${sender.username}
 
-To: 
-@${userIds.map(u => u.username).join('\n@')}
+			To: 
+			@${userIds.map(u => u.username).join('\n@')}
 
-Amount : ${coinObject.format(trxAmount)}
-Fee : ${coinObject.format(trxFee)}
-Number of transactions : ${trx.tx_hash_list.length}
-Trx Hashes (${trx.amount_list.length} Transactions): 
-* ${txHash}`;
+			Amount : ${coinObject.format(trxAmount)}
+			Fee : ${coinObject.format(trxFee)}
+			Number of transactions : ${trx.tx_hash_list.length}
+			Trx Hashes (${trx.amount_list.length} Transactions): 
+			* ${txHash}`;
 
 			for (const u of userIds) await ctx.appResponse.sendMessage(u.user_id, template);
 		}
-		let msg = "";
-		for(const [key,value] of Object.entries(invalids)) {
-			switch(key){
-				case 'user':
-				msg+=`\n* User does is not linked ${value}`;
-				break;
-				case 'wallet':
-				await ctx.appResponse.sendMessage(u.user_id, `Somebody tried to tip you but no ${coin} wallet found. Run /address to create one`);
-				break;
-				case 'fails':
-				msg+=`\n* Trying to send to  ${value.username} fails. Error : ${value.error}`;
-				break;
-
-			}
-		}
-		if(msg) {
-			await ctx.appResponse.sendMessage(ctx.from.id, `<u><b>Tip Error Log</b></u>\n${msg}`);
+	let msg = '';
+	for (const [key, value] of Object.entries(invalids)) {
+		switch (key) {
+			case 'user':
+			msg += `\n* User does is not linked ${value}`;
+			break;
+			case 'wallet':
+			await ctx.appResponse.sendMessage(value, `Somebody tried to tip you but no ${coin} wallet found. Run /address to create one`);
+			break;
+			case 'fails':
+			msg += `\n* Trying to send to  ${value.username} fails. Error : ${value.error}`;
+			break;
 		}
 	}
+	if (msg) {
+		await ctx.appResponse.sendMessage(ctx.from.id, `<u><b>Tip Error Log</b></u>\n${msg}`);
+	}
+}
 }
 
 module.exports = TransferCommand;

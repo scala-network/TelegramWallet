@@ -11,7 +11,7 @@ class Wallet extends Query {
 	* heightOrIndex - In SWM heightOrIndex is the index of the address
 	* coin_id - The symbol for wallet's coin
 	* */
-	async addByUser (user, address, walletId, height, coin_id = 'xla') {
+	async addByUser (user, address, walletId, height, coinId = 'xla') {
 		const ukey = ['xla:Users', user.user_id].join(':');
 
 		const wallet = {
@@ -20,26 +20,22 @@ class Wallet extends Query {
 			user_id: user.user_id,
 			updated: Date.now(),
 			unlocked: 0,
-			status: STATUS.WALLET_READY,
-			coin_id,
+			trading: 0,
+			coin_id: coinId,
 			wallet_id: walletId,
 			height: height
 		};
 
 		await global.redisClient
-			.hmset(ukey, [coin_id, JSON.stringify(wallet), 'status', user.status, coin_id+'_id', walletId]);
+			.hmset(ukey, [coinId, JSON.stringify(wallet), coinId + '_id', walletId]);
 		return wallet;
 	}
 
 	async update (userId, wallet) {
-		const ukey = ['xla', 'Users', userId].join(':');
+		const ukey = ['xla:Users', userId].join(':');
 
-		wallet.user_id = userId;
 		wallet.updated = Date.now();
-		wallet.status = STATUS.WALLET_READY;
-		await global.redisClient
-			.hmset(ukey, ['status', STATUS.WALLET_READY, wallet.coin_id, JSON.stringify(wallet), wallet.coin_id+'_id', wallet.wallet_id]);
-
+		await global.redisClient.hset(ukey, wallet.coin_id, JSON.stringify(wallet));
 		return wallet;
 	}
 
@@ -47,9 +43,9 @@ class Wallet extends Query {
 		const ukey = ['xla:Users', userId].join(':');
 		let single = false;
 		let coins = [];
-		if(!_coins) {
+		if (!_coins) {
 			coins = [].concat(global.config.coins);
-		} else if(typeof _coins === 'string') {
+		} else if (typeof _coins === 'string') {
 			single = true;
 			coins.push(_coins);
 		}
@@ -58,8 +54,8 @@ class Wallet extends Query {
 		if (!results) {
 			return null;
 		}
-		let output = {};
-		for(let i=0;i<coins.length;i++) {
+		const output = {};
+		for (let i = 0; i < coins.length; i++) {
 			const c = coins[i];
 			try {
 				output[c] = JSON.parse(results[i]);
@@ -67,7 +63,7 @@ class Wallet extends Query {
 
 			}
 		}
-		if(single){
+		if (single) {
 			return output[_coins];
 		}
 		return output;

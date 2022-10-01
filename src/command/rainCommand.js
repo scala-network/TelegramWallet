@@ -1,147 +1,149 @@
 'use strict';
 /**
- * A Telegram Command. Rain send coins to latest active users.
-  * @module Commands/rain
-  */
-  const Command = require('../base/command');
+* A Telegram Command. Rain send coins to latest active users.
+* @module Commands/rain
+*/
+const Command = require('../base/command');
 
-  class RainCommand extends Command {
-  	get name () {
-  		return 'rain';
-  	}
+class RainCommand extends Command {
+	get name () {
+		return 'rain';
+	}
 
-  	get description () {
-  		return 'Send coins to latest active users. usages: /rain coin';
-  	}
+	get description () {
+		return 'Send coins to latest active users. usages: /rain coin';
+	}
 
-  	get full_description () {
+	get fullDescription () {
 		return `Sends airdrop to latest active users. To setup rain run /set`;
 	}
 
-  	auth (ctx) {
-  		return ctx.appRequest.is.group;
-  	}
+	auth (ctx) {
+		return ctx.appRequest.is.group;
+	}
 
-  	async run (ctx) {
-  		if (ctx.test) return;
+	async run (ctx) {
+		if (ctx.test) return;
 
-  		const Wallet = this.loadModel('Wallet');
-  		const User = this.loadModel('User');
-  		const Member = this.loadModel('Member');
-  		const Meta = this.loadModel('Meta');
-  		const Setting = this.loadModel('Setting');
+		const Wallet = this.loadModel('Wallet');
+		const User = this.loadModel('User');
+		const Member = this.loadModel('Member');
+		const Meta = this.loadModel('Meta');
+		const Setting = this.loadModel('Setting');
 
-  		const sender = await User.findById(ctx.from.id);
+		const sender = await User.findById(ctx.from.id);
 
-  		if (!sender) {
-  			return ctx.appResponse.reply('User account not avaliable. Please create a wallet https://t.me/' + global.config.bot.username);
-  		}
+		if (!sender) {
+			return ctx.appResponse.reply('User account not avaliable. Please create a wallet https://t.me/' + global.config.bot.username);
+		}
 
 		const currentMeta = await Meta.getByUserId(ctx.from.id);
-
-		if(currentMeta) {
+		if (currentMeta) {
+			ctx.appResponse.reply('Unable to rain');
 			return ctx.appResponse.sendMessage(ctx.from.id, 'Confirmations still pending. Unable to create new request');
 		}
 
-  		let coin;
-  		if (ctx.appRequest.args.length >= 1) {
-  			coin = (''+ctx.appRequest.args[0]).trim().toLowerCase();
-  		}
-  		if(!coin) {
-  			return ctx.appResponse.reply(`Missing coin argument.\n${this.full_description}`);
-  		}
+		let coin;
+		if (ctx.appRequest.args.length >= 1) {
+			coin = ('' + ctx.appRequest.args[0]).trim().toLowerCase();
+		}
+		if (!coin) {
+			return ctx.appResponse.reply(`Missing coin argument.\n${this.fullDescription}`);
+		}
 
-  		let wallet = await Wallet.findByUserId(sender.user_id, coin);
+		let wallet = await Wallet.findByUserId(sender.user_id, coin);
 
-  		if (!wallet) {
-  			ctx.appResponse.reply('No wallet avaliable');
-  			return ctx.appResponse.sendMessage(ctx.from.id, 'No wallet avaliable');
-  		}
+		if (!wallet) {
+			ctx.appResponse.reply('No wallet avaliable');
+			return ctx.appResponse.sendMessage(ctx.from.id, 'No wallet avaliable');
+		}
 
-  		const coinObject = this.Coins.get(coin);
-  		wallet = await Wallet.syncBalance(ctx.from.id, wallet, coinObject);
+		const coinObject = this.Coins.get(coin);
+		wallet = await Wallet.syncBalance(ctx.from.id, wallet, coinObject);
 
-  		if (wallet && 'error' in wallet) {
-  			console.log("Error di sini");
-  			return ctx.appResponse.sendMessage(ctx.from.id, wallet.error);
-  		}
-  		if (!wallet) {
-  			ctx.appResponse.reply(`No wallet avaliable for ${coin}`);
-  			return ctx.appResponse.sendMessage(ctx.from.id, `No wallet avaliable for ${coin} run /address to create one`);
-  		}
-  		let setting = await Setting.findByFieldAndUserId(['rain','wet','rain_submit'], ctx.from.id, coin);
-  		let rainMax = Setting.validateValue('wet', setting.wet, coin);
-  		const amount = Setting.validateValue('rain', setting.rain, coin);
-  		let rain_submit = await Setting.validateValue('rain_submit', setting.rain_submit, coin);
+		if (wallet && 'error' in wallet) {
+			return ctx.appResponse.sendMessage(ctx.from.id, wallet.error);
+		}
+		if (!wallet) {
+			ctx.appResponse.reply(`No wallet avaliable for ${coin}`);
+			return ctx.appResponse.sendMessage(ctx.from.id, `No wallet avaliable for ${coin} run /address to create one`);
+		}
+		const setting = await Setting.findByFieldAndUserId(['rain', 'wet', 'rain_submit'], ctx.from.id, coin);
+		let rainMax = Setting.validateValue('wet', setting.wet, coin);
+		const amount = Setting.validateValue('rain', setting.rain, coin);
+		const rainSubmit = await Setting.validateValue('rain_submit', setting.rain_submit, coin);
 
+		const members = await Member.findByLast10(ctx.chat.id);
+		if (rainMax <= 0) {
+			rainMax = members.length;
+		}
+		const destinations = [];
+		const userNames = [];
 
-  		const members = await Member.findByLast10(ctx.chat.id);
-  		if (rainMax <= 0) {
-  			rainMax = members.length;
-  		}
-  		const destinations = [];
-  		const userNames = [];
+		if (members.length <= 0) {
+			return ctx.appResponse.reply('No members avaliable');
+		}
 
-  		if (members.length <= 0) {
-  			return ctx.appResponse.reply('No members avaliable');
-  		}
+		const sentMemberIds = [];
+		for (let i = 0; i < members.length; i++) {
+			const userId = members[i];
+			if (parseInt(userId) === parseInt(sender.user_id)) continue;
 
-  		const sentMemberIds = [];
-  		for (let i = 0; i < members.length; i++) {
-  			const userId = members[i];
-  			if (parseInt(userId) === parseInt(sender.user_id)) continue;
+			const user = await User.findById(userId);
 
-  			const user = await User.findById(userId);
-
-  			if (!user) {
-  				continue;
-  			}
-  			const username = user.username.trim();
-  			if(!username) continue;
-  			const wallet = await Wallet.findByUserId(userId, coin);
-  			if(!wallet) continue;
-  			userNames.push('@' + username);
-  			sentMemberIds.push(userId);
-  			destinations.push({
-  				address: wallet.address,
-  				amount
-  			});
-  			if (userNames.length === rainMax) {
-  				break;
-  			}
-  		}
-
-  		if (destinations.length <= 0) {
-  			return ctx.appResponse.reply(`No members with ${coin} account`);
-  		}
-  		const getfee = await coinObject.getFee();
-
-  		if(coin !== 'lunc') {
-  			const estimate = amount * destinations.length * getfee;
-			let unlockBalance = 0;
-			if('unlock' in wallet) {
-				unlockBalance = parseInt(wallet.unlock);
-			} else {
-				unlockBalance = parseInt(wallet.balance);
+			if (!user) {
+				continue;
 			}
-			if (estimate > unlockBalance) {
-				ctx.appResponse.reply(`Insufficient fund to ${destinations.length} total required ${coinObject.format(estimate)}`);
-				return ctx.appResponse.sendMessage(ctx.from.id, `Insufficient fund to ${destinations.length} total required ${coinObject.format(estimate)}`);
+			const username = user.username.trim();
+			if (!username) continue;
+			const wallet = await Wallet.findByUserId(userId, coin);
+			if (!wallet) continue;
+			userNames.push('@' + username);
+			sentMemberIds.push(userId);
+			destinations.push({
+				address: wallet.address,
+				amount
+			});
+			if (userNames.length === rainMax) {
+				break;
 			}
-  		}
-		
-  		const lock = rain_submit === 'disabled';
-		
-		const trx = await coinObject.transferMany(ctx.from.id, wallet.wallet_id, destinations, lock);
+		}
+
+		if (destinations.length <= 0) {
+			return ctx.appResponse.reply(`No members with ${coin} account`);
+		}
+		const totalAmount = amount * destinations.length;
+		const estimateFee = await coinObject.estimateFee(wallet.wallet_id, destinations, false);
+		if(!estimateFee) {
+			ctx.appResponse.reply(`Unable to get estimated transaction fee`);
+			return ctx.appResponse.sendMessage(ctx.from.id, `Unable to rain`);
+		}
+		const estimate = totalAmount + estimateFee;
+		let unlockBalance = 0;
+		if ('unlock' in wallet) {
+			unlockBalance = parseInt(wallet.unlock);
+		} else {
+			unlockBalance = parseInt(wallet.balance);
+		}
+		if('trading' in wallet) {
+			unlockBalance -= wallet.trading;
+		}
+		if (estimate > unlockBalance) {
+			ctx.appResponse.reply(`Insufficient fund to ${destinations.length} total required ${coinObject.format(estimate)}`);
+			return ctx.appResponse.sendMessage(ctx.from.id, `Unable to rain`);
+		}
+
+		const lock = rainSubmit === 'disable';
+
+		const trx = await coinObject.transferMany(ctx.from.id, wallet.wallet_id, destinations, !lock);
 		if (!trx) {
 			ctx.appResponse.reply('Unable to rain');
-			return ctx.appResponse.sendMessage(ctx.from.id,'Unable to connect with rpc. Please try again later');
+			return ctx.appResponse.sendMessage(ctx.from.id, 'Unable to connect with rpc. Please try again later');
 		}
 		if ('error' in trx) {
 			ctx.appResponse.reply('Unable to rain');
-			return ctx.appResponse.sendMessage(ctx.from.id,'RPC Error: ' + trx.error);
+			return ctx.appResponse.sendMessage(ctx.from.id, 'RPC Error: ' + trx.error);
 		}
-
 		if (lock) {
 			const trxFee = trx.fee_list.reduce((a, b) => a + b, 0);
 			const trxAmount = trx.amount_list.reduce((a, b) => a + b, 0);
@@ -151,19 +153,19 @@
 			const totalXla = coinObject.format(total);
 			await ctx.appResponse.reply('Airdrops to last ' + userNames.length + ' active members total of ' + totalXla + '\n' + userNames.join('\n'));
 			await ctx.appResponse.sendMessage(ctx.from.id, `
-<u>Transaction Details</u>
+				<u>Transaction Details</u>
 
-From: 
-@${sender.username}
+				From: 
+				@${sender.username}
 
-To: 
-${userNames.join('\n')}
+				To: 
+				${userNames.join('\n')}
 
-Amount : ${coinObject.format(trxAmount)}
-Fee : ${coinObject.format(trxFee)}
-Trx Hash: 
-* ${txHash}
-Current Balance : ${coinObject.format(balance)}`);
+				Amount : ${coinObject.format(trxAmount)}
+				Fee : ${coinObject.format(trxFee)}
+				Trx Hash: 
+				* ${txHash}
+				Current Balance : ${coinObject.format(balance)}`);
 			await Member.addNimbus(ctx.chat.id, '@' + sender.username, total);
 
 			for (const i in sentMemberIds) {
@@ -172,44 +174,50 @@ Current Balance : ${coinObject.format(balance)}`);
 				await Member.addWet(ctx.chat.id, userNames[i], amount);
 
 				await ctx.appResponse.sendMessage(smi, `
-<u>Transaction Details</u>
+					<u>Transaction Details</u>
 
-From: 
-@${sender.username}
+					From: 
+					@${sender.username}
 
-To: 
-${userNames.join('\n')}
+					To: 
+					${userNames.join('\n')}
 
-Amount : ${coinObject.format(trxAmount)}
-Fee : ${coinObject.format(trxFee)}
-Trx Hashes (${trx.amount_list.length} Transactions):
-* ${txHash}`);
+					Amount : ${coinObject.format(trxAmount)}
+					Fee : ${coinObject.format(trxFee)}
+					Trx Hashes (${trx.amount_list.length} Transactions):
+					* ${txHash}`);
 			}
 		} else {
-
-			ctx.appResponse.reply('Airdrop confirmation require to ' + userNames.length + " active members total. To skip confirmation set rain_submit disable. Users don't get wet if have confirmation");
-
+			await ctx.appResponse.reply('Airdrop confirmation require to ' + userNames.length + " active members total. To skip confirmation set rain_submit disable. Stats not recorded if enabled");
 			const trxFee = trx.fee_list.reduce((a, b) => a + b, 0);
 			const trxAmount = trx.amount_list.reduce((a, b) => a + b, 0);
-			const uuid = await Meta.getId(ctx.from.id, trx.tx_metadata_list.join(':'));
+			await Meta.getId(ctx.from.id, trx.tx_metadata_list.join(':'), coin);
 
-			return ctx.appResponse.sendMessage(ctx.from.id, `
-<u>Transaction Details</u>
+			const x = await ctx.appResponse.sendMessage(ctx.from.id, `
+				<u>Transaction Details</u>
 
-From: 
-@${sender.username}
+				From: 
+				@${sender.username}
 
-To: 
-${userNames.join('\n')}
+				To: 
+				${userNames.join('\n')}
 
-Amount : ${coinObject.format(trxAmount)}
-Fee : ${coinObject.format(trxFee)}
-Trx Meta ID: ${uuid}
-Trx Expiry: ${global.config.rpc.metaTTL} seconds
-Current Balance : ${coinObject.format(wallet.balance)}
-Number of transactions : ${trx.tx_hash_list.length}
-To proceed with transaction run
-Press button below to confirm`,this.Helper.metaButton());
+				Amount : ${coinObject.format(trxAmount)}
+				Fee : ${coinObject.format(trxFee)}
+				Number of transactions : ${trx.tx_hash_list.length}
+				Trx Expiry: ${global.config.rpc.metaTTL} seconds
+				Current Balance : ${coinObject.format(wallet.balance)}
+				Unlock Balance : ${coinObject.format(unlockBalance)}
+				Choose to confirm or cancel transaction`, this.Helper.metaButton());
+			setTimeout(() => {
+
+				ctx.telegram.deleteMessage(x.chat.id,x.message_id).catch(e => {
+
+				}).then(() => {
+					ctx.appResponse.sendMessage(ctx.from.id, "Transaction Action Timeout");
+				});	
+
+			}, global.config.rpc.metaTTL * 1000);
 		}
 	}
 }

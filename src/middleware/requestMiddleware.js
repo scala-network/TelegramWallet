@@ -78,7 +78,7 @@ class RequestMiddleware extends Middleware {
 			return;
 		}
 		appRequest.is.bot = appRequest.from.is_bot;
-		
+
 		ctx.appRequest = appRequest;
 		ctx.appResponse = {
 			sendMessage: async function (a, b, c, d) {

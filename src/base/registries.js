@@ -66,7 +66,6 @@ class Registeries {
 		}
 		bar.stop();
 		global.log('info', logSystem, 'Total loaded module : ' + loaded + '/' + allowRegisteries.length);
-
 	}
 }
 

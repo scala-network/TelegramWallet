@@ -25,8 +25,8 @@ class Wallet extends Model {
 		return this.Query(options).findByUserId(id, coins);
 	}
 
-	addByUser (user, address, walletId, height,coin, options) {
-		return this.Query(options).addByUser(user, address, walletId, height,coin);
+	addByUser (user, address, walletId, height, coin, options) {
+		return this.Query(options).addByUser(user, address, walletId, height, coin);
 	}
 
 	updateByUserId (userId, options) {
@@ -51,10 +51,10 @@ class Wallet extends Model {
 				return result;
 			}
 			wallet.balance = result.balance;
-			if('unlocked_balance' in result) wallet.unlock = result.unlocked_balance;
+			if ('unlocked_balance' in result) wallet.unlock = result.unlocked_balance;
 			const { height } = await Network.lastHeight(coin);
 			wallet.height = height;
-			if('pending' in wallet ) wallet.pending = parseInt(result.blocks_to_unlock);
+			if ('pending' in wallet) wallet.pending = parseInt(result.blocks_to_unlock);
 			// wallet.balance === wallet.unlock;
 			wallet = await this.update(userId, wallet);
 		}

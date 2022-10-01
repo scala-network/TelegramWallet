@@ -28,29 +28,29 @@ class Setting extends Model {
 		return this.Query(options).findByFieldAndUserId(field, userId, coin);
 	}
 
-	validateValue (field,value,coin='xla' ) {
-		if(!(coin in global.coins)) return false;
-		
+	validateValue (field, value, coin = 'xla') {
+		if (!(coin in global.coins)) return false;
+
 		switch (field) {
 		case 'tip_submit':
 		case 'rain_submit':
 			if (!value || typeof value === 'undefined') {
 				return 'disable';
 			}
-			
+
 			value = value.toLowerCase();
 			if (!~['enable', 'disable'].indexOf(value)) {
 				return 'disable';
-			}	
-			
+			}
+
 			break;
 		case 'tip':
 		case 'rain':
-			if(!value) {
+			if (!value) {
 				return global.coins[coin].settings[field];
 			}
 			value = parseInt(value) || 0;
-			if(value === 0) {
+			if (value === 0) {
 				return global.coins[coin].settings[field];
 			}
 			const max = `${field}_max` in global.coins[coin].settings ? global.coins[coin].settings[`${field}_max`] : value;
@@ -63,11 +63,11 @@ class Setting extends Model {
 			}
 			break;
 		case 'wet':
-			if(!value) {
+			if (!value) {
 				return global.coins[coin].settings[field];
 			}
 			value = parseInt(value) || 0;
-			if(value === 0) {
+			if (value === 0) {
 				return global.coins[coin].settings.wet;
 			}
 			const _max = 'wet_max' in global.coins[coin].settings ? global.coins[coin].settings.wet_max : 20;

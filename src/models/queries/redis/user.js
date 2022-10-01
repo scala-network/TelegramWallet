@@ -40,16 +40,16 @@ class User extends Query {
 
 	async findById (userId) {
 		const ukey = ['xla:Users', userId].join(':');
-		const lookUpKeys = ['status','username','user_id'];
-		const results = await global.redisClient.hmget(ukey,lookUpKeys);
+		const lookUpKeys = ['status', 'username', 'user_id'];
+		const results = await global.redisClient.hmget(ukey, lookUpKeys);
 		if (!results) {
 			return null;
 		}
 		const output = {};
-		for(let i=0;i<lookUpKeys.length;i++) {
+		for (let i = 0; i < lookUpKeys.length; i++) {
 			const key = lookUpKeys[i];
-			const value =results[i];
-			if(!value) return null;
+			const value = results[i];
+			if (!value) return null;
 			output[key] = value;
 		}
 
@@ -100,13 +100,13 @@ class User extends Query {
 		}
 		user = {
 			user_id: userId,
-			username,
+			username
 		};
 
 		await global.redisClient.multi()
 			.hmset(uKey, [
 				'user_id', userId,
-				'username', username,
+				'username', username
 			])
 			.hset(aKey, username, userId)
 			.exec();

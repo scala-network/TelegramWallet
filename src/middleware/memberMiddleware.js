@@ -10,11 +10,10 @@ class MemberMiddleware extends Middleware {
 	}
 
 	async run (ctx, next) {
-
 		if (ctx.test) return;
 
-		if (!ctx || !ctx.appRequest || ctx.appRequest.is.command || ctx.appRequest.is.action
-		    || !ctx.appRequest.is.group || !('username' in ctx.appRequest.from) || !ctx.appRequest.from.username) {
+		if (!ctx || !ctx.appRequest || ctx.appRequest.is.command || ctx.appRequest.is.action ||
+			!ctx.appRequest.is.group || !('username' in ctx.appRequest.from) || !ctx.appRequest.from.username) {
 			if (next) next();
 			return;
 		}
@@ -22,7 +21,7 @@ class MemberMiddleware extends Middleware {
 		const User = Model.LoadRegistry('User');
 		const userId = ctx.appRequest.from.id;
 		const username = ctx.appRequest.from.username.trim();
-		if(!username) {
+		if (!username) {
 			if (next) {
 				return next();
 			}
@@ -35,7 +34,7 @@ class MemberMiddleware extends Middleware {
 			if (ctx.appRequest.is.group) {
 				await Model.LoadRegistry('Member').addMember(ctx.chat.id, userId);
 			}
-		}  
+		}
 
 		if (next) {
 			return next();

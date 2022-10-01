@@ -5,9 +5,9 @@ module.exports = {
 	 *  Account create will be
 	 *  a subaddress
 	 **/
-	rpc :{
-		interval : 1, //in seconds
-		metaTTL : 60,
+	rpc: {
+		interval: 1, // in seconds
+		metaTTL: 60
 	},
 	coins: ['xla'],
 	swm: true,
@@ -41,7 +41,7 @@ module.exports = {
 			db: 'database',
 			keepalive: true,
 			username: 'username',
-			password: 'password',
+			password: 'password'
 		}
 	},
 

@@ -1,5 +1,5 @@
 const request = require('../engines/request');
-class xla {
+class Xla {
 	get server () {
 		return global.coins.xla.rpc.server;
 	}
@@ -20,20 +20,20 @@ class xla {
 		return 2;
 	}
 
-	async gasPrice() {
-		return 0;
+	parse (amount) {
+		return parseInt(parseFloat(`${amount}`.replace(',', '')) * this.atomicUnits);
 	}
 
-	parse (amount) {
-		return parseFloat(`${amount}`.replace(',', '')) * this.atomicUnits;
+	async estimateFee (idx, destinations, parse = false) {
+		let txAmount = 0;
+		destinations.forEach(d => {
+			txAmount+=d.amount;
+		})
+		return txAmount * 0.02;
 	}
 
 	format (coin) {
 		return (parseInt(coin) / this.atomicUnits).toFixed(this.fractionDigits).replace(/\B(?=(\d{3})+(?!\d))/g, ',') + ' ' + this.symbol;
-	}
-
-	async getFee() {
-		return Promise.resolve(1.02);
 	}
 
 	explorerLink (hash) {
@@ -90,12 +90,12 @@ class xla {
 			return { error: response.error.message };
 		}
 
-		if(!('result' in response)) return { error: "Invalid key result in response" };
-		if(!('height' in response.result)) return { error: "Invalid key height in response.result" };
+		if (!('result' in response)) return { error: 'Invalid key result in response' };
+		if (!('height' in response.result)) return { error: 'Invalid key height in response.result' };
 
 		return {
-			height:response.result.height
-		}
+			height: response.result.height
+		};
 	}
 
 	async getAddress (id, walletId) {
@@ -109,9 +109,9 @@ class xla {
 
 		if (!response) return { error: 'Unable to get a response from RPC' };
 		if ('error' in response) return { error: response.error.message };
-		if(!('result' in response)) return { error: "Invalid key result in response" };
-		if(!('addresses' in response.result)) return { error: "Invalid key addresses in response.result" };
-		if(response.result.addresses.length <= 0) return { error: "Invalid length in response.result.addresses" };
+		if (!('result' in response)) return { error: 'Invalid key result in response' };
+		if (!('addresses' in response.result)) return { error: 'Invalid key addresses in response.result' };
+		if (response.result.addresses.length <= 0) return { error: 'Invalid length in response.result.addresses' };
 		return response.result.addresses[0].address;
 	}
 
@@ -132,7 +132,7 @@ class xla {
 		if ('error' in response) {
 			return { error: response.error.message };
 		}
-		if(!('result' in response)) return { error: "Invalid key result in response" };
+		if (!('result' in response)) return { error: 'Invalid key result in response' };
 		return response.result;
 	}
 
@@ -299,4 +299,4 @@ class xla {
 	}
 }
 
-module.exports = xla;
+module.exports = Xla;

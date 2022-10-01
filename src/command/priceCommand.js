@@ -11,9 +11,11 @@ class PriceCommand extends Command {
 	get enabled () {
 		return 'market' in global.config && 'tickers' in global.config.market && global.config.market.tickers.length > 0;
 	}
-	get needStart() {
+
+	get needStart () {
 		return false;
 	}
+
 	get name () {
 		return 'price';
 	}
@@ -33,7 +35,7 @@ class PriceCommand extends Command {
 
 		if (ctx.appRequest.args.length >= 1) {
 			const exchange = ctx.appRequest.args[0];
-			
+
 			if (global.config.market.tickers.indexOf(exchange.toUpperCase()) >= 0) {
 				const marketExchange = await Market.getMarketExchange(this.Coin.symbol.toLowerCase(), exchange);
 

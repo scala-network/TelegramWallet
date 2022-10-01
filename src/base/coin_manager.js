@@ -1,27 +1,26 @@
-'use strict'
+'use strict';
 
-class CoinManager
-{
+class CoinManager {
 	static Instance;
 	#_coins = {};
-	constructor() {
-		let coins = global.config.coins;
-		for(let coin of coins) {
-			const _Coin = require('../coins/'+coin.toLowerCase());
+	constructor () {
+		const coins = global.config.coins;
+		for (const coin of coins) {
+			const _Coin = require('../coins/' + coin.toLowerCase());
 			this.#_coins[coin] = new _Coin();
 		}
 	}
-	get(coin) {
-		if(coin.toLowerCase() in this.#_coins) return this.#_coins[coin.toLowerCase()];
+
+	get (coin) {
+		if (coin.toLowerCase() in this.#_coins) return this.#_coins[coin.toLowerCase()];
 		return null;
 	}
 }
 
-
 module.exports = () => {
-	if(!CoinManager.Instance) {
+	if (!CoinManager.Instance) {
 		CoinManager.Instance = new CoinManager();
 	}
 
 	return CoinManager.Instance;
-}
+};

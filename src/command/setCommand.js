@@ -7,16 +7,17 @@
  * @module Commands/set
  */
 const Command = require('../base/command');
-const STATUS = require('../status');
 
 class SetCommand extends Command {
 	get name () {
 		return 'set';
 	}
+
 	get description () {
-		return `Set value for coin config. Run /set for more details`
+		return `Set value for coin config. Run /set for more details`;
 	}
-	get full_description () {
+
+	get fullDescription () {
 		return `
 Set value for your config. To get settings for a coin run /set coin only. usages: /set coin config value
 \n<u><b>Configs avaliable</b></u>
@@ -45,14 +46,14 @@ Set value for your config. To get settings for a coin run /set coin only. usages
 		if (ctx.test) return;
 
 		if (ctx.appRequest.args.length < 1) {
-			return ctx.appResponse.reply(`Missing coin\n${this.full_description}`);
+			return ctx.appResponse.reply(`Missing coin\n${this.fullDescription}`);
 		}
 
-		let coin = (''+ctx.appRequest.args[0]).trim().toLowerCase();
-		if(!coin) {
+		let coin = ('' + ctx.appRequest.args[0]).trim().toLowerCase();
+		if (!coin) {
 			coin = 'xla';
 		}
-		if(!~global.config.coins.indexOf(coin)) {
+		if (!~global.config.coins.indexOf(coin)) {
 			return ctx.appResponse.reply(`Invalid coin. Avaliable coins are ${global.config.coins.join(',')}`);
 		}
 		const coinObject = this.Coins.get(coin);
@@ -67,7 +68,7 @@ Set value for your config. To get settings for a coin run /set coin only. usages
 		}
 		if (ctx.appRequest.args.length < 2) {
 			let output = `<u>Coin Settings (${coinObject.fullname})</u>\n`;
-			const result = await Setting.findAllByUserId(ctx.from.id,coin);
+			const result = await Setting.findAllByUserId(ctx.from.id, coin);
 			for (const i in Setting.fields) {
 				const field = Setting.fields[i];
 
@@ -78,10 +79,7 @@ Set value for your config. To get settings for a coin run /set coin only. usages
 					out = coinObject.format(out);
 					break;
 				case 'wet':
-					if(out === 1)
-					out += ' Member';
-					else
-					out += ' Members';
+					if (out === 1) { out += ' Member'; } else { out += ' Members'; }
 					break;
 				case 'tip_submit':
 				case 'rain_submit':
@@ -101,18 +99,18 @@ Set value for your config. To get settings for a coin run /set coin only. usages
 		let extra;
 		switch (field) {
 		case 'wet':
-			let headCount = ctx.appRequest.args[2];
+			const headCount = ctx.appRequest.args[2];
 
-			let _headCount = Setting.validateValue('wet_max', headCount, coin);
+			const _headCount = Setting.validateValue('wet_max', headCount, coin);
 
 			status = await Setting.updateField(ctx.from.id, field, _headCount, coin);
 
 			if (!status) {
 				return ctx.appResponse.reply(`Unable to save ${field} amount`);
 			}
-			extra = "";
-			if(_headCount !== headCount) {
-				extra = ". Due to exceed max or min value";
+			extra = '';
+			if (_headCount !== headCount) {
+				extra = '. Due to exceed max or min value';
 			}
 			return ctx.appResponse.reply(`Amount saved ${coin} for ${field} at ${_headCount}${extra}`);
 		case 'rain':
@@ -130,9 +128,9 @@ Set value for your config. To get settings for a coin run /set coin only. usages
 			if (!status) {
 				return ctx.appResponse.reply(`Unable to save ${field} amount`);
 			}
-			extra = "";
-			if(amount !== value) {
-				extra = ". Due to exceed max or min value";
+			extra = '';
+			if (amount !== value) {
+				extra = '. Due to exceed max or min value';
 			}
 			return ctx.appResponse.reply(`Amount saved ${coin} for ${field} at ${coinObject.format(value)}`);
 

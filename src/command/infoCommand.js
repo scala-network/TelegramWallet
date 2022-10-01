@@ -45,28 +45,27 @@ class InfoCommand extends Command {
 		output += '\n<u><b>Wallet Information</b></u>\n\n';
 
 		const wallets = await Wallet.findByUserId(ctx.from.id);
-		for(let [coin,wallet] of Object.entries(wallets)){
+		for (const [coin, wallet] of Object.entries(wallets)) {
 			const coinObject = this.Coins.get(coin);
 			if (wallet) {
 				output += `Coin ID : ${coin}\n`;
 				output += `Address : \n${wallet.address}\n`;
-				
+
 				output += `Balance : ${utils.formatNumber(coinObject.format(wallet.balance || 0))}\n`;
 				let unlock = wallet.balance;
-				if('unlock' in wallet){
-					unlock = wallet.unlock
+				if ('unlock' in wallet) {
+					unlock = wallet.unlock;
 				}
-				if('trading' in wallet){
+				if ('trading' in wallet) {
 					output += `Trade Lock : ${utils.formatNumber(wallet.trading || 0)}\n`;
-					unlock -= wallet.trading; 
+					unlock -= wallet.trading;
 				}
-				output += `Unlock : ${utils.formatNumber(coinObject.format(wallet.unlock || 0))}\n`;
+				output += `Unlock : ${utils.formatNumber(coinObject.format(unlock || 0))}\n`;
 				output += `Last Sync: ${timeAgo.format(parseInt(wallet.updated || 0), 'round')}\n\n`;
 			} else {
 				output += 'No wallet avaliable\n';
 			}
 		}
-		
 
 		ctx.appResponse.reply(output);
 	}

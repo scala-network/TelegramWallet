@@ -41,8 +41,8 @@ class Network extends Model {
 		return result;
 	}
 
-	addHeight (height,coin, options) {
-		return this.Query(options).addHeight(height,coin);
+	addHeight (height, coin, options) {
+		return this.Query(options).addHeight(height, coin);
 	}
 }
 

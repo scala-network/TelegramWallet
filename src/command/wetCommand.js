@@ -14,9 +14,11 @@ class WetCommand extends Command {
 	get description () {
 		return 'Who gets the most rain';
 	}
-	get needStart() {
+
+	get needStart () {
 		return false;
 	}
+
 	auth (ctx) {
 		return ctx.appRequest.is.group;
 	}
@@ -27,12 +29,12 @@ class WetCommand extends Command {
 
 		let coin;
 		if (ctx.appRequest.args.length >= 1) {
-			coin = (''+ctx.appRequest.args[0]).trim().toLowerCase();
+			coin = ('' + ctx.appRequest.args[0]).trim().toLowerCase();
 		}
-		if(!coin) {
+		if (!coin) {
 			coin = 'xla';
 		}
-		if(!~global.config.coins.indexOf(coin)) {
+		if (!~global.config.coins.indexOf(coin)) {
 			return ctx.appResponse.reply(`Invalid coin. Avaliable coins are ${global.config.coins.join(',')}`);
 		}
 
@@ -53,14 +55,12 @@ class WetCommand extends Command {
 
 		template += `\n\n\n<u>Wettest All Time ${coin}</u>`;
 
-
 		for (let i = 0; i < results.overall.length; i++) {
 			const member = results.overall[i];
 			template += '\n' + member.username + '    ' + coinObject.format(member.amount);
 		}
 
 		await ctx.appResponse.sendMessage(ctx.chat.id, template, { parse_mode: 'HTML' });
-
 	}
 }
 module.exports = WetCommand;

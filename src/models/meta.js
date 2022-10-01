@@ -14,8 +14,8 @@ class Meta extends Model {
 		return 'meta';
 	}
 
-	async getId (userId, txMeta, options) {
-		return this.Query(options).getId(userId, txMeta);
+	async getId (userId, txMeta, coin, options) {
+		return this.Query(options).getId(userId, txMeta, coin);
 	}
 
 	async findById (userId, id, options) {
@@ -26,10 +26,9 @@ class Meta extends Model {
 		return this.Query(options).getByUserId(userId);
 	}
 
-	async deleteMeta (userId, id, options) {
-		return this.Query(options).deleteMeta(userId, id);
+	async deleteMeta (userId, options) {
+		return this.Query(options).deleteMeta(userId);
 	}
-
 }
 
 module.exports = Meta;

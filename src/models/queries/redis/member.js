@@ -3,7 +3,7 @@ const Query = require('../../../base/query');
 
 class Member extends Query {
 	async addMember (chatID, memberID) {
-		const ckey = ["xla:GroupMembers", chatID].join(':');
+		const ckey = ['xla:GroupMembers', chatID].join(':');
 		const result = await global.redisClient
 			.multi()
 			.zadd(ckey, Date.now(), memberID)
@@ -16,7 +16,7 @@ class Member extends Query {
 	}
 
 	async findByLast10 (chatID) {
-		const ckey = ["xla:GroupMembers", chatID].join(':');
+		const ckey = ['xla:GroupMembers', chatID].join(':');
 		return await global.redisClient.zrevrange(ckey, 0, -1);
 	}
 

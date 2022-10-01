@@ -26,19 +26,19 @@ const rawCommandJson = require('./defaults/commands');
 
 global.config.commands = _.merge(rawCommandJson, global.config.commands);
 
-for(let [engine,dsConfig] of Object.entries(global.config.datasource)) {
+for (const [engine, dsConfig] of Object.entries(global.config.datasource)) {
 	switch (engine) {
-		case 'redis':
-			global.redisClient = require('./engines/redis')(dsConfig);
-			break;
-		default:
-			break;
+	case 'redis':
+		global.redisClient = require('./engines/redis')(dsConfig);
+		break;
+	default:
+		break;
 	}
 }
 
 global.coins = {};
-for(let coin of global.config.coins) {
-	global.coins[coin] = require('../config/'+coin);
+for (const coin of global.config.coins) {
+	global.coins[coin] = require('../config/' + coin);
 }
 
 // console.log(global.coins);
