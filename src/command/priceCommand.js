@@ -21,7 +21,16 @@ class PriceCommand extends Command {
 	}
 
 	get description () {
-		return 'Display current market price. With additional argument as ticker will send price changes for that ticker. Avaliable ticker btc, ltc, usd and euro. ';
+		return 'Display current market price. With additional argument as ticker will send price changes for that ticker';
+	}
+
+	get fullDescription () {
+		return `Display current market price. 
+	- usage :/price coin
+	- eg :/price xla
+	For single exchange price append a ticker
+	- usage :/price coin ticker
+	- eg: /price xla btc`;
 	}
 
 	auth (ctx) {
@@ -32,12 +41,35 @@ class PriceCommand extends Command {
 		if (ctx.test) return;
 		const Market = this.loadModel('Market');
 		let output = '';
+		if (ctx.appRequest.args.length < 1) {
+			return ctx.appResponse.reply(`Missing coin argument.\n${this.fullDescription} `);
+		}
+		
+		let coin = ('' + ctx.appRequest.args[0]).trim().toLowerCase();
+		let coinObject = this.Coins.get(coin);
 
-		if (ctx.appRequest.args.length >= 1) {
-			const exchange = ctx.appRequest.args[0];
+ 		if (!~global.config.coins.indexOf(coin)) {
+ 			return ctx.appResponse.reply(`Invalid coin. Avaliable coins are ${global.config.coins.join(',')}`);
+ 		}
 
-			if (global.config.market.tickers.indexOf(exchange.toUpperCase()) >= 0) {
-				const marketExchange = await Market.getMarketExchange(this.Coin.symbol.toLowerCase(), exchange);
+		if (ctx.appRequest.args.length < 2) {
+			const priceLists = await Market.getPrice(coin);
+
+			if (priceLists) {
+				output += '<u>Price Lists</u>\n';
+				for (const [key, value] of Object.entries(priceLists)) {
+					const priceTicker = key.toUpperCase();
+					output += priceTicker + ' : ' + value + ' ' + priceTicker + '\n';
+				}
+			}
+		}
+
+		const exchange = ctx.appRequest.args[1].trim().toUpperCase();
+
+		if (ctx.appRequest.args.length < 3) {
+			const rtick = global.coins[coin].market.tickers;
+			if (rtick.indexOf(exchange.toUpperCase()) >= 0) {
+				const marketExchange = await Market.getMarketExchange(coin, exchange);
 
 				output += '<u>' + exchange.toUpperCase() + ' Market</u>\n';
 				for (const [key, value] of Object.entries(marketExchange)) {
@@ -58,23 +90,14 @@ class PriceCommand extends Command {
 					}
 				}
 			} else {
-				output = 'Invalid exchange ticker. Only ' + global.config.market.tickers.join(',') + ' are avaliable';
-			}
-		} else {
-			const priceLists = await Market.getPrice(this.Coin.symbol.toLowerCase());
-
-			if (priceLists) {
-				output += '<u>Price Lists</u>\n';
-				for (const [key, value] of Object.entries(priceLists)) {
-					const priceTicker = key.toUpperCase();
-					output += priceTicker + ' : ' + value + ' ' + priceTicker + '\n';
-				}
+				output = 'Invalid exchange ticker. Only ' + rtick.join(',') + ' are avaliable';
 			}
 		}
+
 		if (!output) {
 			output += 'We have no response for market price';
 		} else {
-			output += '\n Price exchanges are from https://coinmarketcap.com/currencies/' + this.Coin.fullname.toLowerCase();
+			output += '\n Price exchanges are from https://coinmarketcap.com/currencies/' + coinObject.fullname.toLowerCase();
 		}
 		ctx.appResponse.reply(output);
 	}

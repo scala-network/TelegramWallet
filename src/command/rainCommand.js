@@ -39,17 +39,19 @@ class RainCommand extends Command {
 
 		const currentMeta = await Meta.getByUserId(ctx.from.id);
 		if (currentMeta) {
-			ctx.appResponse.reply('Unable to rain');
-			return ctx.appResponse.sendMessage(ctx.from.id, 'Confirmations still pending. Unable to create new request');
+			await ctx.appResponse.sendMessage(ctx.from.id,'Confirmations still pending. Unable to create new request');
+			return await ctx.appResponse.reply( 'Unable to rain');
 		}
 
-		let coin;
-		if (ctx.appRequest.args.length >= 1) {
-			coin = ('' + ctx.appRequest.args[0]).trim().toLowerCase();
-		}
-		if (!coin) {
+		if (ctx.appRequest.args.length < 1) {
 			return ctx.appResponse.reply(`Missing coin argument.\n${this.fullDescription}`);
 		}
+
+		const coin = ctx.appRequest.args[0];
+
+ 		if (!~global.config.coins.indexOf(coin)) {
+ 			return ctx.appResponse.reply(`Invalid coin. Avaliable coins are ${global.config.coins.join(',')}`);
+ 		}
 
 		let wallet = await Wallet.findByUserId(sender.user_id, coin);
 
@@ -115,8 +117,8 @@ class RainCommand extends Command {
 		const totalAmount = amount * destinations.length;
 		const estimateFee = await coinObject.estimateFee(wallet.wallet_id, destinations, false);
 		if(!estimateFee) {
-			ctx.appResponse.reply(`Unable to get estimated transaction fee`);
-			return ctx.appResponse.sendMessage(ctx.from.id, `Unable to rain`);
+			ctx.appResponse.reply(`Unable to rain`);
+			return ctx.appResponse.sendMessage(ctx.from.id, `Unable to get estimated transaction fee`);
 		}
 		const estimate = totalAmount + estimateFee;
 		let unlockBalance = 0;
@@ -129,8 +131,8 @@ class RainCommand extends Command {
 			unlockBalance -= wallet.trading;
 		}
 		if (estimate > unlockBalance) {
-			ctx.appResponse.reply(`Insufficient fund to ${destinations.length} total required ${coinObject.format(estimate)}`);
-			return ctx.appResponse.sendMessage(ctx.from.id, `Unable to rain`);
+			ctx.appResponse.reply( `Unable to rain`);
+			return ctx.appResponse.sendMessage(ctx.from.id,`Insufficient fund to ${destinations.length} total required ${coinObject.format(estimate)}`);
 		}
 
 		const lock = rainSubmit === 'disable';
@@ -184,7 +186,7 @@ class RainCommand extends Command {
 
 					Amount : ${coinObject.format(trxAmount)}
 					Fee : ${coinObject.format(trxFee)}
-					Trx Hashes (${trx.amount_list.length} Transactions):
+					Trx Hashes (${trx.amount_list.length}):
 					* ${txHash}`);
 			}
 		} else {

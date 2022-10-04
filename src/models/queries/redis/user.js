@@ -40,7 +40,7 @@ class User extends Query {
 
 	async findById (userId) {
 		const ukey = ['xla:Users', userId].join(':');
-		const lookUpKeys = ['status', 'username', 'user_id'];
+		const lookUpKeys = ['username', 'user_id'];
 		const results = await global.redisClient.hmget(ukey, lookUpKeys);
 		if (!results) {
 			return null;

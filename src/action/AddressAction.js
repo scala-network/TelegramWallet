@@ -77,9 +77,9 @@ class AddressAction extends Action {
 			output += `\n\nCoin ${coin} not avaliable`;
 		}
 
-		return ctx.editMessageText(output, {
+		return await ctx.editMessageText(output, {
 			parse_mode: 'HTML'
-		});
+		}).catch(e=>{});
 	}
 }
 module.exports = AddressAction;

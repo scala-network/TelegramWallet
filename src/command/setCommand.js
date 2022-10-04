@@ -94,6 +94,9 @@ Set value for your config. To get settings for a coin run /set coin only. usages
 
 			return ctx.appResponse.reply(output);
 		}
+		if (ctx.appRequest.args.length < 3) {
+			return ctx.appResponse.reply('Missing new set value');
+		}
 		let status;
 		const field = ctx.appRequest.args[1];
 		let extra;

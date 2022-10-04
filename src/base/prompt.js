@@ -47,7 +47,7 @@ class Prompt {
 
 	async exec (ctx) {
 		if (this.needStart) {
-			const user = await this.loadModel('User').findById(ctx.from.id);
+			const user = await this.loadModel('User').findById(ctx.appRequest.from.id);
 			if (!user) return ctx.sendMessage('Seems you are not connected run /start to get connected');
 		}
 		if (!this.auth(ctx)) {

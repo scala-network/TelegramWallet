@@ -36,7 +36,7 @@ class StartCommand extends Command {
 		let wallet;
 		const coin = 'xla';
 		const coinObject = this.Coins.get(coin);
-		wallet = Wallet.findByUserId(ctx.from.id, coin);
+		wallet = await Wallet.findByUserId(ctx.from.id, coin);
 		if (wallet) return ctx.appResponse.reply(`Hello ${username}. Welcome back!`);
 
 		if (user && parseInt(user.user_id) !== id) {
@@ -66,7 +66,7 @@ class StartCommand extends Command {
 			`${user.user_id}@${username}`,
 			`${address.slice(0, 5)}...${address.slice(address.length - 5)} : ${walletId}`
 		]);
-		const height = Network.lastHeight(coin);
+		const height = Network.lastHeight(coinObject);
 		wallet = await Wallet.addByUser(user, address, walletId, height, coin);
 		if (!wallet) return ctx.appResponse.reply('Unable to create address for wallet');
 		if ('error' in wallet) return ctx.appResponse.reply('RPC Error: ' + wallet.error);

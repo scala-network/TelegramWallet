@@ -15,7 +15,13 @@ class MetaCancelAction extends Action {
 	async run (ctx) {
 		if (ctx.test) return;
 		const Meta = this.loadModel('Meta');
-		const x = await ctx.editMessageText('Processing Action');
+		let x;
+		try{
+			x = await ctx.editMessageText('Processing Action');
+			if(!x) return;
+		}catch{
+			return;
+		}
 		const metas = await Meta.getByUserId(ctx.appRequest.from.id);
 		if (!metas) {
 			await ctx.reply('Invalid or expired meta id');

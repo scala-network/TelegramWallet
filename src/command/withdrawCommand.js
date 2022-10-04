@@ -80,6 +80,9 @@
  		}
  		let trx;
  		if(inputAmount.trim().toLowerCase() === 'all') {
+            if('trading' in wallet && wallet.trading > 0) {
+                return ctx.appResponse.reply(`You have some coins in trading ${coinObject.format(wallet.trading)}`);
+            }
  			trx = await coinObject.sweep(ctx.from.id, wallet.wallet_id, address, true);
  		} else {
  			const amount = coinObject.parse(inputAmount);

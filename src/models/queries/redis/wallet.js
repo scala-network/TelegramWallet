@@ -64,7 +64,7 @@ class Wallet extends Query {
 			}
 		}
 		if (single) {
-			return output[_coins];
+			return _coins in output ? output[_coins] : null;
 		}
 		return output;
 	}

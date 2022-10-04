@@ -10,6 +10,8 @@
 	},
 	"settings" : {
 		"tip": 100000,
+		"tip_min": 1000,
+		"tip_max": 100000000,
 		"rain": 100000,
 		"wet": 10,
 		"wet_max":20,

@@ -9,7 +9,7 @@ class Meta extends Query {
 		const ttl = global.config.rpc.metaTTL;
 		await global.redisClient
 			.multi()
-			.hmset(ukey, { uuid, meta, coin })
+			.hmset(ukey, { uuid, meta, coin})
 			.expire(ukey, ttl)
 			.exec();
 		return uuid;

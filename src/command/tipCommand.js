@@ -64,19 +64,20 @@ class TransferCommand extends Command {
 		}
 		const args = [].concat(ctx.appRequest.args);
 		args.shift();
-		let tipAmount = args[ctx.appRequest.args.length - 1];
+
+		let tipAmount = args[args.length - 1];
 		if (isNaN(tipAmount)) {
 			tipAmount = await Setting.findByFieldAndUserId('tip', ctx.from.id, coin);
 		} else {
 			args.pop();
 			tipAmount = coinObject.parse(tipAmount);
 		}
-
-		if (Setting.validateValue('tip', tipAmount, coin) !== tipAmount) {
+		tipAmount = Setting.validateValue('tip', tipAmount, coin);
+		if (tipAmount < global.coins[coin].settings.tip_min || tipAmount > global.coins[coin].settings.tip_max) {
 			return ctx.appResponse.sendMessage(ctx.from.id, `Tip amount exceed min (${coinObject.format(global.coins[coin].settings.tip_min)}) or max (${coinObject.format(global.coins[coin].settings.tip_max)})`);
 		}
 
-		const estimate = coinObject.estimateFee(tipAmount);
+		const estimate = await coinObject.estimateFee(wallet.wallet_id,[{amount:tipAmount,address:wallet.address}],false);
 		let unlock = 'unlock' in wallet ? wallet.unlock : wallet.balance;
 		if ('trading' in wallet) {
 			unlock -= wallet.trading;
@@ -89,9 +90,9 @@ class TransferCommand extends Command {
 		const invalids = {
 			user: [],
 			wallet: [],
-			fails: []
+			// fails: []
 		};
-		for (const _uname of ctx.appRequest.args) {
+		for (const _uname of args) {
 			if (!_uname || !_uname.trim()) continue;
 			let username = _uname.trim();
 			if (username.startsWith('@')) {
@@ -100,7 +101,6 @@ class TransferCommand extends Command {
 			if (username === sender.username) continue;
 
 			const user = await User.findByUsername(username);
-
 			if (!user || !('user_id' in user)) {
 				invalids.user.push(username);
 				continue;
@@ -119,14 +119,14 @@ class TransferCommand extends Command {
 			userIds.push(user);
 			destinations.push({
 				amount: tipAmount,
-				address: user.wallet.address
+				address: rwallet.address
 			});
 		}
 		if (destinations.length < 1) {
 			return await ctx.appResponse.reply(`Invalid tip to no users with ${coin.toUpperCase()} wallet or linked`);
 		}
 		const tipSubmit = await Setting.findByFieldAndUserId('tip_submit', ctx.from.id);
-		const confirms = tipSubmit !== 'disable';
+		const confirms = tipSubmit === 'enable';
 		const trx = await coinObject.transferMany(ctx.from.id, wallet.wallet_id, destinations, confirms);
 		if (!trx) {
 			return await ctx.appResponse.reply('No response from  RPC');
@@ -136,9 +136,9 @@ class TransferCommand extends Command {
 		}
 
 		if (confirms) {
-			const uuid = await Meta.getId(ctx.from.id, trx.tx_metadata_list.join(':'));
 			const ftrxAmount = trx.amount_list.reduce((a, b) => a + b, 0);
 			const ftrxFee = trx.fee_list.reduce((a, b) => a + b, 0);
+			const uuid = await Meta.getId(ctx.from.id,trx.tx_metadata_list.join(':'),coin);
 
 			const x = await ctx.appResponse.sendMessage(ctx.from.id, `
 				<u>Pending Transaction Details</u>
@@ -155,7 +155,7 @@ class TransferCommand extends Command {
 				<b>Trx Expiry :</b>  ${global.config.rpc.metaTTL} seconds
 				<b>Current Unlock Balance :</b>  ${coinObject.format(unlock)}
 				<b>Number of transactions :</b>  ${trx.tx_hash_list.length}
-				Press button below to confirm`, this.Helper.metaButton());
+ 				Choose to confirm or cancel transaction`, this.Helper.metaButton());
 			setTimeout(async () => {
 
 				try{
@@ -179,40 +179,42 @@ class TransferCommand extends Command {
 					To: 
 					@${userIds.map(u => u.username).join('\n@')}
 
-					<b>Tip Amount :</b>  ${coinObject.format(trxAmount)}
+					Amount : ${coinObject.format(trxAmount)}
 					Fee : ${coinObject.format(trxFee)}
-					Current Unlock Balance : ${coinObject.format(unlock)}
-					Number of transactions : ${trx.tx_hash_list.length}
-					`);
+					Number of transactions : ${trx.amount_list.length}
+					Trx Hashes (${trx.tx_hash_list.length}): 
+					* ${txHash}`);
 				const template = `
-				<u>Transaction Details</u>
+<u>Transaction Details</u>
 
-				From: 
-				@${sender.username}
+From: 
+@${sender.username}
 
-				To: 
-				@${userIds.map(u => u.username).join('\n@')}
+To: 
+@${userIds.map(u => u.username).join('\n@')}
 
-				Amount : ${coinObject.format(trxAmount)}
-				Fee : ${coinObject.format(trxFee)}
-				Number of transactions : ${trx.tx_hash_list.length}
-				Trx Hashes (${trx.amount_list.length} Transactions): 
-				* ${txHash}`;
+Amount : ${coinObject.format(trxAmount)}
+Fee : ${coinObject.format(trxFee)}
+Number of transactions : ${trx.amount_list.length}
+Trx Hashes (${trx.tx_hash_list.length}): 
+* ${txHash}`;
 
 				for (const u of userIds) await ctx.appResponse.sendMessage(u.user_id, template);
 			}
 		let msg = '';
-		for (const [key, value] of Object.entries(invalids)) {
-			switch (key) {
-				case 'user':
-				msg += `\n* User does is not linked ${value}`;
-				break;
-				case 'wallet':
-				await ctx.appResponse.sendMessage(value, `Somebody tried to tip you but no ${coin} wallet found. Run /address to create one`);
-				break;
-				case 'fails':
-				msg += `\n* Trying to send to  ${value.username} fails. Error : ${value.error}`;
-				break;
+		for (const [key, objects] of Object.entries(invalids)) {
+			for(let value of objects){
+				switch (key) {
+					case 'user':
+					msg += `\n* Username ${value} is not linked to ${coin}`;
+					break;
+					case 'wallet':
+					await ctx.appResponse.sendMessage(value, `Somebody tried to tip you but no ${coin} wallet found. Run /address to create one`);
+					break;
+					// case 'fails':
+					// msg += `\n* Trying to send to  ${value.username} fails. Error : ${value.error}`;
+					// break;
+				}
 			}
 		}
 		if (msg) {
