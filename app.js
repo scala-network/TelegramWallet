@@ -19,7 +19,7 @@ if(!cluster.isWorker) {
             // }, 500);
         });
     }
-    // spawn(0);// For worker
+    spawn(0);// For worker
     spawn(1);// For application
     return;
 }
@@ -28,7 +28,7 @@ const TimeAgo = require('javascript-time-ago');
 TimeAgo.addDefaultLocale(require('javascript-time-ago/locale/en'));
 
 if(parseInt(process.env.forkId) === 0) {
-    return require('./src/worker.js');
+   return require('./src/worker.js');
 }
 
 const Telegraf = require('telegraf');

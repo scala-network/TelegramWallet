@@ -99,6 +99,7 @@ class CoinMarketCap {
 		const symbol = this.coin;
 		const tickers = [];
 		for (const ticker of this.tickers) {
+			
 			const data = await this.getQuotes(ticker)
 				.catch(e => global.log('error', logSystem, 'Error RPC : ' + e.message));
 			if (data) {
@@ -111,10 +112,9 @@ class CoinMarketCap {
 			await sleep();
 		}
 
-		global.log('info', logSystem, '%s price stored for ticker(s) %s', [coin, tickers.join(',')]);
+		global.log('info', logSystem, '%s price stored for ticker(s) %s', [symbol, tickers.join(',')]);
 	}
 }
-
 const clearOldStats = async coin => {
 	const dateObj = new Date();
 	dateObj.setDate(dateObj.getDate() - 1);
@@ -167,7 +167,7 @@ let connect = true;
 
 (async () => {
 	let tickers_length;
-	for (coin in global.config.coins) {
+	for (const coin of global.config.coins) {
 		if(coin in global.coins && 'market' in global.coins[coin] && 'tickers' in global.coins[coin].market){
 			tickers_length+= global.coins[coin].market.tickers.length;
 		}
@@ -176,13 +176,13 @@ let connect = true;
 	tickers_length = Math.ceil(tickers_length * 96 / 333) * 60000;
 	while (true) {
 		/** Store data from CMC **/
-		for (coin in global.config.coins) {
+		for (const coin of global.config.coins) {
 			if(coin in global.coins && 'market' in global.coins[coin] && 'tickers' in global.coins[coin].market){
 				if (!connect) {
 					await global.redisClient.connect().catch(() => {});
 					connect = true;
 				}
-				const cmc = new CoinMarketCap(coin, global.config.market);
+				const cmc = new CoinMarketCap(coin, global.coins[coin].market);
 				cmc.fetchInterval = tickers_length;
 				await cmc.fetch();
 			}
