@@ -35,7 +35,7 @@ class Member extends Model {
 		return await this.Query(option).findNimbus(chatID, coin);
 	}
 
-	async addNimbus (chatID, username, amount,coin option) {
+	async addNimbus (chatID, username, amount,coin, option) {
 		return await this.Query(option).addNimbus(chatID, username, amount,coin);
 	}
 }
