@@ -16,8 +16,8 @@ const sleep = (timer = 1) => {
 			const wallet = await global.redisClient.hget(user,'wallet');
 			if(!wallet) continue;
 			await global.redisClient.pipeline([
-				['hset','xla', wallet],
-				['hdel','wallet']
+				['hset',user,'xla', wallet],
+				['hdel',user,'wallet']
 			]).exec(() => {
 				console.log("User migrated", user);
 			});
