@@ -17,11 +17,11 @@ const sleep = (timer = 1) => {
 				['hset','xla', wallet],
 				['hdel','wallet']
 			]).exec(() => {
-
+				console.log("User migrated", user);
 			});
 		}
 		cursor = parseInt(users[0]);
-		await sleep(0.5);
+		await sleep(0.1);
 	}
 
 })();
