@@ -32,10 +32,11 @@ class BalanceCommand extends Command {
 
 		if (oldWallet) {
 			for (const [coin, details] of Object.entries(oldWallet)) {
+				if(!details) continue;
 				let wallet;
 				const coinObject = this.Coins.get(coin);
 				const syncWallet = await Wallet.syncBalance(ctx.from.id, details, coinObject);
-
+				
 				if (syncWallet && 'error' in syncWallet) {
 					wallet = details;
 				} else {
