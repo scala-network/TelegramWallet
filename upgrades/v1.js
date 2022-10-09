@@ -1,4 +1,4 @@
-require('./src/bootstrap');
+require('../src/bootstrap');
 const sleep = (timer = 1) => {
 	return new Promise((resolve, reject) => {
 		setTimeout(resolve, timer * 1000);
