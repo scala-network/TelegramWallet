@@ -1,3 +1,4 @@
+process.env.noworkers = true;
 require('../src/bootstrap');
 const sleep = (timer = 1) => {
 	return new Promise((resolve, reject) => {
@@ -6,6 +7,7 @@ const sleep = (timer = 1) => {
 };
 (async () => {
 	let cursor = false;
+	await global.redisClient.connect().catch(() => {});
 
 	while (cursor !== 0) {
 		const users = await global.redisClient.scan(cursor !== false ? cursor : 0, 'match', 'xla:Users:*', 'count', 100);

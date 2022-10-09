@@ -109,7 +109,7 @@ module.exports = config => {
 			return process.exit();
 		}
 		global.log('info', 'Datasource/Redis', `Version checked ${version}`);
-		client.disconnect();
+		if(!process.env.noworkers) client.disconnect();
 	})();
 
 	return client;
