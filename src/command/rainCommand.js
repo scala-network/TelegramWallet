@@ -120,7 +120,7 @@ class RainCommand extends Command {
 			ctx.appResponse.reply(`Unable to rain`);
 			return ctx.appResponse.sendMessage(ctx.from.id, `Unable to get estimated transaction fee`);
 		}
-		const estimate = totalAmount + estimateFee;
+		const estimate = parseInt(totalAmount) + parseInt(estimateFee);
 		let unlockBalance = 0;
 		if ('unlock' in wallet) {
 			unlockBalance = parseInt(wallet.unlock);

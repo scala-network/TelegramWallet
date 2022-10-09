@@ -28,7 +28,8 @@ class CoinMarketCap {
 	// = 17.2972972973 minutes
 	// If we take 18 minutes as expected interval (1080 seconds)
 	// 333 >= 320
-	constructor (cfg = {}) {
+	constructor (coin, cfg = {}) {
+		this.coin = coin;
 		let tickers = cfg.tickers;
 		tickers = Array.isArray(tickers) ? tickers : [tickers];
 		if (tickers.length < 0) {
@@ -42,7 +43,6 @@ class CoinMarketCap {
 		this.cmcId = 'cmcId' in cfg ? cfg.cmcId : '2629';
 		this.cmcEndPoint = isSandBox ? 'sandbox-api.coinmarketcap.com' : 'pro-api.coinmarketcap.com';
 		this.tickers = tickers;
-		this.fetchInterval = Math.ceil(tickers.length * 96 / 333) * 60000;
 	}
 
 	async getQuotes (ticker) {
@@ -96,24 +96,26 @@ class CoinMarketCap {
 	}
 
 	async fetch () {
-		const symbol = global.config.coin;
-
+		const symbol = this.coin;
+		const tickers = [];
 		for (const ticker of this.tickers) {
 			const data = await this.getQuotes(ticker)
 				.catch(e => global.log('error', logSystem, 'Error RPC : ' + e.message));
 			if (data) {
 				await Market.updateTicker(symbol, ticker, data)
 					.then(() => {
-						global.log('info', logSystem, 'Data stored for ticker ' + ticker);
+						tickers.push(ticker);
 					})
 					.catch(e => global.log('error', logSystem, 'Error : ' + e.message));
 			}
 			await sleep();
 		}
+
+		global.log('info', logSystem, '%s price stored for ticker(s) %s', [coin, tickers.join(',')]);
 	}
 }
 
-const clearOldStats = async () => {
+const clearOldStats = async coin => {
 	const dateObj = new Date();
 	dateObj.setDate(dateObj.getDate() - 1);
 	const month = String(dateObj.getMonth()).padStart(2, '0');
@@ -123,7 +125,7 @@ const clearOldStats = async () => {
 	let cursor = false;
 	const todelete = [];
 	while (cursor !== 0) {
-		const groupNimbuses = await global.redisClient.scan(cursor !== false ? cursor : 0, 'match', global.config.coin + ':GroupNimbus:*', 'count', 100);
+		const groupNimbuses = await global.redisClient.scan(cursor !== false ? cursor : 0, 'match', coin + ':GroupNimbus:*', 'count', 100);
 		for (const groupNimbus of groupNimbuses[1]) {
 			if (!groupNimbus) continue;
 			const parts = groupNimbus.split(':');
@@ -134,12 +136,12 @@ const clearOldStats = async () => {
 			todelete.push(groupNimbus);
 		}
 		cursor = parseInt(groupNimbuses[0]);
-		sleep(0.5);
+		await sleep(0.5);
 	}
 
 	cursor = false;
 	while (cursor !== 0) {
-		const groupWettest = await global.redisClient.scan(cursor !== false ? cursor : 0, 'match', global.config.coin + ':GroupWettest:*', 'count', 100);
+		const groupWettest = await global.redisClient.scan(cursor !== false ? cursor : 0, 'match', coin + ':GroupWettest:*', 'count', 100);
 		for (const groupWet of groupWettest[1]) {
 			if (!groupWet) continue;
 			const parts = groupWet.split(':');
@@ -151,7 +153,7 @@ const clearOldStats = async () => {
 		}
 
 		cursor = parseInt(groupWettest[0]);
-		sleep(0.5);
+		await sleep(0.5);
 	}
 	if (todelete.length > 0) {
 		global.log('info', logSystem, 'Clearing old stats %d', [todelete.length]);
@@ -160,19 +162,30 @@ const clearOldStats = async () => {
 		global.log('info', logSystem, 'No stats to be deleted');
 	}
 };
-/** Clear previous wet and nimbus **/
 let daily = 0;
 let connect = true;
+
 (async () => {
+	let tickers_length;
+	for (coin in global.config.coins) {
+		if(coin in global.coins && 'market' in global.coins[coin] && 'tickers' in global.coins[coin].market){
+			tickers_length+= global.coins[coin].market.tickers.length;
+		}
+	 
+	}
+	tickers_length = Math.ceil(tickers_length * 96 / 333) * 60000;
 	while (true) {
 		/** Store data from CMC **/
-		if ('market' in global.config && 'tickers' in global.config.market) {
-			if (!connect) {
-				await global.redisClient.connect().catch(() => {});
-				connect = true;
+		for (coin in global.config.coins) {
+			if(coin in global.coins && 'market' in global.coins[coin] && 'tickers' in global.coins[coin].market){
+				if (!connect) {
+					await global.redisClient.connect().catch(() => {});
+					connect = true;
+				}
+				const cmc = new CoinMarketCap(coin, global.config.market);
+				cmc.fetchInterval = tickers_length;
+				await cmc.fetch();
 			}
-			const cmc = new CoinMarketCap(global.config.market);
-			await cmc.fetch();
 		}
 		if (daily > 24) {
 			if (!connect) {

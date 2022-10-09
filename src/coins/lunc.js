@@ -207,7 +207,15 @@ class Lunc {
 		
 	}
 	#_txFeeToAmt(txFee) {
-		let txfee = txFee.toData(true);
+
+		let txfee;
+		try{
+			txfee = txFee.toData(true);	
+		} catch {
+			console.log(txFee);
+			return txFee;
+		}
+		
 		if(!Array.isArray(txFee.amount)) {
 			txfee = txFee.amount._coins.uluna.amount;
 		} else if (txfee.length > 0) {
