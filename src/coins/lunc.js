@@ -15,7 +15,9 @@ class Lunc {
 	async #_setWallet (id, seed) {
 		await global.redisClient.rpush('lunc:mnemonic', Buffer.from(seed).toString('base64'));
 	}
-
+	get cmcName() {
+		return "terra-luna";
+	}
 	constructor () {
 		this.#_lcd = new LCDClient({
 			URL: this.server.address,

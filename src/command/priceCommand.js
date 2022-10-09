@@ -8,10 +8,6 @@ const Command = require('../base/command');
 const utils = require('../utils');
 
 class PriceCommand extends Command {
-	get enabled () {
-		return 'market' in global.config && 'tickers' in global.config.market && global.config.market.tickers.length > 0;
-	}
-
 	get needStart () {
 		return false;
 	}
@@ -62,16 +58,14 @@ class PriceCommand extends Command {
 					output += priceTicker + ' : ' + value + ' ' + priceTicker + '\n';
 				}
 			}
-		}
-
-		const exchange = ctx.appRequest.args[1].trim().toUpperCase();
-
-		if (ctx.appRequest.args.length < 3) {
+		}else if (ctx.appRequest.args.length < 3) {
+			
+			const exchange = ctx.appRequest.args[1].trim().toUpperCase();
 			const rtick = global.coins[coin].market.tickers;
 			if (rtick.indexOf(exchange.toUpperCase()) >= 0) {
 				const marketExchange = await Market.getMarketExchange(coin, exchange);
 
-				output += '<u>' + exchange.toUpperCase() + ' Market</u>\n';
+				output += '<u>'  + coin.toUpperCase() + "/" + exchange.toUpperCase() + ' Market</u>\n';
 				for (const [key, value] of Object.entries(marketExchange)) {
 					output += key + ' : ';
 					if ([
@@ -97,7 +91,8 @@ class PriceCommand extends Command {
 		if (!output) {
 			output += 'We have no response for market price';
 		} else {
-			output += '\n Price exchanges are from https://coinmarketcap.com/currencies/' + coinObject.fullname.toLowerCase();
+			let cmcName = (coinObject.cmcName) ? coinObject.cmcName :  coinObject.fullname.toLowerCase(); 
+			output += '\n Price exchanges are from https://coinmarketcap.com/currencies/' + cmcName;
 		}
 		ctx.appResponse.reply(output);
 	}

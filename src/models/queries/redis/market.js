@@ -30,7 +30,7 @@ class Market extends Query {
 
 	async getPrice (coin) {
 		const key = [coin, 'price'].join(':');
-		const tickers = global.config.market.tickers;
+		const tickers = global.coins[coin].market.tickers;
 		const result = {};
 		for (const ticker of tickers) {
 			const tick = ticker.toLowerCase();
