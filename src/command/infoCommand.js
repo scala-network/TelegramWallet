@@ -63,7 +63,7 @@ class InfoCommand extends Command {
 				output += `Unlock : ${utils.formatNumber(coinObject.format(unlock || 0))}\n`;
 				output += `Last Sync: ${timeAgo.format(parseInt(wallet.updated || 0), 'round')}\n\n`;
 			} else {
-				output += 'No wallet avaliable\n';
+				output += `No wallet avaliable for ${coin} run /address to create one\n`;
 			}
 		}
 
