@@ -68,11 +68,11 @@ appRequest allows to gain about request information from user.
 
 eg. of a chat transpose to appRequest
 
-```/tip username 1000```
+```/tip coin username 1000```
 
 * `action` - `tip`
-* `query` - `username 1000`
-* `args` - [`username`,`1000`]
+* `query` - `coin username 1000`
+* `args` - [`coin`,`username`,`1000`]
 
 
 ## Models
@@ -88,6 +88,6 @@ You can load a model by calling `this.loadModel(<model name>);`. This will retur
 
 ### Calling RPC Calls for Coin
 
-All rpc requests is base on coin class located at /src/coins. Currently we have XLA only.
+All rpc requests is base on coin class located at /src/coins. Currently we have XLA and LUNC only.
 
-To call coin spesific methods or properties use this.Coin inside command
+To call coin spesific methods or properties use `this.Coins.get(coin_name)` inside command
