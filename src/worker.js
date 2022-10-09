@@ -162,7 +162,7 @@ const clearOldStats = async coin => {
 		global.log('info', logSystem, 'No stats to be deleted');
 	}
 };
-let daily = 0;
+let daily = {};
 let connect = true;
 
 (async () => {
@@ -171,7 +171,7 @@ let connect = true;
 		if(coin in global.coins && 'market' in global.coins[coin] && 'tickers' in global.coins[coin].market){
 			tickers_length+= global.coins[coin].market.tickers.length;
 		}
-	 
+	 	daily[coin] = 0;
 	}
 	tickers_length = Math.ceil(tickers_length * 96 / 333) * 60000;
 	while (true) {
@@ -186,17 +186,19 @@ let connect = true;
 				cmc.fetchInterval = tickers_length;
 				await cmc.fetch();
 			}
-		}
-		if (daily > 24) {
-			if (!connect) {
-				await global.redisClient.connect().catch(() => {});
-				connect = true;
+
+			if (daily[coin] > 24) {
+				if (!connect) {
+					await global.redisClient.connect().catch(() => {});
+					connect = true;
+				}
+				await clearOldStats(coin).catch(e => global.log('error', e.message));
+				daily[coin] = 0;
+			} else {
+				daily[coin]++;
 			}
-			await clearOldStats().catch(e => global.log('error', e.message));
-			daily = 0;
-		} else {
-			daily++;
 		}
+		
 		if (connect) {
 			await global.redisClient.save();
 			global.redisClient.disconnect();

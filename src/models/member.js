@@ -15,28 +15,28 @@ class Member extends Model {
 		return 'member';
 	}
 
-	addMember (chatID, memberID, option) {
-		return this.Query(option).addMember(chatID, memberID);
+	async addMember (chatID, memberID, option) {
+		return await this.Query(option).addMember(chatID, memberID);
 	}
 
 	async findByLast10 (chatID, option) {
 		return await this.Query(option).findByLast10(chatID);
 	}
 
-	async findWet (chatID, option) {
-		return await this.Query(option).findWet(chatID);
+	async findWet (chatID,coin, option) {
+		return await this.Query(option).findWet(chatID,coin);
 	}
 
-	async addWet (chatID, username, amount, option) {
-		return await this.Query(option).addWet(chatID, username, amount);
+	async addWet (chatID, username, amount,coin, option) {
+		return await this.Query(option).addWet(chatID, username, amount,coin);
 	}
 
-	async findNimbus (chatID, option) {
-		return await this.Query(option).findNimbus(chatID);
+	async findNimbus (chatID, coin, option) {
+		return await this.Query(option).findNimbus(chatID, coin);
 	}
 
-	async addNimbus (chatID, username, amount, option) {
-		return await this.Query(option).addNimbus(chatID, username, amount);
+	async addNimbus (chatID, username, amount,coin option) {
+		return await this.Query(option).addNimbus(chatID, username, amount,coin);
 	}
 }
 
