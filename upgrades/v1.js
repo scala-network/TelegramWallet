@@ -25,5 +25,5 @@ const sleep = (timer = 1) => {
 		cursor = parseInt(users[0]);
 		await sleep(0.1);
 	}
-
+	process.exit();
 })();
