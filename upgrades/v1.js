@@ -8,7 +8,7 @@ const sleep = (timer = 1) => {
 	let cursor = false;
 
 	while (cursor !== 0) {
-		const users = await global.redisClient.scan(cursor !== false ? cursor : 0, 'match', coin + ':Users:*', 'count', 100);
+		const users = await global.redisClient.scan(cursor !== false ? cursor : 0, 'match', 'xla:Users:*', 'count', 100);
 		for (const user of users[1]) {
 			if (!user) continue;
 			const wallet = await global.redisClient.hget(user,'wallet');
