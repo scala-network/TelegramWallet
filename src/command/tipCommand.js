@@ -59,9 +59,21 @@ class TransferCommand extends Command {
 		const coinObject = this.Coins.get(coin);
 		let wallet = await Wallet.findByUserId(ctx.from.id, coin);
 		wallet = await Wallet.syncBalance(ctx.from.id, wallet, coinObject);
+		if(!wallet) {
+			return ctx.appResponse.reply(`No wallet avaliable for coin ${coin}`);
+		}
 		if (wallet && 'error' in wallet) {
 			return ctx.sendMessage(ctx.from.id, wallet.error);
 		}
+		let unlock = 'unlock' in wallet ? wallet.unlock : wallet.balance;
+		if ('trading' in wallet) {
+			unlock -= wallet.trading;
+		}
+		if (0 >= parseFloat(unlock)) {
+			return ctx.appResponse.sendMessage(ctx.from.id, `No fund to process transaction`);
+		}
+
+
 		const args = [].concat(ctx.appRequest.args);
 		args.shift();
 
@@ -76,12 +88,7 @@ class TransferCommand extends Command {
 		if (tipAmount < global.coins[coin].settings.tip_min || tipAmount > global.coins[coin].settings.tip_max) {
 			return ctx.appResponse.sendMessage(ctx.from.id, `Tip amount exceed min (${coinObject.format(global.coins[coin].settings.tip_min)}) or max (${coinObject.format(global.coins[coin].settings.tip_max)})`);
 		}
-
-		const estimate = await coinObject.estimateFee(wallet.wallet_id,[{amount:tipAmount,address:wallet.address}],false);
-		let unlock = 'unlock' in wallet ? wallet.unlock : wallet.balance;
-		if ('trading' in wallet) {
-			unlock -= wallet.trading;
-		}
+		const estimate = await coinObject.estimateFee(wallet.wallet_id,[{amount:tipAmount,address:wallet.address}],false).catch(e => console.log(e.message));
 		if (estimate > parseFloat(unlock)) {
 			return ctx.appResponse.sendMessage(ctx.from.id, `Insufficient fund estimate require ${coinObject.format(estimate)}`);
 		}
