@@ -410,10 +410,17 @@ class Lunc {
 		}
 		
 		// Obtain the signing wallet data
-		const walletInfo = await wallet.accountNumberAndSequence();
+		const walletInfo = await wallet.accountNumberAndSequence().catch(e => {
+			global.log('error',"LUNC Sweep > accountNumberAndSequence %s",[e.message]);
+		});
+		if(!walletInfo) {
+			return {error:"Error getting account number and sequence"};
+		}
 		const signerData = [{ sequenceNumber: walletInfo.sequence }];
 		const walletAddress = wallet.key.accAddress;
-		let balance = await this.#_getBalance(wallet);
+		let balance = await this.#_getBalance(wallet).catch(e => {
+			global.log('error',"LUNC Sweep > getBalance %s",[e.message]);
+		});
 		if('error' in balance) return balance;
 		balance = balance.balance;
 
@@ -421,7 +428,9 @@ class Lunc {
 		const dmsg = new MsgSend(wallet.key.accAddress, address,{ uluna: balance.toString() });
 
 		// Estimate the gas amount and fee (without burn tax) for the message
-		const gasPrices = await this.#_getGasPriceCoins();
+		const gasPrices = await this.#_getGasPriceCoins().catch(e => {
+			global.log('error',"LUNC Sweep > getGasPriceCoins %s",[e.message]);
+		});
 		const txFee = await this.#_lcd.tx.estimateFee(
 		    signerData,
 		    { msgs: [dmsg], 
@@ -453,7 +462,7 @@ class Lunc {
 		}
 
 		const tx = await wallet.createAndSignTx({ msgs: destinations, fee: txFee }).catch(e=>{
-			// console.log(e)
+			global.log('error',"LUNC Sweep > createAndSignTx %s",[e.message]);
 		});
 		if(!tx) {
 			return {error:'TX error'};
