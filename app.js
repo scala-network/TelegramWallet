@@ -14,9 +14,9 @@ if(!cluster.isWorker) {
         });
         worker.forkId = forkId;
         worker.on('exit', function (code, signal) {
-            // setTimeout(function () {
-            //    spawn(forkId);
-            // }, 500);
+            setTimeout(function () {
+                spawn(forkId);
+            }, 500);
         });
     }
     spawn(0);// For worker
