@@ -55,6 +55,19 @@
  			return ctx.reply("Wallet Error : " + wallet.error);
  		}
 
+        let unlockBalance = 0;
+        if ('unlock' in wallet) {
+            unlockBalance = parseInt(wallet.unlock);
+        } else {
+            unlockBalance = parseInt(wallet.balance);
+        }
+        if('trading' in wallet) {
+            unlockBalance -= wallet.trading;
+        }
+        if(unlockBalance <= 0) {
+            return ctx.appResponse.sendMessage(ctx.from.id,`No fund to process transaction`);
+        }
+
  		if (ctx.appRequest.args.length < 2) {
  			return ctx.appResponse.reply(`Missing coin address\n${this.description}`);
  		}
