@@ -89,8 +89,16 @@ class TransferCommand extends Command {
 			return ctx.appResponse.sendMessage(ctx.from.id, `Tip amount exceed min (${coinObject.format(global.coins[coin].settings.tip_min)}) or max (${coinObject.format(global.coins[coin].settings.tip_max)})`);
 		}
 		const estimate = await coinObject.estimateFee(wallet.wallet_id,[{amount:tipAmount,address:wallet.address}],false).catch(e => console.log(e.message));
+		if(!estimate) {
+			return ctx.appResponse.reply(`Unable to get estimated transaction fee`);
+		}
+		if('error' in estimate) {
+			ctx.appResponse.reply(`Unable to rain`);
+			return ctx.appResponse.reply(`RPC Error : %s`, estimateFee.error);
+		}
+
 		if (estimate > parseFloat(unlock)) {
-			return ctx.appResponse.sendMessage(ctx.from.id, `Insufficient fund estimate require ${coinObject.format(estimate)}`);
+			return ctx.appResponse.reply(`Insufficient fund estimate require ${coinObject.format(estimate)}`);
 		}
 		const destinations = [];
 		const userIds = [];

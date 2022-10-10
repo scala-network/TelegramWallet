@@ -203,7 +203,7 @@ class Lunc {
 			return null;
 		}
 		const txFee = await this.#_estimateFee(destinations, wallet);
-		
+		if('error' in txFee) return txFee;
 
 		if(retAmtObject) return txFee;
 		return this.#_txFeeToAmt(txFee);

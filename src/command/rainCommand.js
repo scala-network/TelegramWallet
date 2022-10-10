@@ -130,13 +130,18 @@ class RainCommand extends Command {
 			return ctx.appResponse.reply(`No members with ${coin} account`);
 		}
 		const totalAmount = amount * destinations.length;
-		const estimateFee = await coinObject.estimateFee(wallet.wallet_id, destinations, false).catch(e => console.log(e));
+		const estimateFee = await coinObject.estimateFee(wallet.wallet_id, destinations, false).catch(e => console.log(e.message));
 		if(!estimateFee) {
 			ctx.appResponse.reply(`Unable to rain`);
 			return ctx.appResponse.sendMessage(ctx.from.id, `Unable to get estimated transaction fee`);
 		}
+		if('error' in estimateFee) {
+			ctx.appResponse.reply(`Unable to rain`);
+			return ctx.appResponse.sendMessage(ctx.from.id, `RPC Error : %s`, estimateFee.error);
+		}
+
 		const estimate = parseInt(totalAmount) + parseInt(estimateFee);
-	       if (estimate > unlockBalance) {
+	    if (estimate > unlockBalance) {
 			ctx.appResponse.reply( `Unable to rain`);
 			return ctx.appResponse.sendMessage(ctx.from.id,`Insufficient fund to ${destinations.length} total required ${coinObject.format(estimate)}`);
 		}
