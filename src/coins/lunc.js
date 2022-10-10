@@ -323,7 +323,7 @@ class Lunc {
 			const data = Buffer.from(meta, 'base64').toString('utf8') 
 			const metaParse = JSON.parse(data);		
 			const idx = metaParse.idx;
-			if (!idx) {
+			if (typeof idx === 'undefined' || isNaN(idx) || idx === false) {
 				return { error: 'Relay missing wallet index' };
 			}
 
@@ -344,7 +344,7 @@ class Lunc {
 
 	async #_transfers(id, idx, destinations, doNotRelay, wallet = null) {
 
-		if (!idx) {
+		if (typeof idx === 'undefined' || isNaN(idx) || idx === false) {
 			return { error: 'Missing wallet index' };
 		}
 
@@ -398,7 +398,7 @@ class Lunc {
 	}
 
 	async sweep (id, idx, address, doNotRelay) {
-		if (!idx) {
+		if (typeof idx === 'undefined' || isNaN(idx) || idx === false) {
 			return { error: 'Missing wallet index' };
 		}
 		const wallet = await this.#_getWallet(idx);
