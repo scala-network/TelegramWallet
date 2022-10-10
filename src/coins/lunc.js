@@ -357,6 +357,9 @@ class Lunc {
 
 		const {send} = this.#_destinationsFilter(wallet, destinations);
 		const txFee = await this.estimateFee(idx, destinations, !doNotRelay);	
+		if(isNaN(txFee) && 'error' in txFee){
+			return txFee;
+		}
 		if (doNotRelay) {
 
 			return {
