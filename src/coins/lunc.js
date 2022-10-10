@@ -55,7 +55,8 @@ class Lunc {
 	}
 
 	explorerLink (hash) {
-		return `https://finder.terra.money/classic/${this.server.chainId}/tx/${hash}`;
+//		https://finder.terra.money/classic/tx/f2a612d8e43ef19b4f51a1e5351ff1249b582e3db1541a63dc24705bd47ed0f6
+		return `https://finder.terra.money/classic/tx/${hash}`;
 	}
 
 	async createWallet (id, password) {
