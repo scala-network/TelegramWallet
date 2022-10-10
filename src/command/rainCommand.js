@@ -137,7 +137,7 @@ class RainCommand extends Command {
 		}
 		if(isNaN(estimateFee) && 'error' in estimateFee) {
 			ctx.appResponse.reply(`Unable to rain`);
-			return ctx.appResponse.sendMessage(ctx.from.id, `RPC Error : %s`, estimateFee.error);
+			return ctx.appResponse.sendMessage(ctx.from.id, `RPC Error : ${estimateFee.error}`);
 		}
 
 		const estimate = parseInt(totalAmount) + parseInt(estimateFee);

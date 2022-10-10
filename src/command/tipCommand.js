@@ -94,7 +94,7 @@ class TransferCommand extends Command {
 		}
 		if(isNaN(estimate) && 'error' in estimate) {
 			ctx.appResponse.reply(`Unable to rain`);
-			return ctx.appResponse.reply(`RPC Error : %s`, estimate.error);
+			return ctx.appResponse.reply(`RPC Error : ${estimate.error}`);
 		}
 
 		if (estimate > parseFloat(unlock)) {
