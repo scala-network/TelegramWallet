@@ -92,7 +92,7 @@ class TransferCommand extends Command {
 		if(!estimate) {
 			return ctx.appResponse.reply(`Unable to get estimated transaction fee`);
 		}
-		if('error' in estimate) {
+		if(isNaN(estimate) && 'error' in estimate) {
 			ctx.appResponse.reply(`Unable to rain`);
 			return ctx.appResponse.reply(`RPC Error : %s`, estimateFee.error);
 		}

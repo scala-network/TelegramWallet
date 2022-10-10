@@ -135,7 +135,7 @@ class RainCommand extends Command {
 			ctx.appResponse.reply(`Unable to rain`);
 			return ctx.appResponse.sendMessage(ctx.from.id, `Unable to get estimated transaction fee`);
 		}
-		if('error' in estimateFee) {
+		if(isNaN(estimateFee) && 'error' in estimateFee) {
 			ctx.appResponse.reply(`Unable to rain`);
 			return ctx.appResponse.sendMessage(ctx.from.id, `RPC Error : %s`, estimateFee.error);
 		}
