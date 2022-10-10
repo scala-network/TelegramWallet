@@ -113,12 +113,8 @@ Set value for your config. To get settings for a coin run /set coin only. usages
 			if (!status) {
 				return ctx.appResponse.reply(`Unable to save ${field} amount`);
 			}
-			extra = '';
-			if (_headCount !== headCount) {
-				extra = '. Due to exceed max or min value';
-			}
 			
-			return ctx.appResponse.reply(`Amount saved ${coin} for ${field} at ${_headCount}${extra}`);
+			return ctx.appResponse.reply(`Amount saved ${coin} for ${field} at ${_headCount}`);
 		case 'rain':
 		case 'tip':
 
