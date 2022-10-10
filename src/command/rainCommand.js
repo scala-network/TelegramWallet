@@ -61,7 +61,7 @@ class RainCommand extends Command {
 		}
 
 		const coinObject = this.Coins.get(coin);
-		wallet = await Wallet.syncBalance(ctx.from.id, wallet, coinObject);
+		wallet = await Wallet.syncBalance(ctx.from.id, wallet, coinObject).catch(e => console.log(e));
 
 		if (wallet && 'error' in wallet) {
 			return ctx.appResponse.sendMessage(ctx.from.id, wallet.error);
@@ -70,6 +70,21 @@ class RainCommand extends Command {
 			ctx.appResponse.reply(`No wallet avaliable for ${coin}`);
 			return ctx.appResponse.sendMessage(ctx.from.id, `No wallet avaliable for ${coin} run /address to create one`);
 		}
+		
+		let unlockBalance = 0;
+		if ('unlock' in wallet) {
+			unlockBalance = parseInt(wallet.unlock);
+		} else {
+			unlockBalance = parseInt(wallet.balance);
+		}
+		if('trading' in wallet) {
+			unlockBalance -= wallet.trading;
+		}
+		if(unlockBalance <= 0) {
+			ctx.appResponse.reply( `Unable to rain`);
+			return ctx.appResponse.sendMessage(ctx.from.id,`No fund to process transaction`);
+		}
+
 		const setting = await Setting.findByFieldAndUserId(['rain', 'wet', 'rain_submit'], ctx.from.id, coin);
 		let rainMax = Setting.validateValue('wet', setting.wet, coin);
 		const amount = Setting.validateValue('rain', setting.rain, coin);
@@ -115,22 +130,13 @@ class RainCommand extends Command {
 			return ctx.appResponse.reply(`No members with ${coin} account`);
 		}
 		const totalAmount = amount * destinations.length;
-		const estimateFee = await coinObject.estimateFee(wallet.wallet_id, destinations, false);
+		const estimateFee = await coinObject.estimateFee(wallet.wallet_id, destinations, false).catch(e => console.log(e));
 		if(!estimateFee) {
 			ctx.appResponse.reply(`Unable to rain`);
 			return ctx.appResponse.sendMessage(ctx.from.id, `Unable to get estimated transaction fee`);
 		}
 		const estimate = parseInt(totalAmount) + parseInt(estimateFee);
-		let unlockBalance = 0;
-		if ('unlock' in wallet) {
-			unlockBalance = parseInt(wallet.unlock);
-		} else {
-			unlockBalance = parseInt(wallet.balance);
-		}
-		if('trading' in wallet) {
-			unlockBalance -= wallet.trading;
-		}
-		if (estimate > unlockBalance) {
+	       if (estimate > unlockBalance) {
 			ctx.appResponse.reply( `Unable to rain`);
 			return ctx.appResponse.sendMessage(ctx.from.id,`Insufficient fund to ${destinations.length} total required ${coinObject.format(estimate)}`);
 		}
@@ -168,12 +174,12 @@ class RainCommand extends Command {
 				Trx Hash: 
 				* ${txHash}
 				Current Balance : ${coinObject.format(balance)}`);
-			await Member.addNimbus(ctx.chat.id, '@' + sender.username, total);
+			await Member.addNimbus(ctx.chat.id, '@' + sender.username, total, coin);
 
 			for (const i in sentMemberIds) {
 				const smi = sentMemberIds[i];
 
-				await Member.addWet(ctx.chat.id, userNames[i], amount);
+				await Member.addWet(ctx.chat.id, userNames[i], amount, coin);
 
 				await ctx.appResponse.sendMessage(smi, `
 					<u>Transaction Details</u>

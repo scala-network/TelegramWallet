@@ -43,7 +43,7 @@ class HeightCommand extends Command {
 					output += coin + ' : ' + utils.formatNumber(wallet.height | 0) + ' \n';
 				}
 			} else {
-				output = 'No wallet avaliable';
+				output = `No wallet avaliable for coin ${coin}`;
 			}
 		}
 

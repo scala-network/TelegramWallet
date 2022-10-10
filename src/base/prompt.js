@@ -46,9 +46,10 @@ class Prompt {
 	}
 
 	async exec (ctx) {
+		if(!ctx) return;
 		if (this.needStart) {
 			const user = await this.loadModel('User').findById(ctx.appRequest.from.id);
-			if (!user) return ctx.sendMessage('Seems you are not connected run /start to get connected');
+			if (!user) return ctx.reply('Seems you are not connected run /start to get connected');
 		}
 		if (!this.auth(ctx)) {
 			const toId = (!ctx.appRequest.is.group) ? ctx.appRequest.from.id : ctx.chat.id;
