@@ -31,7 +31,7 @@ class RainCommand extends Command {
 		}
 		if (RainCommand.sequenceInterval[ctx.chat.id] !== false)  {
 			if(RainCommand.sequenceInterval[ctx.chat.id] > moment().format('x')) {
-				await ctx.appResponse.sendMessage(ctx.from.id,'Rain cool down wait for ' + moment(RainCommand.sequenceInterval[ctx.chat.id]).fromNow());
+				await ctx.appResponse.sendMessage(ctx.from.id,'Rain cool down wait for ' + moment(RainCommand.sequenceInterval[ctx.chat.id],"x").fromNow());
 				return;
 			}
 			RainCommand.sequenceInterval[ctx.chat.id] = false;
@@ -161,6 +161,7 @@ class RainCommand extends Command {
 			return ctx.appResponse.sendMessage(ctx.from.id, 'RPC Error: ' + trx.error);
 		}
 		const seconds = Math.floor(Math.random() * (120 - 60 + 1) + 60);
+		RainCommand.sequenceInterval[ctx.chat.id] = moment().add(seconds,"second").format('x');
 
 		if (lock) {
 			const trxFee = trx.fee_list.reduce((a, b) => a + b, 0);
@@ -206,7 +207,6 @@ class RainCommand extends Command {
 					* ${txHash}`);
 			}
 
-			RainCommand.sequenceInterval[ctx.chat.id] = moment().add(seconds,"second").format('x');
 			
 		} else {
 			await ctx.appResponse.sendMessage(ctx.from.id,'Airdrop confirmation require to ' + userNames.length + " active members total. To skip confirmation set rain_submit disable. Stats not recorded if enabled");
@@ -230,7 +230,6 @@ class RainCommand extends Command {
 				Current Balance : ${coinObject.format(wallet.balance)}
 				Unlock Balance : ${coinObject.format(unlockBalance)}
 				Choose to confirm or cancel transaction`, this.Helper.metaButton());
-			RainCommand.sequenceInterval[ctx.chat.id] = moment().add(seconds,"second").format('x');
 
 			setTimeout(async () => {
 				try{
