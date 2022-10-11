@@ -4,6 +4,7 @@
 * @module Commands/rain
 */
 const Command = require('../base/command');
+const moment = require('moment');
 
 class RainCommand extends Command {
 	static sequenceInterval = {};
@@ -91,7 +92,6 @@ class RainCommand extends Command {
 		if(unlockBalance <= 0) {
 			return ctx.appResponse.sendMessage(ctx.from.id,`No fund to process transaction`);
 		}
-		console.log(unlockBalance);
 
 		const setting = await Setting.findByFieldAndUserId(['rain', 'wet', 'rain_submit'], ctx.from.id, coin);
 		let rainMax = Setting.validateValue('wet', setting.wet, coin);
