@@ -95,10 +95,11 @@ class RainCommand extends Command {
 
 		const setting = await Setting.findByFieldAndUserId(['rain', 'wet', 'rain_submit'], ctx.from.id, coin);
 		let rainMax = Setting.validateValue('wet', setting.wet, coin);
+		console.log(rainMax);
 		const amount = Setting.validateValue('rain', setting.rain, coin);
 		const rainSubmit = await Setting.validateValue('rain_submit', setting.rain_submit, coin);
 
-		let members = await Member.findByLast10(ctx.chat.id, parseInt(rainMax));
+		let members = await Member.findByLast10(ctx.chat.id);
 
 		if (members.length <= 0) {
 			return ctx.appResponse.reply('No members avaliable');
@@ -108,7 +109,7 @@ class RainCommand extends Command {
 		const userNames = [];
 
 		const sentMemberIds = [];
-
+		let xx = 0;
 		for (let i = 0; i < members.length; i++) {
 
 			const userId = members[i];
@@ -129,7 +130,8 @@ class RainCommand extends Command {
 				address: wallet.address,
 				amount
 			});
-			if(destinations.length >= rainMax) break;
+			xx++;
+			if(xx >= rainMax) break;
 		}
 
 		if (destinations.length <= 0) {
