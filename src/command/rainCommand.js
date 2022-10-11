@@ -130,7 +130,6 @@ class RainCommand extends Command {
 				address: wallet.address,
 				amount
 			});
-			xx++;
 			if(xx >= rainMax) break;
 		}
 

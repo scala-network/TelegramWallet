@@ -56,7 +56,7 @@ class Prompt {
 		}
 		if (!this.auth(ctx)) {
 			let command;
-			let loc =  (ctx.appRequest.is.group) ? "in group" : "";
+			let loc =  (!ctx.appRequest.is.group) ? "here must be in group" : "in group" ;
 			if (ctx.appRequest.is.action) { 
 				command = ctx.appRequest.action; 
 			} else if (ctx.appRequest.is.command) { 
