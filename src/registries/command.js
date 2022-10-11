@@ -14,7 +14,7 @@ class CommandManager extends Registeries {
 	setBotRegistry (reg, bot) {
 		const exec = async ctx => {
 			if (!ctx.from.username || !ctx.from.username.trim()) {
-				ctx.reply('Unable to process request for users without username');
+				ctx.reply('Unable to process request for users without username').catch(e => {});
 				global.log('warn', logSystem, 'No username defined for ID : ' + ctx.from.id);
 				return;
 			}
