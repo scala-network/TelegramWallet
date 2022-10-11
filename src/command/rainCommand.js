@@ -59,7 +59,7 @@ class RainCommand extends Command {
 		const coin = ctx.appRequest.args[0].toLowerCase();
 
  		if (!~global.config.coins.indexOf(coin)) {
- 			return ctx.appResponse.reply(`Invalid coin. Avaliable coins are ${global.config.coins.join(',')}`);
+ 			return ctx.appResponse.sendMessage(ctx.from.id, `Invalid coin. Avaliable coins are ${global.config.coins.join(', ')}.\n${this.fullDescription}`);
  		}
 
 		let wallet = await Wallet.findByUserId(sender.user_id, coin);
@@ -109,7 +109,7 @@ class RainCommand extends Command {
 		const userNames = [];
 
 		const sentMemberIds = [];
-		let xx = 0;
+
 		for (let i = 0; i < members.length; i++) {
 
 			const userId = members[i];
