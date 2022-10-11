@@ -24,7 +24,7 @@ class TransferCommand extends Command {
 	}
 
 	auth (ctx) {
-		return true;
+		return !ctx.appRequest.is.group;
 	}
 
 	async run (ctx) {
@@ -54,7 +54,7 @@ class TransferCommand extends Command {
 			coin = 'xla';
 		}
 		if (!~global.config.coins.indexOf(coin)) {
-			return ctx.appResponse.reply(`Invalid coin. Avaliable coins are ${global.config.coins.join(',')}`);
+			return ctx.appResponse.reply(`Invalid coin. Avaliable coins are ${global.config.coins.join(',')}\n${this.fullDescription}`);
 		}
 		const coinObject = this.Coins.get(coin);
 		let wallet = await Wallet.findByUserId(ctx.from.id, coin);
@@ -93,7 +93,6 @@ class TransferCommand extends Command {
 			return ctx.appResponse.reply(`Unable to get estimated transaction fee`);
 		}
 		if(isNaN(estimate) && 'error' in estimate) {
-			ctx.appResponse.reply(`Unable to rain`);
 			return ctx.appResponse.reply(`RPC Error : ${estimate.error}`);
 		}
 
@@ -224,7 +223,7 @@ Trx Hashes (${trx.tx_hash_list.length}):
 					msg += `\n* Username ${value} is not linked to ${coin}`;
 					break;
 					case 'wallet':
-					await ctx.appResponse.sendMessage(value, `Somebody tried to tip you but no ${coin} wallet found. Run /address to create one`);
+					await ctx.appResponse.sendMessage(value, `Somebody tried to tip you but no ${coin} wallet found. Run /address to create one`).catch(e=>{});
 					break;
 					// case 'fails':
 					// msg += `\n* Trying to send to  ${value.username} fails. Error : ${value.error}`;

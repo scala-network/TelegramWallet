@@ -14,6 +14,10 @@ class HeightCommand extends Command {
 		return 'Returns wallet and daemon height';
 	}
 
+	auth (ctx) {
+		return !ctx.appRequest.is.group;
+	}
+
 	get name () {
 		return 'height';
 	}

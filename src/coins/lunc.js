@@ -202,7 +202,10 @@ class Lunc {
 		if(!wallet) {
 			return null;
 		}
-		const txFee = await this.#_estimateFee(destinations, wallet);
+		const txFee = await this.#_estimateFee(destinations, wallet).catch(e => {
+			global.log('error', "RPC Estimate Fee : %s", [e.message]);
+		});
+		if(!txFee) return null;
 		if('error' in txFee) return txFee;
 
 		if(retAmtObject) return txFee;
