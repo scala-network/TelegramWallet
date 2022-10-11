@@ -30,11 +30,11 @@ class RainCommand extends Command {
 			RainCommand.sequenceInterval[ctx.chat.id] = false;
 		}
 		if (RainCommand.sequenceInterval[ctx.chat.id] !== false)  {
-			if(RainCommand.sequenceInterval[ctx.chat.id] < moment().format('x')) {
+			if(RainCommand.sequenceInterval[ctx.chat.id] > moment().format('x')) {
 				await ctx.appResponse.sendMessage(ctx.from.id,'Rain cool down wait for ' + moment(RainCommand.sequenceInterval[ctx.chat.id]).fromNow());
 				return;
 			}
-			RainCommand.sequenceInterval = false;
+			RainCommand.sequenceInterval[ctx.chat.id] = false;
 		}
 		const Wallet = this.loadModel('Wallet');
 		const User = this.loadModel('User');
