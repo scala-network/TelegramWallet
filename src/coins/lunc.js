@@ -175,11 +175,12 @@ class Lunc {
 
 		const {send, txAmount} = this.#_destinationsFilter(wallet, destinations);
 		const {taxRate,taxCap} = await this.#_taxes();
-		
 		const taxAmount = Math.min(Math.ceil(txAmount * parseFloat(taxRate)), parseFloat(taxCap));
 		
 		const taxAmountCoins = new Coins({uluna:taxAmount});
-		const walletInfo = await wallet.accountNumberAndSequence();
+		const walletInfo = await wallet.accountNumberAndSequence().catch(e => {
+			global.log('error', "Unable to get wallet info sequence");
+		});
 		if(!walletInfo)  return {error:"Unable to get wallet info sequence"};
 
 		const signerData = [{ sequenceNumber: walletInfo.sequence }];
@@ -189,7 +190,7 @@ class Lunc {
 
 		const txFee = await this.#_lcd.tx.estimateFee(signerData, { msgs: send, gasPrices: gasPricesCoins, gasAdjustment: 3, feeDenoms: ['uluna'] })
 		.catch(e => {
-			console.log("Error estimate fee", e);
+			global.log("error","Error estimate fee %s", [e.message]);
 		});
 		if(!txFee) return {error:"Unable to get tx fee"};
 
