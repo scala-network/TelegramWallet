@@ -108,6 +108,7 @@ class RainCommand extends Command {
 		const userNames = [];
 
 		const sentMemberIds = [];
+		console.log(rainMax);
 
 		for (let i = 0; i < members.length; i++) {
 

@@ -32,7 +32,11 @@ class CommandManager extends Registeries {
 				ctx.telegram.sendMessage(ctx.message.chat.id, 'Please create a wallet https://t.me/' + global.config.bot.username);
 				return;
 			}
-			reg.exec(ctx);
+			reg.exec(ctx).then(()=>{
+//				console.log(ctx);
+				ctx.telegram.deleteMessage(ctx.message.chat.id, ctx.message.message_id).catch(e=>{}); //Delete any message in any chat
+			});
+
 		};
 		bot.command(reg.name, exec);
 		bot.command(reg.name + '@' + global.config.bot.username, exec);
