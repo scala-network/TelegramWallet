@@ -171,7 +171,7 @@ class RainCommand extends Command {
 			const balance = parseInt(wallet.balance) - parseInt(trxAmount) - parseInt(trxFee);
 			const total = trxAmount + parseInt(trxFee);
 			const totalXla = coinObject.format(total);
-			await ctx.appResponse.reply('Airdrops to last ' + userNames.length + ' active members total of ' + totalXla + ' ' + coin.toUpperCase() );
+			await ctx.appResponse.reply('Airdrops to last ' + userNames.length + ' active members total of ' + totalXla);
 			await ctx.appResponse.sendMessage(ctx.from.id, `
 				<u>Transaction Details</u>
 
