@@ -6,7 +6,7 @@
 const Command = require('../base/command');
 
 class RainCommand extends Command {
-	static sequenceInterval = false;
+	static sequenceInterval = {};
 	get name () {
 		return 'rain';
 	}
@@ -25,9 +25,12 @@ class RainCommand extends Command {
 
 	async run (ctx) {
 		if (ctx.test) return;
-		if (RainCommand.sequenceInterval !== false)  {
-			if(RainCommand.sequenceInterval < moment().format('x')) {
-				await ctx.appResponse.sendMessage(ctx.from.id,'Rain cool down wait for ' + moment(RainCommand.sequenceInterval).fromNow());
+		if(!(ctx.chat.id in RainCommand.sequenceInterval)){
+			RainCommand.sequenceInterval[ctx.chat.id] = false;
+		}
+		if (RainCommand.sequenceInterval[ctx.chat.id] !== false)  {
+			if(RainCommand.sequenceInterval[ctx.chat.id] < moment().format('x')) {
+				await ctx.appResponse.sendMessage(ctx.from.id,'Rain cool down wait for ' + moment(RainCommand.sequenceInterval[ctx.chat.id]).fromNow());
 				return;
 			}
 			RainCommand.sequenceInterval = false;
@@ -203,7 +206,7 @@ class RainCommand extends Command {
 					* ${txHash}`);
 			}
 
-			RainCommand.sequenceInterval = moment().add(seconds,"second").format('x');
+			RainCommand.sequenceInterval[ctx.chat.id] = moment().add(seconds,"second").format('x');
 			
 		} else {
 			await ctx.appResponse.sendMessage(ctx.from.id,'Airdrop confirmation require to ' + userNames.length + " active members total. To skip confirmation set rain_submit disable. Stats not recorded if enabled");
@@ -227,7 +230,7 @@ class RainCommand extends Command {
 				Current Balance : ${coinObject.format(wallet.balance)}
 				Unlock Balance : ${coinObject.format(unlockBalance)}
 				Choose to confirm or cancel transaction`, this.Helper.metaButton());
-			RainCommand.sequenceInterval = moment().add(seconds,"second").format('x');
+			RainCommand.sequenceInterval[ctx.chat.id] = moment().add(seconds,"second").format('x');
 
 			setTimeout(async () => {
 				try{
