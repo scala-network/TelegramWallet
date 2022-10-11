@@ -29,7 +29,7 @@ class RainCommand extends Command {
 		if(!(ctx.chat.id in RainCommand.sequenceInterval)){
 			RainCommand.sequenceInterval[ctx.chat.id] = false;
 		}
-		if (RainCommand.sequenceInterval[ctx.chat.id] !== false)  {
+		if (false && RainCommand.sequenceInterval[ctx.chat.id] !== false)  {
 			if(RainCommand.sequenceInterval[ctx.chat.id] > moment().format('x')) {
 				await ctx.appResponse.sendMessage(ctx.from.id,'Rain cool down wait for ' + moment(RainCommand.sequenceInterval[ctx.chat.id],"x").fromNow());
 				return;
@@ -95,7 +95,6 @@ class RainCommand extends Command {
 
 		const setting = await Setting.findByFieldAndUserId(['rain', 'wet', 'rain_submit'], ctx.from.id, coin);
 		let rainMax = Setting.validateValue('wet', setting.wet, coin);
-		console.log(rainMax);
 		const amount = Setting.validateValue('rain', setting.rain, coin);
 		const rainSubmit = await Setting.validateValue('rain_submit', setting.rain_submit, coin);
 
@@ -130,7 +129,7 @@ class RainCommand extends Command {
 				address: wallet.address,
 				amount
 			});
-			if(xx >= rainMax) break;
+			if(userNames.length >= rainMax) break;
 		}
 
 		if (destinations.length <= 0) {
