@@ -10,7 +10,7 @@ class Member extends Query {
 			.zcard(ckey)
 			.exec();
 		// We set to 11 so that if any of the top10 is sending the money we will get the 11th member
-		if (result[1][1] > 22) {
+		if (result[1][1] > 105) {
 			global.redisClient.zpopmin(ckey);
 		}
 	}
