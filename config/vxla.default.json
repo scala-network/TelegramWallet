@@ -1,0 +1,18 @@
+{
+	"rpc" : {
+		"server" : {
+			"host":"192.168.0.156",
+			"port":9000
+		}
+	},
+	"settings" : {
+		"tip": 1000,
+		"rain_min": 10,
+		"rain_max": 2000000,
+		"wet":10,
+		"wet_max":20,
+		"rain": 100,
+		"rain_max": 2000000,
+		"rain_min": 10
+	}
+}

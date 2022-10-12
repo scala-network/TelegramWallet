@@ -1,7 +1,7 @@
 const request = require('../engines/request');
 class Xla {
 	get server () {
-		return global.coins.xla.rpc.server;
+		return global.coins[this.symbol.toLowerCase()].rpc.server;
 	}
 
 	get fullname () {
