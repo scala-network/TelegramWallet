@@ -166,7 +166,7 @@ class RainCommand extends Command {
 		if (lock) {
 			const trxFee = trx.fee_list.reduce((a, b) => a + b, 0);
 			const trxAmount = trx.amount_list.reduce((a, b) => a + b, 0);
-			const txHash = trx.tx_hash_list..map(h => {
+			const txHash = trx.tx_hash_list.map(h => {
 				return coinObject.explorerLink(h);
 			}).join('\n* ');
 			const balance = parseInt(wallet.balance) - parseInt(trxAmount) - parseInt(trxFee);
