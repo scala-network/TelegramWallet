@@ -47,6 +47,9 @@ class PriceCommand extends Command {
  		if (!~global.config.coins.indexOf(coin)) {
  			return ctx.appResponse.reply(`Invalid coin. Avaliable coins are ${global.config.coins.join(',')}`);
  		}
+ 		if(coin === 'vxla') {
+ 			return ctx.appResponse.reply(`No price avaliable for Scala Voting Chain`);
+ 		}
 
 		if (ctx.appRequest.args.length < 2) {
 			const priceLists = await Market.getPrice(coin);
