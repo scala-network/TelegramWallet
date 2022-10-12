@@ -182,7 +182,9 @@ class TransferCommand extends Command {
 			}, global.config.rpc.metaTTL * 1000);
 			} else {
 				const trxAmount = trx.amount_list.reduce((a, b) => a + b, 0);
-				const txHash = trx.tx_hash_list.join('\n * ');
+				const txHash = trx.tx_hash_list..map(h => {
+					return coinObject.explorerLink(h);
+				}).join('\n* ');
 				const trxFee = trx.fee_list.reduce((a, b) => a + b, 0);
 				await ctx.appResponse.sendMessage(ctx.from.id, `
 					<u>Transaction Details</u>
