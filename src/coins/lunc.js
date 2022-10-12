@@ -51,7 +51,9 @@ class Lunc {
 	}
 
 	format (coin) {
-		return (parseInt(coin) / this.atomicUnits).toFixed(this.fractionDigits).replace(/\B(?=(\d{3})+(?!\d))/g, ',') + ' ' + this.symbol;
+		const coinvalue = ""+(parseInt(coin) / this.atomicUnits).toFixed(this.fractionDigits);
+		const numerous = coinvalue.split(".");
+		return `${numerous[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',')}.${numerous[1]} ${this.symbol}`;
 	}
 
 	explorerLink (hash) {
