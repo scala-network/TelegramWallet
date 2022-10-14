@@ -8,14 +8,14 @@ class Market extends Model {
 				title:"LOCALHOST",
 				auth:'https://localhost.glancemy.com:1999/auth'
 			},
-			{
-				title:'SCALA: ELECTION(TESTNET)',
-				auth:'https://test-elections.scalaproject.io/auth'
-			},
-			{
-				title:'SCALA: ELECTION',
-				auth:'https://elections.scalaproject.io/auth'
-			}
+			// {
+			// 	title:'SCALA: ELECTION(TESTNET)',
+			// 	auth:'https://test-elections.scalaproject.io/auth'
+			// },
+			// {
+			// 	title:'SCALA: ELECTION',
+			// 	auth:'https://elections.scalaproject.io/auth'
+			// }
 		];
 	}
 

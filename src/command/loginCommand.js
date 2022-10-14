@@ -32,8 +32,8 @@ class LoginCommand extends Command {
 			}));
 		}
 		const keyboard = Markup.inlineKeyboard(buttons);
-
-		ctx.reply("Choose a system to be logged in", keyboard);
+		console.log("Hello world");
+		return await ctx.reply("Choose a system to be logged in", keyboard);
 	}
 }
 module.exports = LoginCommand;

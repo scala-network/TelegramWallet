@@ -28,11 +28,13 @@ class StartCommand extends Command {
 		const Network = this.loadModel('Network');
 		const Wallet = this.loadModel('Wallet');
 		if (!username) {
-			return ctx.send('To create an account user must have username');
+			return ctx.reply('To create an account user must have username');
 		}
 
 		const user = await User.add(id, username);
-
+		if (user) {
+			return ctx.reply('To create an account user must have username');
+		}
 		let wallet;
 		const coin = 'xla';
 		const coinObject = this.Coins.get(coin);

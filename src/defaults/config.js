@@ -9,7 +9,7 @@ module.exports = {
 		interval: 1, // in seconds
 		metaTTL: 60
 	},
-	coins: ['xla'],
+	coins: [],
 	swm: true,
 	log: {
 		files: {

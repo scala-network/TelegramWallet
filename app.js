@@ -19,7 +19,7 @@ if(!cluster.isWorker) {
             }, 500);
         });
     }
-    spawn(0);// For worker
+    // spawn(0);// For market worker
     spawn(1);// For application
     return;
 }

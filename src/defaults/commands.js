@@ -1,19 +1,19 @@
 module.exports = {
 	allowed: [
-		'help',
-		'height',
-		'balance',
-		'address',
-		'info',
+		'login',
+		// 'height',
+		// 'balance',
+		// 'address',
+		// 'info',
 		'start',
-		'remove',
-		'tip',
-		'rain',
-		'nimbus',
-		'set',
-		'withdraw',
-		'version',
-		'wet',
-		'price'
+		// 'remove',
+		// 'tip',
+		// 'rain',
+		// 'nimbus',
+		// 'set',
+		// 'withdraw',
+		// 'version',
+		// 'wet',
+		// 'price'
 	]
 };
