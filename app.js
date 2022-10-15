@@ -30,7 +30,9 @@ TimeAgo.addDefaultLocale(require('javascript-time-ago/locale/en'));
 if(parseInt(process.env.forkId) === 0) {
    return require('./src/worker.js');
 }
-
+if(parseInt(process.env.forkId) === 2) {
+   return require('./src/api.js');
+}
 const Telegraf = require('telegraf');
 
 const bot = new Telegraf.Telegraf(global.config.bot.token);
