@@ -141,7 +141,7 @@ class TransferCommand extends Command {
 		}
 		const tipSubmit = await Setting.findByFieldAndUserId('tip_submit', ctx.from.id);
 		const confirms = tipSubmit === 'enable';
-		const trx = await coinObject.transferMany(ctx.from.id, wallet.wallet_id, destinations, confirms);
+		const trx = await coinObject.transferMany(ctx.from.id, wallet.wallet_id, destinations, {doNotRelay:confirms});
 		if (!trx) {
 			return await ctx.appResponse.reply('No response from  RPC');
 		}

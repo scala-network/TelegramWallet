@@ -320,8 +320,8 @@ class Lunc {
 		return { account_index: accountIndex, address };
 	}
 
-	async transfer (id, idx, address, amount, doNotRelay) {
-		return await this.transferMany(id, idx, [{ address, amount }], doNotRelay);
+	async transfer (id, idx, address, amount, options = {}) {
+		return await this.transferMany(id, idx, [{ address, amount }], options);
 	}
 
 	async relay (id, meta) {
@@ -336,19 +336,22 @@ class Lunc {
 			const wallet = await this.#_getWallet(idx);
 
 			if (!wallet) return { error: 'Missing wallet' };
+			let options = {};
+			if ('options' in metaParse) {
+				options = metaParse.options;
+			}
+			options.doNotRelay = false;
 
+			if(!('sweep_all' in metaParse)) return await this.#_transfers(id,idx, metaParse.destinations, options, wallet);
 
-			if(!('sweep_all' in metaParse)) return await this.#_transfers(id,idx, metaParse.destinations, false, wallet);
-
-			return await this.sweep(id,idx,metaParse.address, false);
+			return await this.sweep(id,idx,metaParse.address, options);
 
 		}catch	{
 
 		}
 	}
 
-
-	async #_transfers(id, idx, destinations, doNotRelay, wallet = null) {
+	async #_transfers(id, idx, destinations, options = {}, wallet = null) {
 
 		if (typeof idx === 'undefined' || isNaN(idx) || idx === false) {
 			return { error: 'Missing wallet index' };
@@ -360,22 +363,27 @@ class Lunc {
 				return { error: 'Missing wallet' };
 			}
 		}
-
+		if(!('doNotRelay' in options)) {
+			options.doNotRelay = false;
+		}
 		const {send} = this.#_destinationsFilter(wallet, destinations);
-		const txFee = await this.estimateFee(idx, destinations, !doNotRelay);	
+		const txFee = await this.estimateFee(idx, destinations, !options.doNotRelay);	
 		if(isNaN(txFee) && 'error' in txFee){
 			return txFee;
 		}
-		if (doNotRelay) {
-
+		if (options.doNotRelay) {
 			return {
 				fee_list:[txFee],
 				amount_list:destinations.map(d => d.amount),
-				tx_metadata_list:[Buffer.from(JSON.stringify({destinations,idx})).toString('base64')],
+				tx_metadata_list:[Buffer.from(JSON.stringify({destinations,idx,options})).toString('base64')],
 				tx_hash_list:['']
 			};
 		}
-		const tx = await wallet.createAndSignTx({ msgs: send, fee: txFee }).catch(e=>{
+		let memo = "";
+		if('memo' in options) {
+			memo = options.memo;
+		}
+		const tx = await wallet.createAndSignTx({ msgs: send,memo, fee: txFee }).catch(e=>{
 			// console.log(e)
 		});
 		if(!tx) {
@@ -402,11 +410,11 @@ class Lunc {
 			});
 		});
 	}
-	async transferMany (id, idx, destinations, doNotRelay, split = true) {
-		return await this.#_transfers(id, idx, destinations, doNotRelay);
+	async transferMany (id, idx, destinations, options = {}) {
+		return await this.#_transfers(id, idx, destinations, options);
 	}
 
-	async sweep (id, idx, address, doNotRelay) {
+	async sweep (id, idx, address, options = {}) {
 		if (typeof idx === 'undefined' || isNaN(idx) || idx === false) {
 			return { error: 'Missing wallet index' };
 		}
@@ -414,7 +422,9 @@ class Lunc {
 		if (!wallet) {
 			return { error: 'Missing wallet' };
 		}
-		
+		if(!('doNotRelay' in options)) {
+			options.doNotRelay = false;
+		}
 		// Obtain the signing wallet data
 		const walletInfo = await wallet.accountNumberAndSequence().catch(e => {
 			global.log('error',"LUNC Sweep > accountNumberAndSequence %s",[e.message]);
@@ -458,16 +468,20 @@ class Lunc {
 		txFee.amount = txFee.amount.add(taxAmountCoins);
 		const txfff = this.#_txFeeToAmt(txFee);
 		const destinations = [new MsgSend(wallet.key.accAddress, address,{ uluna: Math.floor(txAmount*0.988).toString() })];
-		if (doNotRelay) {
+		if (options.doNotRelay) {
 			return {
 				fee_list:[txfff],
 				amount_list:destinations.map(d => d.amount),
-				tx_metadata_list:[Buffer.from(JSON.stringify({idx,sweep_all:true,address})).toString('base64')],
-				tx_hash_list:['']
+				tx_metadata_list:[Buffer.from(JSON.stringify({idx,sweep_all:true,address,options})).toString('base64')],
+				tx_hash_list:[''],
 			};
 		}
+		let memo = "";
+		if('memo' in options) {
+			memo = options.memo;
+		}
 
-		const tx = await wallet.createAndSignTx({ msgs: destinations, fee: txFee }).catch(e=>{
+		const tx = await wallet.createAndSignTx({ msgs: destinations, fee: txFee, memo }).catch(e=>{
 			global.log('error',"LUNC Sweep > createAndSignTx %s",[e.message]);
 		});
 		if(!tx) {

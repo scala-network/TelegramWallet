@@ -79,10 +79,23 @@
  		if (ctx.appRequest.args.length < 3) {
  			return ctx.appResponse.reply(`Missing sent amount\n${this.description}`);
  		}
+        
  		const inputAmount = ctx.appRequest.args[2];
  		if(isNaN(inputAmount) && inputAmount.trim().toLowerCase() !== 'all') {
  			return ctx.appResponse.reply(`Invalid amount`);
  		}
+
+        const args = {}
+        if (ctx.appRequest.args.length >= 4) {
+            for(let i = 3;i<ctx.appRequest.args.length;i++){
+                const split = ctx.appRequest.args.[i].split('=');
+                const key = split[0].trim();
+                const value = split[1].trim();
+                args[key] = value;
+            }
+        }
+        args.doNotRelay = true;
+
  		let unlock = wallet.balance;
  		if('unlock' in wallet) {
  			unlock = wallet.unlock;
@@ -104,7 +117,7 @@
  				return ctx.appResponse.reply('Insufficient fund');
  			}
 
- 			trx = await coinObject.transferMany(ctx.from.id, wallet.wallet_id, [{ address, amount }], true);
+ 			trx = await coinObject.transferMany(ctx.from.id, wallet.wallet_id, [{ address, amount }], args);
  		}
  		if ('error' in trx) {
  			return ctx.appResponse.reply(trx.error);

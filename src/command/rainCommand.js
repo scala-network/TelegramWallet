@@ -26,16 +26,16 @@ class RainCommand extends Command {
 
 	async run (ctx) {
 		if (ctx.test) return;
-		if(!(ctx.chat.id in RainCommand.sequenceInterval)){
-			RainCommand.sequenceInterval[ctx.chat.id] = false;
-		}
-		if (false && RainCommand.sequenceInterval[ctx.chat.id] !== false)  {
-			if(RainCommand.sequenceInterval[ctx.chat.id] > moment().format('x')) {
-				await ctx.appResponse.sendMessage(ctx.from.id,'Rain cool down wait for ' + moment(RainCommand.sequenceInterval[ctx.chat.id],"x").fromNow());
-				return;
-			}
-			RainCommand.sequenceInterval[ctx.chat.id] = false;
-		}
+		// if(!(ctx.chat.id in RainCommand.sequenceInterval)){
+		// 	RainCommand.sequenceInterval[ctx.chat.id] = false;
+		// }
+		// if (false && RainCommand.sequenceInterval[ctx.chat.id] !== false)  {
+		// 	if(RainCommand.sequenceInterval[ctx.chat.id] > moment().format('x')) {
+		// 		await ctx.appResponse.sendMessage(ctx.from.id,'Rain cool down wait for ' + moment(RainCommand.sequenceInterval[ctx.chat.id],"x").fromNow());
+		// 		return;
+		// 	}
+		// 	RainCommand.sequenceInterval[ctx.chat.id] = false;
+		// }
 		const Wallet = this.loadModel('Wallet');
 		const User = this.loadModel('User');
 		const Member = this.loadModel('Member');
@@ -153,7 +153,7 @@ class RainCommand extends Command {
 
 		const lock = rainSubmit === 'disable';
 
-		const trx = await coinObject.transferMany(ctx.from.id, wallet.wallet_id, destinations, !lock);
+		const trx = await coinObject.transferMany(ctx.from.id, wallet.wallet_id, destinations, {doNotRelay:!lock});
 		if (!trx) {
 			return ctx.appResponse.sendMessage(ctx.from.id, 'Unable to connect with rpc. Please try again later');
 		}

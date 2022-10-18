@@ -154,11 +154,16 @@ class Xla {
 		return response.result;
 	}
 
-	async transfer (id, idx, address, amount, doNotRelay) {
+	async transfer (id, idx, address, amount, options = {}) {
 		if (!idx) {
 			return { error: 'Missing wallet index' };
 		}
-		doNotRelay = doNotRelay || false;
+		let doNotRelay = false;
+		if('doNotRelay' in options){
+			doNotRelay = options.doNotRelay;
+		}
+
+		
 
 		const { host, port } = this.server;
 		const response = await request.fetch(host, port, id, 'transfer', {
@@ -202,16 +207,19 @@ class Xla {
 		return response.result;
 	}
 
-	async transferMany (id, idx, destinations, doNotRelay, split = true) {
-		return (split) ? this.transferSplit(id, idx, destinations, doNotRelay) : this.transfers(id, idx, destinations, doNotRelay);
+	async transferMany (id, idx, destinations, options = {}) {
+		const {doNotRelay, split} = options;
+		return (!!~split) ? this.transferSplit(id, idx, destinations, !!~doNotRelay) : this.transfers(id, idx, destinations, !!~doNotRelay);
 	}
 
-	async transfers (id, idx, destinations, doNotRelay) {
+	async transfers (id, idx, destinations, options = {}) {
 		if (!idx) {
 			return { error: 'Missing wallet index' };
 		}
-		doNotRelay = doNotRelay || false;
-
+		let doNotRelay = false;
+		if('doNotRelay' in options){
+			doNotRelay = options.doNotRelay;
+		}
 		const { host, port } = this.server;
 		const response = await request.fetch(host, port, id, 'transfer', {
 			destinations,
@@ -240,12 +248,14 @@ class Xla {
 		return trx;
 	}
 
-	async transferSplit (id, idx, destinations, doNotRelay) {
+	async transferSplit (id, idx, destinations, options = {}) {
 		if (!idx) {
 			return { error: 'Missing wallet index' };
 		}
-		doNotRelay = doNotRelay || false;
-
+		let doNotRelay = false;
+		if('doNotRelay' in options){
+			doNotRelay = options.doNotRelay;
+		}
 		const { host, port } = this.server;
 		const response = await request.fetch(host, port, id, 'transfer_split', {
 			destinations,
@@ -269,12 +279,14 @@ class Xla {
 		return response.result;
 	}
 
-	async sweep (id, idx, address, doNotRelay) {
+	async sweep (id, idx, address, options = {}) {
 		if (!idx) {
 			return { error: 'Missing wallet index' };
 		}
-		doNotRelay = doNotRelay || false;
-
+		let doNotRelay = false;
+		if('doNotRelay' in options){
+			doNotRelay = options.doNotRelay;
+		}
 		const { host, port } = this.server;
 		const response = await request.fetch(host, port, id, 'sweep_all', {
 			address,
