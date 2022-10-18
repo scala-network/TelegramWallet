@@ -16,10 +16,10 @@ class MetaCancelAction extends Action {
 		if (ctx.test) return;
 		const Meta = this.loadModel('Meta');
 		let x;
-		try{
+		try {
 			x = await ctx.editMessageText('Processing Action');
-			if(!x) return;
-		}catch{
+			if (!x) return;
+		} catch {
 			return;
 		}
 		const metas = await Meta.getByUserId(ctx.appRequest.from.id);
@@ -27,11 +27,11 @@ class MetaCancelAction extends Action {
 			await ctx.reply('Invalid or expired meta id');
 		} else {
 			Meta.deleteMeta(ctx.appRequest.from.id);
-			const response = `Transaction Cancel`;
-			await ctx.reply(response, {parse_mode: 'HTML'});			
+			const response = 'Transaction Cancel';
+			await ctx.reply(response, { parse_mode: 'HTML' });
 		}
 
-		await ctx.telegram.deleteMessage(ctx.from.id,x.message_id);
+		await ctx.telegram.deleteMessage(ctx.from.id, x.message_id);
 	}
 }
 module.exports = MetaCancelAction;

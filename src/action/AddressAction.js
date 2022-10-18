@@ -79,7 +79,7 @@ class AddressAction extends Action {
 
 		return await ctx.editMessageText(output, {
 			parse_mode: 'HTML'
-		}).catch(e=>{});
+		}).catch(e => {});
 	}
 }
 module.exports = AddressAction;

@@ -9,7 +9,7 @@ class Meta extends Query {
 		const ttl = global.config.rpc.metaTTL;
 		await global.redisClient
 			.multi()
-			.hmset(ukey, { uuid, meta, coin})
+			.hmset(ukey, { uuid, meta, coin })
 			.expire(ukey, ttl)
 			.exec();
 		return uuid;
@@ -17,7 +17,7 @@ class Meta extends Query {
 
 	async findById (userId, id) {
 		const metaObject = await this.getByUserId(userId);
-		if (!metaObject || Object.keys(metaObject).length <= 0 || metaObject.uuid !== id ) return null;
+		if (!metaObject || Object.keys(metaObject).length <= 0 || metaObject.uuid !== id) return null;
 		return metaObject;
 	}
 

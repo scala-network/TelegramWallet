@@ -99,7 +99,6 @@ class CoinMarketCap {
 		const symbol = this.coin;
 		const tickers = [];
 		for (const ticker of this.tickers) {
-			
 			const data = await this.getQuotes(ticker)
 				.catch(e => global.log('error', logSystem, 'Error RPC : ' + e.message));
 			if (data) {
@@ -162,28 +161,28 @@ const clearOldStats = async coin => {
 		global.log('info', logSystem, 'No stats to be deleted');
 	}
 };
-let daily = {};
+const daily = {};
 let connect = true;
 
 (async () => {
-	let tickers_length;
+	let tickersLength;
 	for (const coin of global.config.coins) {
-		if(coin in global.coins && 'market' in global.coins[coin] && 'tickers' in global.coins[coin].market){
-			tickers_length+= global.coins[coin].market.tickers.length;
+		if (coin in global.coins && 'market' in global.coins[coin] && 'tickers' in global.coins[coin].market) {
+			tickersLength += global.coins[coin].market.tickers.length;
 		}
-	 	daily[coin] = 0;
+		daily[coin] = 0;
 	}
-	tickers_length = Math.ceil(tickers_length * 96 / 333) * 60000;
+	tickersLength = Math.ceil(tickersLength * 96 / 333) * 60000;
 	while (true) {
 		/** Store data from CMC **/
 		for (const coin of global.config.coins) {
-			if(coin in global.coins && 'market' in global.coins[coin] && 'tickers' in global.coins[coin].market){
+			if (coin in global.coins && 'market' in global.coins[coin] && 'tickers' in global.coins[coin].market) {
 				if (!connect) {
 					await global.redisClient.connect().catch(() => {});
 					connect = true;
 				}
 				const cmc = new CoinMarketCap(coin, global.coins[coin].market);
-				cmc.fetchInterval = tickers_length;
+				cmc.fetchInterval = tickersLength;
 				await cmc.fetch();
 			}
 
@@ -198,7 +197,7 @@ let connect = true;
 				daily[coin]++;
 			}
 		}
-		
+
 		if (connect) {
 			await global.redisClient.save();
 			global.redisClient.disconnect();

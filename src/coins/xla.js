@@ -27,8 +27,8 @@ class Xla {
 	async estimateFee (idx, destinations, parse = false) {
 		let txAmount = 0;
 		destinations.forEach(d => {
-			txAmount+=d.amount;
-		})
+			txAmount += d.amount;
+		});
 		return txAmount * 0.02;
 	}
 
@@ -159,11 +159,9 @@ class Xla {
 			return { error: 'Missing wallet index' };
 		}
 		let doNotRelay = false;
-		if('doNotRelay' in options){
+		if ('doNotRelay' in options) {
 			doNotRelay = options.doNotRelay;
 		}
-
-		
 
 		const { host, port } = this.server;
 		const response = await request.fetch(host, port, id, 'transfer', {
@@ -208,8 +206,8 @@ class Xla {
 	}
 
 	async transferMany (id, idx, destinations, options = {}) {
-		const {doNotRelay, split} = options;
-		return (!!~split) ? this.transferSplit(id, idx, destinations, !!~doNotRelay) : this.transfers(id, idx, destinations, !!~doNotRelay);
+		const { doNotRelay, split } = options;
+		return (~split) ? this.transferSplit(id, idx, destinations, !!~doNotRelay) : this.transfers(id, idx, destinations, !!~doNotRelay);
 	}
 
 	async transfers (id, idx, destinations, options = {}) {
@@ -217,7 +215,7 @@ class Xla {
 			return { error: 'Missing wallet index' };
 		}
 		let doNotRelay = false;
-		if('doNotRelay' in options){
+		if ('doNotRelay' in options) {
 			doNotRelay = options.doNotRelay;
 		}
 		const { host, port } = this.server;
@@ -253,7 +251,7 @@ class Xla {
 			return { error: 'Missing wallet index' };
 		}
 		let doNotRelay = false;
-		if('doNotRelay' in options){
+		if ('doNotRelay' in options) {
 			doNotRelay = options.doNotRelay;
 		}
 		const { host, port } = this.server;
@@ -284,7 +282,7 @@ class Xla {
 			return { error: 'Missing wallet index' };
 		}
 		let doNotRelay = false;
-		if('doNotRelay' in options){
+		if ('doNotRelay' in options) {
 			doNotRelay = options.doNotRelay;
 		}
 		const { host, port } = this.server;

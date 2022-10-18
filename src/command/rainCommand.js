@@ -17,7 +17,7 @@ class RainCommand extends Command {
 	}
 
 	get fullDescription () {
-		return `Sends airdrop to random users. To send rain run /rain coin`;
+		return 'Sends airdrop to random users. To send rain run /rain coin';
 	}
 
 	auth (ctx) {
@@ -44,23 +44,23 @@ class RainCommand extends Command {
 
 		const sender = await User.findById(ctx.from.id);
 
-		if (!sender)  return;
+		if (!sender) return;
 
 		const currentMeta = await Meta.getByUserId(ctx.from.id);
 		if (currentMeta) {
-			await ctx.appResponse.sendMessage(ctx.from.id,'Confirmations still pending. Unable to create new request');
+			await ctx.appResponse.sendMessage(ctx.from.id, 'Confirmations still pending. Unable to create new request');
 			return;
 		}
 
 		if (ctx.appRequest.args.length < 1) {
-			return await ctx.appResponse.sendMessage(ctx.from.id,`Missing coin argument.\n${this.fullDescription}`);
+			return await ctx.appResponse.sendMessage(ctx.from.id, `Missing coin argument.\n${this.fullDescription}`);
 		}
 
 		const coin = ctx.appRequest.args[0].toLowerCase();
 
- 		if (!~global.config.coins.indexOf(coin)) {
- 			return ctx.appResponse.sendMessage(ctx.from.id, `Invalid coin. Avaliable coins are ${global.config.coins.join(', ')}.\n${this.fullDescription}`);
- 		}
+		if (!~global.config.coins.indexOf(coin)) {
+			return ctx.appResponse.sendMessage(ctx.from.id, `Invalid coin. Avaliable coins are ${global.config.coins.join(', ')}.\n${this.fullDescription}`);
+		}
 
 		let wallet = await Wallet.findByUserId(sender.user_id, coin);
 
@@ -70,7 +70,7 @@ class RainCommand extends Command {
 
 		const coinObject = this.Coins.get(coin);
 		wallet = await Wallet.syncBalance(ctx.from.id, wallet, coinObject).catch(e => {
-			global.log('error','RPC Error %s',[e.message]);
+			global.log('error', 'RPC Error %s', [e.message]);
 		});
 
 		if (wallet && 'error' in wallet) {
@@ -79,22 +79,22 @@ class RainCommand extends Command {
 		if (!wallet) {
 			return await ctx.appResponse.sendMessage(ctx.from.id, `No wallet avaliable for ${coin} run /address to create one`);
 		}
-		
+
 		let unlockBalance = 0;
 		if ('unlock' in wallet) {
 			unlockBalance = parseInt(wallet.unlock);
 		} else {
 			unlockBalance = parseInt(wallet.balance);
 		}
-		if('trading' in wallet) {
+		if ('trading' in wallet) {
 			unlockBalance -= wallet.trading;
 		}
-		if(unlockBalance <= 0) {
-			return ctx.appResponse.sendMessage(ctx.from.id,`No fund to process transaction`);
+		if (unlockBalance <= 0) {
+			return ctx.appResponse.sendMessage(ctx.from.id, 'No fund to process transaction');
 		}
 
 		const setting = await Setting.findByFieldAndUserId(['rain', 'wet', 'rain_submit'], ctx.from.id, coin);
-		let rainMax = Setting.validateValue('wet', setting.wet, coin);
+		const rainMax = Setting.validateValue('wet', setting.wet, coin);
 		const amount = Setting.validateValue('rain', setting.rain, coin);
 		const rainSubmit = await Setting.validateValue('rain_submit', setting.rain_submit, coin);
 
@@ -110,7 +110,6 @@ class RainCommand extends Command {
 		const sentMemberIds = [];
 
 		for (let i = 0; i < members.length; i++) {
-
 			const userId = members[i];
 			if (parseInt(userId) === parseInt(sender.user_id)) continue;
 
@@ -129,31 +128,31 @@ class RainCommand extends Command {
 				address: wallet.address,
 				amount
 			});
-			if(userNames.length >= rainMax) break;
+			if (userNames.length >= rainMax) break;
 		}
 
 		if (destinations.length <= 0) {
 			return await ctx.appResponse.reply(`No members with ${coin} account`);
 		}
 		const totalAmount = amount * destinations.length;
-		const estimateFee = await coinObject.estimateFee(wallet.wallet_id, destinations, false).catch(e=>{
-			global.log('error','RPC Error : Estimate,  %s',[e.message]);
+		const estimateFee = await coinObject.estimateFee(wallet.wallet_id, destinations, false).catch(e => {
+			global.log('error', 'RPC Error : Estimate,  %s', [e.message]);
 		});
-		if(!estimateFee) {
-			return ctx.appResponse.sendMessage(ctx.from.id, `Unable to get estimated transaction fee`);
+		if (!estimateFee) {
+			return ctx.appResponse.sendMessage(ctx.from.id, 'Unable to get estimated transaction fee');
 		}
-		if(isNaN(estimateFee) && 'error' in estimateFee) {
+		if (isNaN(estimateFee) && 'error' in estimateFee) {
 			return ctx.appResponse.sendMessage(ctx.from.id, `RPC Error : ${estimateFee.error}`);
 		}
 
 		const estimate = parseInt(totalAmount) + parseInt(estimateFee);
-	    if (estimate > unlockBalance) {
-			return ctx.appResponse.sendMessage(ctx.from.id,`Insufficient fund to ${destinations.length} total required ${coinObject.format(estimate)}`);
+		if (estimate > unlockBalance) {
+			return ctx.appResponse.sendMessage(ctx.from.id, `Insufficient fund to ${destinations.length} total required ${coinObject.format(estimate)}`);
 		}
 
 		const lock = rainSubmit === 'disable';
 
-		const trx = await coinObject.transferMany(ctx.from.id, wallet.wallet_id, destinations, {doNotRelay:!lock});
+		const trx = await coinObject.transferMany(ctx.from.id, wallet.wallet_id, destinations, { doNotRelay: !lock });
 		if (!trx) {
 			return ctx.appResponse.sendMessage(ctx.from.id, 'Unable to connect with rpc. Please try again later');
 		}
@@ -161,7 +160,7 @@ class RainCommand extends Command {
 			return ctx.appResponse.sendMessage(ctx.from.id, 'RPC Error: ' + trx.error);
 		}
 		const seconds = Math.floor(Math.random() * (120 - 60 + 1) + 60);
-		RainCommand.sequenceInterval[ctx.chat.id] = moment().add(seconds,"second").format('x');
+		RainCommand.sequenceInterval[ctx.chat.id] = moment().add(seconds, 'second').format('x');
 
 		if (lock) {
 			const trxFee = trx.fee_list.reduce((a, b) => a + b, 0);
@@ -208,10 +207,8 @@ class RainCommand extends Command {
 					Trx Hashes (${trx.amount_list.length}):
 					* ${txHash}`);
 			}
-
-			
 		} else {
-			await ctx.appResponse.sendMessage(ctx.from.id,'Airdrop confirmation require to ' + userNames.length + " active members total. To skip confirmation set rain_submit disable. Stats not recorded if enabled");
+			await ctx.appResponse.sendMessage(ctx.from.id, 'Airdrop confirmation require to ' + userNames.length + ' active members total. To skip confirmation set rain_submit disable. Stats not recorded if enabled');
 			const trxFee = trx.fee_list.reduce((a, b) => a + b, 0);
 			const trxAmount = trx.amount_list.reduce((a, b) => a + b, 0);
 			await Meta.getId(ctx.from.id, trx.tx_metadata_list.join(':'), coin);
@@ -234,13 +231,12 @@ class RainCommand extends Command {
 				Choose to confirm or cancel transaction`, this.Helper.metaButton());
 
 			setTimeout(async () => {
-				try{
-					await ctx.telegram.deleteMessage(x.chat.id,x.message_id)
-				}catch{
+				try {
+					await ctx.telegram.deleteMessage(x.chat.id, x.message_id);
+				} catch {
 					return;
 				}
-				ctx.appResponse.sendMessage(ctx.from.id, "Transaction Action Timeout");
-
+				ctx.appResponse.sendMessage(ctx.from.id, 'Transaction Action Timeout');
 			}, global.config.rpc.metaTTL * 1000);
 		}
 	}

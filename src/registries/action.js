@@ -8,7 +8,7 @@ class ActionManager extends Registeries {
 	}
 
 	get allowed () {
-		return ['MetaConfirm','MetaCancel', 'Address'];
+		return ['MetaConfirm', 'MetaCancel', 'Address'];
 	}
 
 	setBotRegistry (reg, bot) {

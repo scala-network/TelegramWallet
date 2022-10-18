@@ -14,7 +14,7 @@ class SetCommand extends Command {
 	}
 
 	get description () {
-		return `Set value for coin config. Run /set for more details`;
+		return 'Set value for coin config. Run /set for more details';
 	}
 
 	get fullDescription () {
@@ -99,13 +99,12 @@ Set value for your config. To get settings for a coin run /set coin only. usages
 		}
 		let status;
 		const field = ctx.appRequest.args[1];
-		let extra;
 		switch (field) {
 		case 'wet':
 			const headCount = ctx.appRequest.args[2];
 
 			const _headCount = Setting.validateValue('wet', headCount, coin);
-			if(_headCount === false) {
+			if (_headCount === false) {
 				return ctx.appResponse.reply(`Unable to save ${coin} for ${field}`);
 			}
 			status = await Setting.updateField(ctx.from.id, field, _headCount, coin);
@@ -113,7 +112,7 @@ Set value for your config. To get settings for a coin run /set coin only. usages
 			if (!status) {
 				return ctx.appResponse.reply(`Unable to save ${field} amount`);
 			}
-			
+
 			return ctx.appResponse.reply(`Amount saved ${coin} for ${field} at ${_headCount}`);
 		case 'rain':
 		case 'tip':
@@ -130,10 +129,7 @@ Set value for your config. To get settings for a coin run /set coin only. usages
 			if (!status) {
 				return ctx.appResponse.reply(`Unable to save ${field} amount`);
 			}
-			extra = '';
-			if (amount !== value) {
-				extra = '. Due to exceed max or min value';
-			}
+
 			return ctx.appResponse.reply(`Amount saved ${coin} for ${field} at ${coinObject.format(value)}`);
 
 		case 'tip_submit':

@@ -46,25 +46,25 @@ class Prompt {
 	}
 
 	async exec (ctx) {
-		if(!ctx) return;
+		if (!ctx) return;
 		const toId = ctx.appRequest.from.id;
 
 		if (this.needStart) {
 			const user = await this.loadModel('User').findById(ctx.appRequest.from.id);
 			if (!user) return await ctx.telegram.sendMessage(toId, 'Seems you are not connected run /start to get connected').catch(e => {});
-			if('error' in user) return await ctx.telegram.sendMessage(toId, user.error).catch(e => {});
+			if ('error' in user) return await ctx.telegram.sendMessage(toId, user.error).catch(e => {});
 		}
 		if (!this.auth(ctx)) {
 			let command;
-			let loc =  (!ctx.appRequest.is.group) ? "here must be in group" : "in group" ;
-			if (ctx.appRequest.is.action) { 
-				command = ctx.appRequest.action; 
-			} else if (ctx.appRequest.is.command) { 
-				command = ctx.appRequest.command; 
+			const loc = (!ctx.appRequest.is.group) ? 'here must be in group' : 'in group';
+			if (ctx.appRequest.is.action) {
+				command = ctx.appRequest.action;
+			} else if (ctx.appRequest.is.command) {
+				command = ctx.appRequest.command;
 			}
 			return await ctx.telegram.sendMessage(toId, `Not allowed to run \`${command}\` ${loc}`).catch(e => {
 
-			}); 
+			});
 		}
 		await this.run(ctx);
 	}

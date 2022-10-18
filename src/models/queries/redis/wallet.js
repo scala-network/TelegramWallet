@@ -1,5 +1,4 @@
 'use strict';
-const STATUS = require('../../../status');
 const Query = require('../../../base/query');
 
 class Wallet extends Query {
