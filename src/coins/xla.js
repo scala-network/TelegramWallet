@@ -206,8 +206,8 @@ class Xla {
 	}
 
 	async transferMany (id, idx, destinations, options = {}) {
-		const { doNotRelay, split } = options;
-		return (~split) ? this.transferSplit(id, idx, destinations, !!~doNotRelay) : this.transfers(id, idx, destinations, !!~doNotRelay);
+		const { split } = options;
+		return (~split) ? this.transferSplit(id, idx, destinations, options) : this.transfers(id, idx, destinations, options);
 	}
 
 	async transfers (id, idx, destinations, options = {}) {
