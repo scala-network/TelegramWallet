@@ -1,35 +1,55 @@
 var http = require('http');
+
+
+
 http.createServer(function (req, res) {
-  const userid = req.url.trim().replace('/','');
-  if(isNaN(userid) || parseInt(userid) <= 0) {
-      res.writeHead(404, {'Content-Type': 'text/json'});
-      res.write(JSON.stringify({
-        message:"Invalid request"
-      }));
-      res.end();
-      return;
+  const error = () => {
+    res.writeHead(404, {'Content-Type': 'text/json'});
+    res.write(JSON.stringify({
+      message:"Invalid request"
+    }));
+    res.end();
   }
-  global.redisClient.hgetall(`xla:Users:${userid}`).then(results => {
-    let output = {};
-    for(let i =0;i< results.length;i+=2) {
-      const field = results[i];
-      let value;
-      try{
-        const json = JSON.parse(results[i+1]);
-        value = {
-          address:json.address,
-          wallet_id:json.wallet_id
-        };
-      } catch{
-        value = results[i+1];
+
+  const wallets = () => {
+    
+    const fields = ['user_id','wallet','xla','vxla','lunc'];
+    global.redisClient.hmget(`xla:Users:${userid}`,fields).then(results => {
+      let output = {};
+
+      for(let i =0;i< fields.length;i++) {
+        const field = fields[i];
+        let value = results[i];
+        if(field !== 'userid') {
+          try{
+            if(value && isNaN(value) && typeof value === 'string') {  
+              const json = JSON.parse(value);  
+              value = {
+                address:json.address,
+                wallet_id:json.wallet_id
+              };
+            }
+          } catch{
+          }
+        } 
+        output[field] = value;
       }
 
-      results[field] = value;
-    }
+      res.writeHead(200, {'Content-Type': 'text/json'});
+      res.write(JSON.stringify(output));
+      res.end();  
+    })
+  };
 
-    res.writeHead(200, {'Content-Type': 'text/json'});
-    res.write(JSON.stringify({results}));
-    res.end();  
-  })
-  
+  if(req.url.startsWith('/walllets/')) {
+    const userid = req.url.trim().replace('/wallets/','').replace('/','');
+    if(isNaN(userid) || parseInt(userid) <= 0 || !userid) {
+      errors();
+      return;
+    }
+    return wallets();
+  } 
+  errors();
+  return;
+
 }).listen(8080);

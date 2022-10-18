@@ -21,6 +21,7 @@ if(!cluster.isWorker) {
     }
     // spawn(0);// For market worker
     spawn(1);// For application
+    spawn(2);// For API
     return;
 }
 const logSystem = "app";
