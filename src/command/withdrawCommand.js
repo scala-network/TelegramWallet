@@ -109,7 +109,7 @@ class WithdrawCommand extends Command {
 			if ('trading' in wallet && wallet.trading > 0) {
 				return ctx.appResponse.reply(`You have some coins in trading ${coinObject.format(wallet.trading)}`);
 			}
-			trx = await coinObject.sweep(ctx.from.id, wallet.wallet_id, address, true);
+			trx = await coinObject.sweep(ctx.from.id, wallet.wallet_id, address, args);
 		} else {
 			const amount = coinObject.parse(inputAmount);
 
