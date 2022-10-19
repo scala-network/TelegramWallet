@@ -32,7 +32,7 @@ class WithdrawCommand extends Command {
 			return ctx.appResponse.reply(`Missing coin argument\n${this.description}`);
 		}
 
-		const coin = ctx.appRequest.args[0];
+		const coin = ctx.appRequest.args[0].toLowerCase();
 
 		if (!~global.config.coins.indexOf(coin)) {
 			return ctx.appResponse.reply(`Invalid coin. Avaliable coins are ${global.config.coins.join(',')}`);
