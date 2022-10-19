@@ -85,16 +85,20 @@ class WithdrawCommand extends Command {
 			return ctx.appResponse.reply('Invalid amount');
 		}
 
-		const args = {};
+		const memo = [];
 		if (ctx.appRequest.args.length >= 4) {
 			for (let i = 3; i < ctx.appRequest.args.length; i++) {
-				const split = ctx.appRequest.args[i].split('=');
-				const key = split[0].trim();
-				const value = split[1].trim();
-				args[key] = value;
+				// const split = ctx.appRequest.args[i].split('=');
+				// const key = split[0].trim();
+				// const value = split[1].trim();
+				// args[key] = value;
+				memo.push(ctx.appRequest.args[i]);
 			}
 		}
-		args.doNotRelay = true;
+		const args = {
+			doNotRelay : true,
+			memo:memo.join(' ').replace('memo=','')
+		}
 
 		let unlock = wallet.balance;
 		if ('unlock' in wallet) {
