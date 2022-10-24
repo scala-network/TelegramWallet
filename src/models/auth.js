@@ -5,8 +5,8 @@ class Market extends Model {
 	get fields () {
 		return [
 			{
-				title:"LOCALHOST",
-				auth:'https://localhost.glancemy.com:1999/auth'
+				title:"Elections",
+				auth:'https://test-election.scalaproject.io/auth'
 			},
 			// {
 			// 	title:'SCALA: ELECTION(TESTNET)',
