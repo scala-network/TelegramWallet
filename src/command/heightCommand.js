@@ -14,6 +14,10 @@ class HeightCommand extends Command {
 		return 'Returns wallet and daemon height';
 	}
 
+	auth (ctx) {
+		return !ctx.appRequest.is.group;
+	}
+
 	get name () {
 		return 'height';
 	}
@@ -40,10 +44,14 @@ class HeightCommand extends Command {
 			const wallets = await Wallet.findByUserId(id);
 			if (wallets) {
 				for (const [coin, wallet] of Object.entries(wallets)) {
-					output += coin + ' : ' + utils.formatNumber(wallet.height | 0) + ' \n';
+					if (wallet) {
+						output += coin + ' : ' + utils.formatNumber(wallet.height | 0) + ' \n';
+					} else {
+						output += `No wallet avaliable for ${coin}`;
+					}
 				}
 			} else {
-				output = `No wallet avaliable for coin ${coin}`;
+				output = 'No wallet avaliable';
 			}
 		}
 

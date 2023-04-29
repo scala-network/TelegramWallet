@@ -14,7 +14,7 @@ class CommandManager extends Registeries {
 	setBotRegistry (reg, bot) {
 		const exec = async ctx => {
 			if (!ctx.from.username || !ctx.from.username.trim()) {
-				ctx.reply('Unable to process request for users without username');
+				ctx.reply('Unable to process request for users without username').catch(e => {});
 				global.log('warn', logSystem, 'No username defined for ID : ' + ctx.from.id);
 				return;
 			}
@@ -32,7 +32,10 @@ class CommandManager extends Registeries {
 				ctx.telegram.sendMessage(ctx.message.chat.id, 'Please create a wallet https://t.me/' + global.config.bot.username);
 				return;
 			}
-			reg.exec(ctx);
+			reg.exec(ctx).then(() => {
+				//				console.log(ctx);
+				ctx.telegram.deleteMessage(ctx.message.chat.id, ctx.message.message_id).catch(e => {}); // Delete any message in any chat
+			});
 		};
 		bot.command(reg.name, exec);
 		bot.command(reg.name + '@' + global.config.bot.username, exec);

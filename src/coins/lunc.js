@@ -1,23 +1,26 @@
 const { Coins, LCDClient, MnemonicKey, MsgSend, isTxError } = require('@terra-money/terra.js');
 const fetch = require('isomorphic-fetch');
 const moment = require('moment');
-const {bech32} = require('bech32');
+const { bech32 } = require('bech32');
+const system = 'coins/lunc';
 class Lunc {
 	#_lcd;
 	async #_getWallet (wid) {
 		const seed = await global.redisClient.lindex('lunc:mnemonic', wid).catch(e => {});
-		if(!seed) return null;
+		if (!seed) return null;
 		const mk = new MnemonicKey({ mnemonic: Buffer.from(seed, 'base64').toString('utf8') });
-		if(!mk) return null;
+		if (!mk) return null;
 		return await this.#_lcd.wallet(mk);
 	}
 
 	async #_setWallet (id, seed) {
 		await global.redisClient.rpush('lunc:mnemonic', Buffer.from(seed).toString('base64'));
 	}
-	get cmcName() {
-		return "terra-luna";
+
+	get cmcName () {
+		return 'terra-luna';
 	}
+
 	constructor () {
 		this.#_lcd = new LCDClient({
 			URL: this.server.address,
@@ -51,16 +54,18 @@ class Lunc {
 	}
 
 	format (coin) {
-		return (parseInt(coin) / this.atomicUnits).toFixed(this.fractionDigits).replace(/\B(?=(\d{3})+(?!\d))/g, ',') + ' ' + this.symbol;
+		const coinvalue = '' + (parseInt(coin) / this.atomicUnits).toFixed(this.fractionDigits);
+		const numerous = coinvalue.split('.');
+		return `${numerous[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',')}.${numerous[1]} ${this.symbol}`;
 	}
 
 	explorerLink (hash) {
-//		https://finder.terra.money/classic/tx/f2a612d8e43ef19b4f51a1e5351ff1249b582e3db1541a63dc24705bd47ed0f6
+		//		https://finder.terra.money/classic/tx/f2a612d8e43ef19b4f51a1e5351ff1249b582e3db1541a63dc24705bd47ed0f6
 		return `https://finder.terra.money/classic/tx/${hash}`;
 	}
 
 	async createWallet (id, password) {
-		return Promise.reject();
+		return Promise.reject(new Error('Coin does not have create wallet function'));
 	}
 
 	async validateAddress (id, address) {
@@ -68,7 +73,7 @@ class Lunc {
 			if (/(terra1[a-z0-9]{38})/g.test(address) === false) return false;
 			const { prefix } = bech32.decode(address); // throw error if checksum is invalid
 			return prefix === 'terra';
-		} catch (e){
+		} catch (e) {
 			return null;
 		}
 	}
@@ -90,74 +95,79 @@ class Lunc {
 	}
 
 	async getAddress (id, walletId) {
+		const wallet = await this.#_getWallet(walletId).catch(e => global.log('error', system, 'Unable to get wallet'));
+		if (!wallet) {
+			return null;
+		}
 		return wallet.key.accAddress;
 	}
+
 	static CacheRequest = {};
 
 	async #_getGasPriceCoins () {
-		if(!('gasPrices' in Lunc.CacheRequest)) {
+		if (!('gasPrices' in Lunc.CacheRequest)) {
 			Lunc.CacheRequest.gasPrices = {
-				ts:0,
-				dt:null
+				ts: 0,
+				dt: null
 			};
 		}
 
-		if(!Lunc.CacheRequest.gasPrices.dt || Lunc.CacheRequest.gasPrices.ts <= moment().format('x')) {
+		if (!Lunc.CacheRequest.gasPrices.dt || Lunc.CacheRequest.gasPrices.ts <= moment().format('x')) {
 			const gasPrices = await fetch('https://fcd.terra.dev/v1/txs/gas_prices');
-			const gasPricesJson = await gasPrices.json();	
+			const gasPricesJson = await gasPrices.json();
 			Lunc.CacheRequest.gasPrices.dt = new Coins(gasPricesJson);
-			Lunc.CacheRequest.gasPrices.ts = moment().add(1,'day').format('x');
+			Lunc.CacheRequest.gasPrices.ts = moment().add(1, 'day').format('x');
 		}
-		
+
 		return Lunc.CacheRequest.gasPrices.dt;
-		
 	}
-	#_destinationsFilter(wallet, destinations) {
+
+	#_destinationsFilter (wallet, destinations) {
 		let send;
 		let txAmount = 0;
-		if(Array.isArray(destinations)) {
+		if (Array.isArray(destinations)) {
 			send = destinations.map(des => {
 				txAmount += des.amount;
 				return new MsgSend(
 					wallet.key.accAddress,
 					des.address,
 					{ uluna: des.amount.toString() }
-					);
+				);
 			});
-		} else if(typeof destinations === 'object') {
-			send = [new MsgSend(wallet.key.accAddress,wallet.key.accAddress,{ uluna: destinations.amount })];
+		} else if (typeof destinations === 'object') {
+			send = [new MsgSend(wallet.key.accAddress, wallet.key.accAddress, { uluna: destinations.amount })];
 		} else {
-			send = [new MsgSend(wallet.key.accAddress,wallet.key.accAddress,{ uluna: destinations })];
-			retAmtObject = false;
+			send = [new MsgSend(wallet.key.accAddress, wallet.key.accAddress, { uluna: destinations })];
 		}
 
-		return {send, txAmount}
+		return { send, txAmount };
 	}
-	async #_taxes() {
-		if(!('taxRate' in Lunc.CacheRequest)) {
+
+	async #_taxes () {
+		if (!('taxRate' in Lunc.CacheRequest)) {
 			Lunc.CacheRequest.taxRate = {
-				ts:0,
-				dt:null
+				ts: 0,
+				dt: null
 			};
 		}
-		if(!('taxCap' in Lunc.CacheRequest)) {
+		if (!('taxCap' in Lunc.CacheRequest)) {
 			Lunc.CacheRequest.taxCap = {
-				ts:0,
-				dt:null
+				ts: 0,
+				dt: null
 			};
 		}
-		if(!Lunc.CacheRequest.taxRate.dt || Lunc.CacheRequest.taxRate.ts <= moment().format('x')) {
-			let taxRate = await this.#_lcd.treasury.taxRate().catch(e => {});
-			if (!taxRate) return {error: "Unable to get tax rate"};
-			
+		if (!Lunc.CacheRequest.taxRate.dt || Lunc.CacheRequest.taxRate.ts <= moment().format('x')) {
+			const taxRate = await this.#_lcd.treasury.taxRate().catch(e => {});
+			if (!taxRate) return { error: 'Unable to get tax rate' };
+
 			Lunc.CacheRequest.taxRate.dt = taxRate;
-			Lunc.CacheRequest.taxRate.ts = moment().add(1,'month').format('x');
+			Lunc.CacheRequest.taxRate.ts = moment().add(1, 'month').format('x');
 		}
-		if(!Lunc.CacheRequest.taxCap.dt || Lunc.CacheRequest.taxCap.ts <= moment().format('x')) {
-			let taxCap = await this.#_lcd.treasury.taxCap().catch(e => {});
-			if (!taxCap || !('amount' in taxCap)) return {error: "Unable to get tax cap"};
+		if (!Lunc.CacheRequest.taxCap.dt || Lunc.CacheRequest.taxCap.ts <= moment().format('x')) {
+			const taxCap = await this.#_lcd.treasury.taxCap().catch(e => {});
+			if (!taxCap || !('amount' in taxCap)) return { error: 'Unable to get tax cap' };
 			Lunc.CacheRequest.taxCap.dt = taxCap.amount;
-			Lunc.CacheRequest.taxCap.ts = moment().add(1,'month').format('x');
+			Lunc.CacheRequest.taxCap.ts = moment().add(1, 'month').format('x');
 		}
 
 		return {
@@ -165,61 +175,66 @@ class Lunc {
 			taxCap: Lunc.CacheRequest.taxCap.dt
 		};
 	}
-	async #_estimateFee(destinations, wallet) {
-		if(!wallet) {
+
+	async #_estimateFee (idx, destinations, wallet) {
+		if (!wallet) {
 			wallet = await this.#_getWallet(idx);
-			if(!wallet) {
+			if (!wallet) {
 				return null;
 			}
 		}
 
-		const {send, txAmount} = this.#_destinationsFilter(wallet, destinations);
-		const {taxRate,taxCap} = await this.#_taxes();
-		
+		const { send, txAmount } = this.#_destinationsFilter(wallet, destinations);
+		const { taxRate, taxCap } = await this.#_taxes();
 		const taxAmount = Math.min(Math.ceil(txAmount * parseFloat(taxRate)), parseFloat(taxCap));
-		
-		const taxAmountCoins = new Coins({uluna:taxAmount});
-		const walletInfo = await wallet.accountNumberAndSequence();
-		if(!walletInfo)  return {error:"Unable to get wallet info sequence"};
+
+		const taxAmountCoins = new Coins({ uluna: taxAmount });
+		const walletInfo = await wallet.accountNumberAndSequence().catch(e => {
+			global.log('error', system, 'Unable to get wallet info sequence');
+		});
+		if (!walletInfo) return { error: 'Unable to get wallet info sequence' };
 
 		const signerData = [{ sequenceNumber: walletInfo.sequence }];
 		const gasPricesCoins = await this.#_getGasPriceCoins();
 
-		if(!gasPricesCoins) return {error:"Unable to get gas prices"};
+		if (!gasPricesCoins) return { error: 'Unable to get gas prices' };
 
 		const txFee = await this.#_lcd.tx.estimateFee(signerData, { msgs: send, gasPrices: gasPricesCoins, gasAdjustment: 3, feeDenoms: ['uluna'] })
-		.catch(e => {
-			console.log("Error estimate fee", e);
-		});
-		if(!txFee) return {error:"Unable to get tx fee"};
+			.catch(e => {
+				global.log('error', system, 'Error estimate fee %s', [e.message]);
+			});
+		if (!txFee) return { error: 'Unable to get tx fee' };
 
 		txFee.amount = txFee.amount.add(taxAmountCoins);
 
 		return txFee;
 	}
+
 	async estimateFee (idx, destinations, retAmtObject = false) {
 		const wallet = await this.#_getWallet(idx);
-		if(!wallet) {
+		if (!wallet) {
 			return null;
 		}
-		const txFee = await this.#_estimateFee(destinations, wallet);
-		
+		const txFee = await this.#_estimateFee(idx, destinations, wallet).catch(e => {
+			global.log('error', system, 'RPC Estimate Fee : %s', [e.message]);
+		});
+		if (!txFee) return null;
+		if ('error' in txFee) return txFee;
 
-		if(retAmtObject) return txFee;
+		if (retAmtObject) return txFee;
 		return this.#_txFeeToAmt(txFee);
-		
 	}
-	#_txFeeToAmt(txFee) {
 
+	#_txFeeToAmt (txFee) {
 		let txfee;
-		try{
-			txfee = txFee.toData(true);	
+		try {
+			txfee = txFee.toData(true);
 		} catch {
 			console.log(txFee);
 			return txFee;
 		}
-		
-		if(!Array.isArray(txFee.amount)) {
+
+		if (!Array.isArray(txFee.amount)) {
 			txfee = txFee.amount._coins.uluna.amount;
 		} else if (txfee.length > 0) {
 			txfee = txfee.filter(bal => {
@@ -229,43 +244,44 @@ class Lunc {
 			});
 			if (txfee.length <= 0) {
 				Lunc.CacheRequest.taxCap = {
-					ts:0,
-					dt:null
+					ts: 0,
+					dt: null
 				};
 				Lunc.CacheRequest.taxRate = {
-					ts:0,
-					dt:null
+					ts: 0,
+					dt: null
 				};
 				return { error: 'Invalid denom for tax fee' };
 			}
 			txfee = txfee[0];
 			if (!('denom' in txfee) && !('amount' in txfee)) {
 				Lunc.CacheRequest.taxCap = {
-					ts:0,
-					dt:null
+					ts: 0,
+					dt: null
 				};
 				Lunc.CacheRequest.taxRate = {
-					ts:0,
-					dt:null
+					ts: 0,
+					dt: null
 				};
 				return { error: 'Invalid response for tax fee' };
 			}
 			txfee = parseInt(txfee.amount);
 		} else {
 			Lunc.CacheRequest.taxCap = {
-				ts:0,
-				dt:null
+				ts: 0,
+				dt: null
 			};
 			Lunc.CacheRequest.taxRate = {
-				ts:0,
-				dt:null
+				ts: 0,
+				dt: null
 			};
 			return { error: 'Unable to get tax fee request' };
 		}
 
 		return txfee;
 	}
-	async #_getBalance(wallet) {
+
+	async #_getBalance (wallet) {
 		const address = wallet.key.accAddress;
 		let balance;
 		try {
@@ -292,10 +308,11 @@ class Lunc {
 			return { error: e.message };
 		}
 	}
+
 	async getBalance (id, walletId) {
-		const wallet = await this.#_getWallet(walletId).catch(e => {console.log(e)});
-		if(!wallet) {
-			return {error:"Invalid wallet index " + walletId};
+		const wallet = await this.#_getWallet(walletId).catch(e => { console.log(e); });
+		if (!wallet) {
+			return { error: 'Invalid wallet index ' + walletId };
 		}
 
 		return await this.#_getBalance(wallet);
@@ -314,66 +331,76 @@ class Lunc {
 		return { account_index: accountIndex, address };
 	}
 
-	async transfer (id, idx, address, amount, doNotRelay) {
-		return await this.transferMany(id, idx, [{ address, amount }], doNotRelay);
+	async transfer (id, idx, address, amount, options = {}) {
+		return await this.transferMany(id, idx, [{ address, amount }], options);
 	}
 
 	async relay (id, meta) {
-		try{
-			const data = Buffer.from(meta, 'base64').toString('utf8') 
-			const metaParse = JSON.parse(data);		
+		try {
+			const data = Buffer.from(meta, 'base64').toString('utf8');
+			const metaParse = JSON.parse(data);
 			const idx = metaParse.idx;
-			if (!idx) {
+			if (typeof idx === 'undefined' || isNaN(idx) || idx === false) {
 				return { error: 'Relay missing wallet index' };
 			}
 
 			const wallet = await this.#_getWallet(idx);
 
 			if (!wallet) return { error: 'Missing wallet' };
+			let options = {};
+			if ('options' in metaParse) {
+				options = metaParse.options;
+			}
+			options.doNotRelay = false;
 
+			if (!('sweep_all' in metaParse)) return await this.#_transfers(id, idx, metaParse.destinations, options, wallet);
 
-			if(!('sweep_all' in metaParse)) return await this.#_transfers(id,idx, metaParse.destinations, false, wallet);
-
-			return await this.sweep(id,idx,metaParse.address, false);
-
-		}catch	{
+			return await this.sweep(id, idx, metaParse.address, options);
+		} catch	{
 
 		}
 	}
 
-
-	async #_transfers(id, idx, destinations, doNotRelay, wallet = null) {
-
-		if (!idx) {
+	async #_transfers (id, idx, destinations, options = {}, wallet = null) {
+		if (typeof idx === 'undefined' || isNaN(idx) || idx === false) {
 			return { error: 'Missing wallet index' };
 		}
 
-		if(!wallet){
-			wallet = await this.#_getWallet(idx);
+		if (!wallet) {
+			wallet = await this.#_getWallet(idx).catch(e => {
+				global.log('error', system, 'Unable to get wallet %s', [e.message]);
+			});
 			if (!wallet) {
 				return { error: 'Missing wallet' };
 			}
 		}
-
-		const {send} = this.#_destinationsFilter(wallet, destinations);
-		const txFee = await this.estimateFee(idx, destinations, !doNotRelay);	
-		if (doNotRelay) {
-
+		if (!('doNotRelay' in options)) {
+			options.doNotRelay = false;
+		}
+		const { send } = this.#_destinationsFilter(wallet, destinations);
+		const txFee = await this.estimateFee(idx, destinations, !options.doNotRelay);
+		if (isNaN(txFee) && 'error' in txFee) {
+			return txFee;
+		}
+		if (options.doNotRelay) {
 			return {
-				fee_list:[txFee],
-				amount_list:destinations.map(d => d.amount),
-				tx_metadata_list:[Buffer.from(JSON.stringify({destinations,idx})).toString('base64')],
-				tx_hash_list:['']
+				fee_list: [txFee],
+				amount_list: destinations.map(d => d.amount),
+				tx_metadata_list: [Buffer.from(JSON.stringify({ destinations, idx, options })).toString('base64')],
+				tx_hash_list: ['']
 			};
 		}
-		const tx = await wallet.createAndSignTx({ msgs: send, fee: txFee }).catch(e=>{
-			// console.log(e)
+		let memo = '';
+		if ('memo' in options) {
+			memo = options.memo;
+		}
+		const tx = await wallet.createAndSignTx({ msgs: send, memo, fee: txFee }).catch(e => {
+			global.log('error', system, 'LUNC createAndSignTx %s', [e.message]);
 		});
-		if(!tx) {
-			return {error:'TX error'};
+		if (!tx) {
+			return { error: 'TX error' };
 		}
 		return new Promise(resolve => {
-
 			this.#_lcd.tx.broadcast(tx).then(result => {
 				if (isTxError(result)) {
 					Lunc.CacheRequest = {};
@@ -382,7 +409,7 @@ class Lunc {
 				resolve({
 					fee_list: [txFee.amount],
 					amount_list: destinations.map(des => des.amount),
-					tx_hash_list: [result.txhash],
+					tx_hash_list: [result.txhash]
 				});
 			}).catch(e => {
 				Lunc.CacheRequest = {};
@@ -393,70 +420,85 @@ class Lunc {
 			});
 		});
 	}
-	async transferMany (id, idx, destinations, doNotRelay, split = true) {
-		return await this.#_transfers(id, idx, destinations, doNotRelay);
+
+	async transferMany (id, idx, destinations, options = {}) {
+		return await this.#_transfers(id, idx, destinations, options);
 	}
 
-	async sweep (id, idx, address, doNotRelay) {
-		if (!idx) {
+	async sweep (id, idx, address, options = {}) {
+		if (typeof idx === 'undefined' || isNaN(idx) || idx === false) {
 			return { error: 'Missing wallet index' };
 		}
 		const wallet = await this.#_getWallet(idx);
 		if (!wallet) {
 			return { error: 'Missing wallet' };
 		}
-		
+		if (!('doNotRelay' in options)) {
+			options.doNotRelay = false;
+		}
 		// Obtain the signing wallet data
-		const walletInfo = await wallet.accountNumberAndSequence();
+		const walletInfo = await wallet.accountNumberAndSequence().catch(e => {
+			global.log('error', system, 'LUNC Sweep > accountNumberAndSequence %s', [e.message]);
+		});
+		if (!walletInfo) {
+			return { error: 'Error getting account number and sequence' };
+		}
 		const signerData = [{ sequenceNumber: walletInfo.sequence }];
-		const walletAddress = wallet.key.accAddress;
-		let balance = await this.#_getBalance(wallet);
-		if('error' in balance) return balance;
+		let balance = await this.#_getBalance(wallet).catch(e => {
+			global.log('error', system, 'LUNC Sweep > getBalance %s', [e.message]);
+		});
+		if ('error' in balance) return balance;
 		balance = balance.balance;
 
 		// Populate the dummy send message
-		const dmsg = new MsgSend(wallet.key.accAddress, address,{ uluna: balance.toString() });
+		const dmsg = new MsgSend(wallet.key.accAddress, address, { uluna: balance.toString() });
 
 		// Estimate the gas amount and fee (without burn tax) for the message
-		const gasPrices = await this.#_getGasPriceCoins();
+		const gasPrices = await this.#_getGasPriceCoins().catch(e => {
+			global.log('error', system, 'LUNC Sweep > getGasPriceCoins %s', [e.message]);
+		});
 		const txFee = await this.#_lcd.tx.estimateFee(
-		    signerData,
-		    { msgs: [dmsg], 
-		      gasPrices, 
-		      gasAdjustment: 3, 
-		      feeDenoms: ["uluna"]
-		    }
+			signerData,
+			{
+				msgs: [dmsg],
+				gasPrices,
+				gasAdjustment: 3,
+				feeDenoms: ['uluna']
+			}
 		);
 
-		const feeGas =this.#_txFeeToAmt(txFee);
+		const feeGas = this.#_txFeeToAmt(txFee);
 		const taxes = await this.#_taxes();
-		if('error' in taxes) return taxes;
-		const {taxRate, taxCap} = taxes;
+		if ('error' in taxes) return taxes;
+		const { taxRate, taxCap } = taxes;
 
-		const txAmount = Math.floor((parseInt(balance) - parseInt(feeGas)) / (1 +  parseInt(taxRate)));
+		const txAmount = Math.floor((parseInt(balance) - parseInt(feeGas)) / (1 + parseInt(taxRate)));
 
 		const taxAmount = Math.min(Math.ceil(txAmount * parseFloat(taxRate)), parseFloat(taxCap));
-		const taxAmountCoins = new Coins({ uluna : taxAmount });
+		const taxAmountCoins = new Coins({ uluna: taxAmount });
 		txFee.amount = txFee.amount.add(taxAmountCoins);
 		const txfff = this.#_txFeeToAmt(txFee);
-		const destinations = [new MsgSend(wallet.key.accAddress, address,{ uluna: Math.floor(txAmount*0.988).toString() })];
-		if (doNotRelay) {
+		const destinations = [new MsgSend(wallet.key.accAddress, address, { uluna: Math.floor(txAmount * 0.988).toString() })];
+		if (options.doNotRelay) {
 			return {
-				fee_list:[txfff],
-				amount_list:destinations.map(d => d.amount),
-				tx_metadata_list:[Buffer.from(JSON.stringify({idx,sweep_all:true,address})).toString('base64')],
-				tx_hash_list:['']
+				fee_list: [txfff],
+				amount_list: destinations.map(d => d.amount),
+				tx_metadata_list: [Buffer.from(JSON.stringify({ idx, sweep_all: true, address, options })).toString('base64')],
+				tx_hash_list: ['']
 			};
 		}
+		let memo = '';
+		if ('memo' in options) {
+			memo = options.memo;
+		}
 
-		const tx = await wallet.createAndSignTx({ msgs: destinations, fee: txFee }).catch(e=>{
-			// console.log(e)
+		const tx = await wallet.createAndSignTx({ msgs: destinations, fee: txFee, memo }).catch(e => {
+			global.log('error', system, 'LUNC Sweep > createAndSignTx %s', [e.message]);
 		});
-		if(!tx) {
-			return {error:'TX error'};
+		if (!tx) {
+			return { error: 'TX error' };
 		}
 		return new Promise(resolve => {
-
 			this.#_lcd.tx.broadcast(tx).then(result => {
 				if (isTxError(result)) {
 					Lunc.CacheRequest = {};
@@ -465,7 +507,7 @@ class Lunc {
 				resolve({
 					fee_list: [txFee.amount],
 					amount_list: destinations.map(des => des.amount),
-					tx_hash_list: [result.txhash],
+					tx_hash_list: [result.txhash]
 				});
 			}).catch(e => {
 				Lunc.CacheRequest = {};
@@ -475,8 +517,6 @@ class Lunc {
 				return resolve({ error: e.message });
 			});
 		});
-
-		
 	}
 }
 

@@ -16,25 +16,28 @@ class MetaConfirmAction extends Action {
 		if (ctx.test) return;
 		const Meta = this.loadModel('Meta');
 		let x;
-		try{
+		try {
 			x = await ctx.editMessageText('Processing Action');
-			if(!x) return;
-		}catch{
+			if (!x) return;
+		} catch {
 			return;
 		}
-		
+
 		const metas = await Meta.getByUserId(ctx.from.id);
 		if (!metas) {
 			await ctx.reply('Invalid or expired meta id');
-			await ctx.telegram.deleteMessage(x.chat.id,x.message_id);
+			await ctx.telegram.deleteMessage(x.chat.id, x.message_id).catch(e => {
+
+			})
 			return;
 		}
 		const coin = metas.coin;
 		const coinObject = this.Coins.get(coin);
-		if(!coinObject) {
+		if (!coinObject) {
 			Meta.deleteMeta(ctx.appRequest.from.id);
 			await ctx.reply(`Invalid coin ${coin}`);
-			await ctx.telegram.deleteMessage(x.chat.id,x.message_id);
+			await ctx.telegram.deleteMessage(x.chat.id, x.message_id).catch(e => {
+			});
 			return;
 		}
 		const explorer = [];
@@ -45,11 +48,11 @@ class MetaConfirmAction extends Action {
 				continue;
 			}
 			let txHash;
-			if('tx_hash' in tx){
-				txHash =  tx.tx_hash;
+			if ('tx_hash' in tx) {
+				txHash = tx.tx_hash;
 				explorer.push(coinObject.explorerLink(txHash));
 				txHashes.push(txHash);
-			} else if('tx_hash_list' in tx) {
+			} else if ('tx_hash_list' in tx) {
 				tx.tx_hash_list.forEach(thl => {
 					explorer.push(coinObject.explorerLink(thl));
 					txHashes.push(thl);
@@ -68,7 +71,8 @@ Explorer :
 		await ctx.reply(response, {
 			parse_mode: 'HTML'
 		});
-		await ctx.telegram.deleteMessage(x.chat.id,x.message_id);
+		await ctx.telegram.deleteMessage(x.chat.id, x.message_id).catch(e => {
+		});
 	}
 }
 module.exports = MetaConfirmAction;

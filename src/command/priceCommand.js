@@ -40,13 +40,13 @@ class PriceCommand extends Command {
 		if (ctx.appRequest.args.length < 1) {
 			return ctx.appResponse.reply(`Missing coin argument.\n${this.fullDescription} `);
 		}
-		
-		let coin = ('' + ctx.appRequest.args[0]).trim().toLowerCase();
-		let coinObject = this.Coins.get(coin);
 
- 		if (!~global.config.coins.indexOf(coin)) {
- 			return ctx.appResponse.reply(`Invalid coin. Avaliable coins are ${global.config.coins.join(',')}`);
- 		}
+		const coin = ('' + ctx.appRequest.args[0]).trim().toLowerCase();
+		const coinObject = this.Coins.get(coin);
+
+		if (!~global.config.coins.indexOf(coin) || coin === 'vxla') {
+			return ctx.appResponse.reply(`Invalid coin. Avaliable coins are ${global.config.coins.join(',')}`);
+		}
 
 		if (ctx.appRequest.args.length < 2) {
 			const priceLists = await Market.getPrice(coin);
@@ -58,14 +58,13 @@ class PriceCommand extends Command {
 					output += priceTicker + ' : ' + value + ' ' + priceTicker + '\n';
 				}
 			}
-		}else if (ctx.appRequest.args.length < 3) {
-			
+		} else if (ctx.appRequest.args.length < 3) {
 			const exchange = ctx.appRequest.args[1].trim().toUpperCase();
 			const rtick = global.coins[coin].market.tickers;
 			if (rtick.indexOf(exchange.toUpperCase()) >= 0) {
 				const marketExchange = await Market.getMarketExchange(coin, exchange);
 
-				output += '<u>'  + coin.toUpperCase() + "/" + exchange.toUpperCase() + ' Market</u>\n';
+				output += '<u>' + coin.toUpperCase() + '/' + exchange.toUpperCase() + ' Market</u>\n';
 				for (const [key, value] of Object.entries(marketExchange)) {
 					output += key + ' : ';
 					if ([
@@ -91,7 +90,7 @@ class PriceCommand extends Command {
 		if (!output) {
 			output += 'We have no response for market price';
 		} else {
-			let cmcName = (coinObject.cmcName) ? coinObject.cmcName :  coinObject.fullname.toLowerCase(); 
+			const cmcName = (coinObject.cmcName) ? coinObject.cmcName : coinObject.fullname.toLowerCase();
 			output += '\n Price exchanges are from https://coinmarketcap.com/currencies/' + cmcName;
 		}
 		ctx.appResponse.reply(output);

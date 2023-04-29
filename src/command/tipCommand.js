@@ -24,7 +24,7 @@ class TransferCommand extends Command {
 	}
 
 	auth (ctx) {
-		return true;
+		return !ctx.appRequest.is.group;
 	}
 
 	async run (ctx) {
@@ -54,12 +54,12 @@ class TransferCommand extends Command {
 			coin = 'xla';
 		}
 		if (!~global.config.coins.indexOf(coin)) {
-			return ctx.appResponse.reply(`Invalid coin. Avaliable coins are ${global.config.coins.join(',')}`);
+			return ctx.appResponse.reply(`Invalid coin. Avaliable coins are ${global.config.coins.join(',')}\n${this.fullDescription}`);
 		}
 		const coinObject = this.Coins.get(coin);
 		let wallet = await Wallet.findByUserId(ctx.from.id, coin);
 		wallet = await Wallet.syncBalance(ctx.from.id, wallet, coinObject);
-		if(!wallet) {
+		if (!wallet) {
 			return ctx.appResponse.reply(`No wallet avaliable for coin ${coin}`);
 		}
 		if (wallet && 'error' in wallet) {
@@ -69,10 +69,9 @@ class TransferCommand extends Command {
 		if ('trading' in wallet) {
 			unlock -= wallet.trading;
 		}
-		if (0 >= parseFloat(unlock)) {
-			return ctx.appResponse.sendMessage(ctx.from.id, `No fund to process transaction`);
+		if (parseFloat(unlock) <= 0) {
+			return ctx.appResponse.sendMessage(ctx.from.id, 'No fund to process transaction');
 		}
-
 
 		const args = [].concat(ctx.appRequest.args);
 		args.shift();
@@ -88,15 +87,22 @@ class TransferCommand extends Command {
 		if (tipAmount < global.coins[coin].settings.tip_min || tipAmount > global.coins[coin].settings.tip_max) {
 			return ctx.appResponse.sendMessage(ctx.from.id, `Tip amount exceed min (${coinObject.format(global.coins[coin].settings.tip_min)}) or max (${coinObject.format(global.coins[coin].settings.tip_max)})`);
 		}
-		const estimate = await coinObject.estimateFee(wallet.wallet_id,[{amount:tipAmount,address:wallet.address}],false).catch(e => console.log(e.message));
+		const estimate = await coinObject.estimateFee(wallet.wallet_id, [{ amount: tipAmount, address: wallet.address }], false).catch(e => console.log(e.message));
+		if (!estimate) {
+			return ctx.appResponse.reply('Unable to get estimated transaction fee');
+		}
+		if (isNaN(estimate) && 'error' in estimate) {
+			return ctx.appResponse.reply(`RPC Error : ${estimate.error}`);
+		}
+
 		if (estimate > parseFloat(unlock)) {
-			return ctx.appResponse.sendMessage(ctx.from.id, `Insufficient fund estimate require ${coinObject.format(estimate)}`);
+			return ctx.appResponse.reply(`Insufficient fund estimate require ${coinObject.format(estimate)}`);
 		}
 		const destinations = [];
 		const userIds = [];
 		const invalids = {
 			user: [],
-			wallet: [],
+			wallet: []
 			// fails: []
 		};
 		for (const _uname of args) {
@@ -134,7 +140,7 @@ class TransferCommand extends Command {
 		}
 		const tipSubmit = await Setting.findByFieldAndUserId('tip_submit', ctx.from.id);
 		const confirms = tipSubmit === 'enable';
-		const trx = await coinObject.transferMany(ctx.from.id, wallet.wallet_id, destinations, confirms);
+		const trx = await coinObject.transferMany(ctx.from.id, wallet.wallet_id, destinations, { doNotRelay: confirms });
 		if (!trx) {
 			return await ctx.appResponse.reply('No response from  RPC');
 		}
@@ -145,7 +151,7 @@ class TransferCommand extends Command {
 		if (confirms) {
 			const ftrxAmount = trx.amount_list.reduce((a, b) => a + b, 0);
 			const ftrxFee = trx.fee_list.reduce((a, b) => a + b, 0);
-			const uuid = await Meta.getId(ctx.from.id,trx.tx_metadata_list.join(':'),coin);
+			const uuid = await Meta.getId(ctx.from.id, trx.tx_metadata_list.join(':'), coin);
 
 			const x = await ctx.appResponse.sendMessage(ctx.from.id, `
 				<u>Pending Transaction Details</u>
@@ -164,20 +170,20 @@ class TransferCommand extends Command {
 				<b>Number of transactions :</b>  ${trx.tx_hash_list.length}
  				Choose to confirm or cancel transaction`, this.Helper.metaButton());
 			setTimeout(async () => {
-
-				try{
-					await ctx.telegram.deleteMessage(x.chat.id,x.message_id)
-				}catch{
+				try {
+					await ctx.telegram.deleteMessage(x.chat.id, x.message_id);
+				} catch {
 					return;
 				}
-				ctx.appResponse.sendMessage(ctx.from.id, "Transaction Action Timeout");
-
+				ctx.appResponse.sendMessage(ctx.from.id, 'Transaction Action Timeout');
 			}, global.config.rpc.metaTTL * 1000);
-			} else {
-				const trxAmount = trx.amount_list.reduce((a, b) => a + b, 0);
-				const txHash = trx.tx_hash_list.join('\n * ');
-				const trxFee = trx.fee_list.reduce((a, b) => a + b, 0);
-				await ctx.appResponse.sendMessage(ctx.from.id, `
+		} else {
+			const trxAmount = trx.amount_list.reduce((a, b) => a + b, 0);
+			const txHash = trx.tx_hash_list.map(h => {
+				return coinObject.explorerLink(h);
+			}).join('\n* ');
+			const trxFee = trx.fee_list.reduce((a, b) => a + b, 0);
+			await ctx.appResponse.sendMessage(ctx.from.id, `
 					<u>Transaction Details</u>
 
 					From: 
@@ -191,7 +197,7 @@ class TransferCommand extends Command {
 					Number of transactions : ${trx.amount_list.length}
 					Trx Hashes (${trx.tx_hash_list.length}): 
 					* ${txHash}`);
-				const template = `
+			const template = `
 <u>Transaction Details</u>
 
 From: 
@@ -206,17 +212,17 @@ Number of transactions : ${trx.amount_list.length}
 Trx Hashes (${trx.tx_hash_list.length}): 
 * ${txHash}`;
 
-				for (const u of userIds) await ctx.appResponse.sendMessage(u.user_id, template);
-			}
+			for (const u of userIds) await ctx.appResponse.sendMessage(u.user_id, template);
+		}
 		let msg = '';
 		for (const [key, objects] of Object.entries(invalids)) {
-			for(let value of objects){
+			for (const value of objects) {
 				switch (key) {
-					case 'user':
+				case 'user':
 					msg += `\n* Username ${value} is not linked to ${coin}`;
 					break;
-					case 'wallet':
-					await ctx.appResponse.sendMessage(value, `Somebody tried to tip you but no ${coin} wallet found. Run /address to create one`);
+				case 'wallet':
+					await ctx.appResponse.sendMessage(value, `Somebody tried to tip you but no ${coin} wallet found. Run /address to create one`).catch(e => {});
 					break;
 					// case 'fails':
 					// msg += `\n* Trying to send to  ${value.username} fails. Error : ${value.error}`;

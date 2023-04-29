@@ -41,7 +41,7 @@ class Wallet extends Model {
 		const now = Date.now();
 		const Network = Model.LoadRegistry('Network');
 		const step = now - (global.config.rpc.interval * 1000);
-		if(!wallet) return wallet;
+		if (!wallet) return wallet;
 		if (!('updated' in wallet) || parseInt(wallet.updated) <= step) {
 			const result = await coin.getBalance(userId, wallet.wallet_id);
 

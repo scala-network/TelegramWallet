@@ -1,6 +1,6 @@
 {
 	"rpc": {
-		"address":"https://rebel1.grouptwo.org", 
+		"address":"https://terra-classic-lcd.publicnode.com", 
   		"chainID": "rebel-2"
 	},
 	"market" : {

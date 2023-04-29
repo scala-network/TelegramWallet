@@ -65,7 +65,7 @@ class Setting extends Query {
 				const f = field[i];
 				setting[f] = result[i];
 			}
-			if(Object.keys(setting).length <= 0){
+			if (Object.keys(setting).length <= 0) {
 				setting = null;
 			}
 		} else {

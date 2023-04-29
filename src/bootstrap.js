@@ -40,5 +40,3 @@ global.coins = {};
 for (const coin of global.config.coins) {
 	global.coins[coin] = require('../config/' + coin);
 }
-
-

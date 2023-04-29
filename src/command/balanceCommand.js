@@ -8,6 +8,7 @@ const Command = require('../base/command');
 const utils = require('../utils');
 const TimeAgo = require('javascript-time-ago');
 const timeAgo = new TimeAgo('en-US');
+const logSystem = 'command/balance';
 
 class BalanceCommand extends Command {
 	get name () {
@@ -32,28 +33,30 @@ class BalanceCommand extends Command {
 
 		if (oldWallet) {
 			for (const [coin, details] of Object.entries(oldWallet)) {
-				if(!details) continue;
+				if (!details) continue;
 				let wallet;
 				const coinObject = this.Coins.get(coin);
 				const syncWallet = await Wallet.syncBalance(ctx.from.id, details, coinObject);
-				
-				if (syncWallet && 'error' in syncWallet) {
-					wallet = details;
-				} else {
+
+				if (syncWallet && !('error' in syncWallet)) {
+				// } else {
 					wallet = syncWallet;
+				}else {
+					wallet = details;
+					global.log('error', logSystem, 'RPC (%s) error %j',[coin, ('error' in syncWallet) ? syncWallet.error : syncWallet]);
 				}
 
-				output += `Coin ID: ${wallet.coin_id}\n`;
-				output += `Balance: ${utils.formatNumber(coinObject.format(wallet.balance || 0))}\n`;
+				output += `Coin ID: ${coinObject.symbol}\n`;
+				output += `Balance: ${coinObject.format(wallet.balance || 0)}\n`;
 				let unlock = wallet.balance;
 				if ('unlock' in wallet) {
 					unlock = wallet.unlock;
 				}
 				if ('trading' in wallet) {
-					output += `Trade Locked: ${utils.formatNumber(coinObject.format(wallet.trading || 0))}\n`;
+					output += `Trade Locked: ${coinObject.format(wallet.trading || 0)}\n`;
 					unlock -= wallet.trading;
 				}
-				output += `Unlocked Balance: ${utils.formatNumber(coinObject.format(unlock || 0))}\n`;
+				output += `Unlocked Balance: ${coinObject.format(unlock || 0)}\n`;
 				output += `Last Sync: ${timeAgo.format(parseInt(wallet.updated || 0), 'round')}\n`;
 				output += `Last Height: ${utils.formatNumber(wallet.height || 0)}\n`;
 
