@@ -44,7 +44,7 @@ class PriceCommand extends Command {
 		const coin = ('' + ctx.appRequest.args[0]).trim().toLowerCase();
 		const coinObject = this.Coins.get(coin);
 
-		if (!~global.config.coins.indexOf(coin)) {
+		if (!~global.config.coins.indexOf(coin) || coin === 'vxla') {
 			return ctx.appResponse.reply(`Invalid coin. Avaliable coins are ${global.config.coins.join(',')}`);
 		}
 

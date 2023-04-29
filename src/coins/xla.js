@@ -37,7 +37,7 @@ class Xla {
 	}
 
 	explorerLink (hash) {
-		return `https://explorer.scalaproject.io/tx.html?hash=${hash}`;
+		return `https://explorer.scalaproject.io/tx/${hash}`;
 	}
 
 	async createWallet (id, password) {

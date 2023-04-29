@@ -26,7 +26,9 @@ class MetaConfirmAction extends Action {
 		const metas = await Meta.getByUserId(ctx.from.id);
 		if (!metas) {
 			await ctx.reply('Invalid or expired meta id');
-			await ctx.telegram.deleteMessage(x.chat.id, x.message_id);
+			await ctx.telegram.deleteMessage(x.chat.id, x.message_id).catch(e => {
+
+			})
 			return;
 		}
 		const coin = metas.coin;
@@ -34,7 +36,8 @@ class MetaConfirmAction extends Action {
 		if (!coinObject) {
 			Meta.deleteMeta(ctx.appRequest.from.id);
 			await ctx.reply(`Invalid coin ${coin}`);
-			await ctx.telegram.deleteMessage(x.chat.id, x.message_id);
+			await ctx.telegram.deleteMessage(x.chat.id, x.message_id).catch(e => {
+			});
 			return;
 		}
 		const explorer = [];
@@ -68,7 +71,8 @@ Explorer :
 		await ctx.reply(response, {
 			parse_mode: 'HTML'
 		});
-		await ctx.telegram.deleteMessage(x.chat.id, x.message_id);
+		await ctx.telegram.deleteMessage(x.chat.id, x.message_id).catch(e => {
+		});
 	}
 }
 module.exports = MetaConfirmAction;

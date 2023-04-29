@@ -167,6 +167,7 @@ let connect = true;
 (async () => {
 	let tickersLength;
 	for (const coin of global.config.coins) {
+		if(coin === 'vxla') continue;
 		if (coin in global.coins && 'market' in global.coins[coin] && 'tickers' in global.coins[coin].market) {
 			tickersLength += global.coins[coin].market.tickers.length;
 		}
@@ -176,6 +177,7 @@ let connect = true;
 	while (true) {
 		/** Store data from CMC **/
 		for (const coin of global.config.coins) {
+			if(coin === 'vxla') continue;
 			if (coin in global.coins && 'market' in global.coins[coin] && 'tickers' in global.coins[coin].market) {
 				if (!connect) {
 					await global.redisClient.connect().catch(() => {});

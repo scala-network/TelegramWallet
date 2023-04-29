@@ -34,7 +34,7 @@ class AddressCommand extends Command {
 				if (coin in wallets && wallets[coin] !== null) {
 					const wallet = wallets[coin];
 					outputs.push(`<b>${coinObject.fullname}(${coinObject.symbol})</b> :\n${wallet.address}`);
-				} else {
+				} else if(coin !== 'vxla'){
 					buttons.push({
 						text: `Create ${coinObject.fullname}(${coinObject.symbol}) Address`,
 						callback_data: `address-${coin}`
