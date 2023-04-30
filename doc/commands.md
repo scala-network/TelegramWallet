@@ -12,7 +12,7 @@ Each commands can be set as authorized for either in group only, user action onl
 * /remove - Deletes your account
 * /tip - Tip coin to another user
 * /set - Config setup for a certain coin
-* /withdraw - Withdraw coins in wallet. Use all as amount to withdraw all from account (usages : /withdraw coin coin_address amount)
+* /withdraw - Withdraw coins in wallet. Use all as amount to withdraw all from account (usages : /withdraw coin coin_address amount memo_or_note_here)
 * /version - Returns app's version
 * /price - Display current market price. With additional argument as ticker will send price changes for that ticker
 
@@ -21,6 +21,23 @@ Each commands can be set as authorized for either in group only, user action onl
 ![telegram-cloud-photo-size-5-6204172584145236156-y](https://user-images.githubusercontent.com/630603/194770232-bf00f52b-947c-4066-a7e1-805ff5fef917.jpg)
 
 By issuing address command to bot, it will show all coin's wallet already generated. A button will appear to indicate that coin's wallet is avaliable to be generated
+
+## /withdraw
+Allows you to send funds from your wallet to another recipient's wallet or address. 
+
+Usages:```/withdraw coin coin_address amount memo_or_note_here```
+
+Replace "coin" with the name of the cryptocurrency you want to withdraw, "coin_address" with the recipient's coin address, "amount" with the total amount you want to withdraw, and "memo_or_note_here" with the memo or note you want to include with the transaction, if requires.
+
+If you want to withdraw all the coins in your wallet, you can use the following command format:
+
+Usages: ```/withdraw coin coin_address all memo_or_note_here```
+
+**Take note:**
+
+* Be sure to double-check all transaction details before confirming the withdrawal, especially when using the "all" parameter, to avoid any unintended consequences such as sending more funds than intended or sending funds to the wrong address.
+
+* When withdrawing cryptocurrencies from a wallet to an exchange, it's important to include a memo or tag in the transaction, if required by the exchange.
 
 ## /tip
 Tip allows users to transfer a spesific coin to another user. To setup default values for tipping go to /set for more information.
