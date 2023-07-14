@@ -34,7 +34,7 @@ class RandomCommand extends Command {
 			randoms.push(_uname);
 			scores[_uname] = 0;
 		}
-		const max = randoms.length * 3 + 1;
+		const max = 100;
 
 		for (let i = 0;i < max;i++) {
 			let aRandoms = randoms.sort(() => Math.random() - 0.5).sort(() => Math.random() - 0.5).sort(() => Math.random() - 0.5);
