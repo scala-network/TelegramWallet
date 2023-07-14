@@ -24,18 +24,23 @@ Set value for your config. To get settings for a coin run /set coin only. usages
 <b>rain</b>
 - Set amount of coin to distribute per head 
 - usage: /set xla rain 10
+
 <b>tip</b>
 - Set default tip value 
 - usage: /set xla tip 100
+
 <b>tip_submit coin (enable | disable)</b>
 - On enable tip will require a confirmation before sending (default: disable)
-- usage: /tip_submit xla disable
+- usage: /set tip_submit xla disable
+
 <b>rain_submit coin (enable | disable)</b>
 - On enable rain will require a confirmation before sending (default: disable) 
-- usage: /rain_submit xla disable
+- usage: /set rain_submit xla disable
+
 <b>wet</b>
 - Number of latest members to recieve rain
-- usage: /wet xla 10`;
+- usage: /set wet xla 10
+`;
 	}
 
 	auth (ctx) {

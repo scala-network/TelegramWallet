@@ -31,13 +31,13 @@ class MetaConfirmAction extends Action {
 			})
 			return;
 		}
+
 		const coin = metas.coin;
 		const coinObject = this.Coins.get(coin);
 		if (!coinObject) {
 			Meta.deleteMeta(ctx.appRequest.from.id);
 			await ctx.reply(`Invalid coin ${coin}`);
-			await ctx.telegram.deleteMessage(x.chat.id, x.message_id).catch(e => {
-			});
+			await ctx.telegram.deleteMessage(x.chat.id, x.message_id).catch(e => { });
 			return;
 		}
 		const explorer = [];
@@ -59,6 +59,7 @@ class MetaConfirmAction extends Action {
 				});
 			}
 		}
+
 
 		const response = `<b><u>Transaction completed for ${coinObject.fullname}</u></b>
 Number of transactions: ${txHashes.length}

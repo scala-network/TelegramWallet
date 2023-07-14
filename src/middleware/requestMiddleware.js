@@ -1,6 +1,12 @@
 'use strict';
 const Middleware = require('../base/middleware');
 const logSystem = 'middleware/request';
+let warmingUp = true;
+
+setTimeout(() => {
+	warmingUp = false;
+	global.log('info', logSystem, 'Warming Up completed');
+}, 60*1000);
 
 class RequestMiddleware extends Middleware {
 	enabled = true;
@@ -11,8 +17,8 @@ class RequestMiddleware extends Middleware {
 
 	async run (ctx, next) {
 		if (ctx.test) return;
-
-		if (!ctx || !ctx.update) {
+		
+		if (!ctx || !ctx.update || warmingUp) {
 			if (next) {
 				await next(ctx);
 			}

@@ -60,7 +60,6 @@ class Lunc {
 	}
 
 	explorerLink (hash) {
-		//		https://finder.terra.money/classic/tx/f2a612d8e43ef19b4f51a1e5351ff1249b582e3db1541a63dc24705bd47ed0f6
 		return `https://finder.terra.money/classic/tx/${hash}`;
 	}
 
@@ -116,7 +115,7 @@ class Lunc {
 			const gasPrices = await fetch('https://fcd.terra.dev/v1/txs/gas_prices');
 			const gasPricesJson = await gasPrices.json();
 			Lunc.CacheRequest.gasPrices.dt = new Coins(gasPricesJson);
-			Lunc.CacheRequest.gasPrices.ts = moment().add(1, 'day').format('x');
+			Lunc.CacheRequest.gasPrices.ts = moment().add(1, 'week').format('x');
 		}
 
 		return Lunc.CacheRequest.gasPrices.dt;
@@ -175,6 +174,8 @@ class Lunc {
 			taxCap: Lunc.CacheRequest.taxCap.dt
 		};
 	}
+	
+	#_gasAdjustment = 4;
 
 	async #_estimateFee (idx, destinations, wallet) {
 		if (!wallet) {
@@ -199,10 +200,11 @@ class Lunc {
 
 		if (!gasPricesCoins) return { error: 'Unable to get gas prices' };
 
-		const txFee = await this.#_lcd.tx.estimateFee(signerData, { msgs: send, gasPrices: gasPricesCoins, gasAdjustment: 3, feeDenoms: ['uluna'] })
-			.catch(e => {
-				global.log('error', system, 'Error estimate fee %s', [e.message]);
-			});
+		const txFee = await this.#_lcd.tx.estimateFee(signerData, {
+		 msgs: send, gasPrices: gasPricesCoins, gasAdjustment: this.#_gasAdjustment, feeDenoms: ['uluna'] 
+		}).catch(e => {
+			global.log('error', system, 'Error estimate fee %s', [e.message]);
+		});
 		if (!txFee) return { error: 'Unable to get tx fee' };
 
 		txFee.amount = txFee.amount.add(taxAmountCoins);
@@ -230,10 +232,10 @@ class Lunc {
 		try {
 			txfee = txFee.toData(true);
 		} catch {
-			console.log(txFee);
+			return { error: 'Error converting toData txFee : ' + txFee };
 			return txFee;
 		}
-
+		// console.log("We got the txFee " , txFee);
 		if (!Array.isArray(txFee.amount)) {
 			txfee = txFee.amount._coins.uluna.amount;
 		} else if (txfee.length > 0) {
@@ -352,7 +354,6 @@ class Lunc {
 				options = metaParse.options;
 			}
 			options.doNotRelay = false;
-
 			if (!('sweep_all' in metaParse)) return await this.#_transfers(id, idx, metaParse.destinations, options, wallet);
 
 			return await this.sweep(id, idx, metaParse.address, options);
@@ -462,7 +463,7 @@ class Lunc {
 			{
 				msgs: [dmsg],
 				gasPrices,
-				gasAdjustment: 3,
+				gasAdjustment:this.#_gasAdjustment,
 				feeDenoms: ['uluna']
 			}
 		);
@@ -498,6 +499,7 @@ class Lunc {
 		if (!tx) {
 			return { error: 'TX error' };
 		}
+		
 		return new Promise(resolve => {
 			this.#_lcd.tx.broadcast(tx).then(result => {
 				if (isTxError(result)) {

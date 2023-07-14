@@ -7,7 +7,8 @@ class Middleware extends Registeries {
 		return [
 			'request',
 			'log',
-			'member'
+			'member',
+			'discord'
 			// "markdownMiddleware"
 		];
 	}

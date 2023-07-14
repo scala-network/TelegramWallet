@@ -1,7 +1,7 @@
 /**
-* A Telegram Command. Transfer sends coin to username.
-* To return current wallets address do /transfer <username> <amount>
-* @module Commands/transfer
+* A Telegram Command. Transfer coin with an address.
+* To return current wallets address do /withdraw <coin> <coin_address> <amount> <memo>
+* @module Commands/withdraw
 */
 const Command = require('../base/command');
 
@@ -11,7 +11,7 @@ class WithdrawCommand extends Command {
 	}
 
 	get description () {
-		return 'Withdraw coins in wallet. Use all as amount to withdraw all from account (usages : /withdraw coin coin_address amount)';
+		return 'Withdraw coins in wallet. Use all as amount to withdraw all from account (usages : /withdraw coin coin_address amount memo)';
 	}
 
 	auth (ctx) {
@@ -88,10 +88,6 @@ class WithdrawCommand extends Command {
 		const memo = [];
 		if (ctx.appRequest.args.length >= 4) {
 			for (let i = 3; i < ctx.appRequest.args.length; i++) {
-				// const split = ctx.appRequest.args[i].split('=');
-				// const key = split[0].trim();
-				// const value = split[1].trim();
-				// args[key] = value;
 				memo.push(ctx.appRequest.args[i]);
 			}
 		}

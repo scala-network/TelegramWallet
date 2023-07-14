@@ -5,3 +5,5 @@ config.json
 /tmp/*
 /config/*.json
 !/config/*.default.json
+/private
+src/utils/chat.js

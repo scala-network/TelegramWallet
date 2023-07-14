@@ -17,7 +17,18 @@ class RainCommand extends Command {
 	}
 
 	get fullDescription () {
-		return 'Sends airdrop to random users. To send rain run /rain coin';
+		return `Sends airdrop to random users. To send rain run /rain coin
+
+		<b>Rain Distribution</b>
+In order to distribute rain to users, you would typically use the /set coin rain 
+and /set coin wet commands to configure the rain parameters for the specific cryptocurrency 
+you want to use.
+
+The amount of rain distributed for each rain calls will be calculated as follows:
+amount_rained = (set_rain * set_wet) + blockchain_fee
+
+The blockchain_fee is the transaction fee charged by the blockchain network and may vary.
+`;
 	}
 
 	auth (ctx) {

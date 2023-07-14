@@ -1,6 +1,6 @@
 {
   "name": "ScalaTelegramWallet",
-  "version": "2.0",
+  "version": "2.1",
   "description": "",
   "main": "app.js",
   "scripts": {
@@ -11,15 +11,20 @@
     "@terra-money/terra.js": "^3.1.7",
     "cli-color": "^1.4.0",
     "cli-progress": "^3.9.1",
+    "compromise": "^14.9.0",
     "dateformat": "^3.0.3",
+    "discord.js": "^14.11.0",
     "git-rev-sync": "^3.0.2",
     "http": "0.0.0",
     "https": "^1.0.0",
     "ioredis": "^4.28.5",
     "isomorphic-fetch": "^3.0.0",
     "javascript-time-ago": "^2.3.8",
+    "knex": "^2.4.2",
     "lodash": "^4.17.21",
     "moment": "^2.29.4",
+    "mysql2": "^3.2.0",
+    "openai": "^3.2.1",
     "telegraf": "^4.4.1",
     "uuid": "^8.3.2"
   },

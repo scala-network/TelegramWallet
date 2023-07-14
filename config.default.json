@@ -4,5 +4,15 @@
 		"username" : "BotUsername"
 	},
 	"coins" : ["xla","lunc"],
-	"admins":[]
+	"admins":[],
+	"discord" : {
+		"urlToken":"",
+		"chatId" : [
+			""
+		]
+	},
+	"openai" : {
+		"apiKey" : "",
+		"admin" : ""
+	}
 }

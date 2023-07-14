@@ -14,6 +14,8 @@ module.exports = {
 		'withdraw',
 		'version',
 		'wet',
-		'price'
+		'price',
+		"chat",
+		"random"
 	]
 };

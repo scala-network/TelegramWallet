@@ -13,6 +13,7 @@ class Middleware {
 			console.error('Method missing run');
 			process.exit();
 		}
+
 	}
 }
 

@@ -33,8 +33,10 @@ class CommandManager extends Registeries {
 				return;
 			}
 			reg.exec(ctx).then(() => {
-				//				console.log(ctx);
-				ctx.telegram.deleteMessage(ctx.message.chat.id, ctx.message.message_id).catch(e => {}); // Delete any message in any chat
+				if(ctx.appRequest.is.group) {
+					// Delete any message in any chat groups only
+					ctx.telegram.deleteMessage(ctx.message.chat.id, ctx.message.message_id).catch(e => {});
+				}
 			});
 		};
 		bot.command(reg.name, exec);
