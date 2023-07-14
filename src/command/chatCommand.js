@@ -1,7 +1,7 @@
 'use strict';
 /**
-* A Telegram Command. Address basically returns wallet*s) address.
-* To return current wallets address do /address
+* A Telegram Command. Chat allows to give a question and AI will answer it.
+* To return talk to the ai use /chat <question?>
 *
 * @module Commands/address
 */
@@ -89,8 +89,9 @@ class ChatCommand extends Command {
 				if(er.includes('Rate limit reach')) {
 					er = 'Rate limit reached';
 				}
-
-				ctx.appResponse.sendMessage(global.config.openai.admin,"Bot server error. Response : " +  er);
+				if(global.config.openai.admin) {
+					ctx.appResponse.sendMessage(global.config.openai.admin,"Bot server error. Response : " +  er);
+				}
 				
 		    return ctx.appResponse.reply("I am a bit busy right now.");
 		}
