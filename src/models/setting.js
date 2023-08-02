@@ -16,6 +16,10 @@ class Setting extends Model {
 		return 'setting';
 	}
 
+	updateUser(id, field, value, options = []) {
+		return this.Query(options).updateUser(id, field, value);
+	}
+	
 	updateField (id, field, value, coin = 'xla', options = []) {
 		return this.Query(options).updateField(id, field, value, coin);
 	}

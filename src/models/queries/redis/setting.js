@@ -3,6 +3,22 @@ const Query = require('../../../base/query');
 const Model = require('../../../base/model');
 
 class Setting extends Query {
+	async updateUser(userId, field, value) {
+		const User = Model.LoadRegistry('User');
+
+		const exists = await User.exists(userId);
+
+		if (!exists) {
+			return { error: "User doesn't exists" };
+		}
+
+		const ukey = ['user', 'settings', userId].join(':');
+
+		await global.redisClient.hset(ukey, field, value);
+
+		return true;
+	}
+
 	async updateField (userId, field, value, coin = 'xla') {
 		const User = Model.LoadRegistry('User');
 
@@ -37,6 +53,10 @@ class Setting extends Query {
 		const settings = await global.redisClient.hmget(ukey, this.fields);
 		if (!settings) {
 			return {};
+		}
+
+		if(coin === 'user') {
+			return results;
 		}
 
 		const results = {};

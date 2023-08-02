@@ -40,7 +40,14 @@ Set value for your config. To get settings for a coin run /set coin only. usages
 <b>wet</b>
 - Number of latest members to recieve rain
 - usage: /set wet xla 10
-`;
+
+
+Set value for your config. To get settings for user run /set user config. usages: /set user config value. Below are the avaliable
+ configurations avaliable
+<b>timezone</b>
+- Set your current timezone. This is mandotary to allow OTP time is sync.
+- To get the list of timezone refer to https://en.wikipedia.org/wiki/List_of_tz_database_time_zones (Please refer TZ Identifier)
+- usage: /set user timezone Asia/Kuala_Lumpur`;
 	}
 
 	auth (ctx) {
@@ -58,6 +65,40 @@ Set value for your config. To get settings for a coin run /set coin only. usages
 		if (!coin) {
 			coin = 'xla';
 		}
+
+		if(coin === 'user') {
+			if (ctx.appRequest.args.length < 2) {
+				let output = `<u>User Settings </u>\n`;
+				const result = await Setting.findAllByUserId(ctx.from.id, coin);
+				if(!result) {
+					return ctx.appResponse.reply(`You haven't setup anything`);
+				}
+				for (const [k,v] of Object.entires(result)) {
+					output += `<b>${k}</b> : ${v}\n`;
+				}
+
+				return ctx.appResponse.reply(output);
+			}
+			if (ctx.appRequest.args.length < 3) {
+				return ctx.appResponse.reply('Missing new set value');
+			}
+			const field = ctx.appRequest.args[1];
+			const value = ctx.appRequest.args[2];
+			switch (field) {
+			case 'timezone':
+				if(!moment.tz.zone(value)) {
+					return ctx.appResponse.reply('Invalid timezone. Please refer https://en.wikipedia.org/wiki/List_of_tz_database_time_zones');
+				}
+				await Setting.updateUser(ctx.from.id,field, value);
+				return ctx.appResponse.reply(`Timezone saved ${value}`);
+				break;
+			default:
+				break;
+			}
+			return;
+		}
+
+
 		if (!~global.config.coins.indexOf(coin)) {
 			return ctx.appResponse.reply(`Invalid coin. Avaliable coins are ${global.config.coins.join(',')}`);
 		}
