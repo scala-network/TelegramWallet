@@ -23,6 +23,7 @@
     "knex": "^2.4.2",
     "lodash": "^4.17.21",
     "moment": "^2.29.4",
+    "moment-timezone": "^0.5.43",
     "mysql2": "^3.2.0",
     "openai": "^3.2.1",
     "telegraf": "^4.4.1",
